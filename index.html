@@ -28,6 +28,7 @@
   --stage:#100b16; --scrim:rgba(8,4,14,.8); --line:#45375261; --soft:#362a43;
 }
 *,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{height:100%;margin:0;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
   font-family:Fredoka,"Trebuchet MS","Segoe UI",sans-serif;font-size:17px;line-height:1.45}
@@ -95,6 +96,7 @@ input[type=text]:focus,button:focus-visible{outline:3px solid var(--gold);outlin
 .step.on{border-color:var(--violet)}
 .step.on .n{background:var(--violet);color:var(--violet-ink)}
 .tip{color:var(--muted);font-size:.95rem}
+.btn.readbtn{padding:.25rem .8rem;font-size:.95rem;margin-top:.5rem}
 .numrow{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
 .numrow input{width:150px;margin:0;font-size:1.3rem;font-weight:600}
 .keys{display:flex;align-items:center;gap:.5rem;font-size:1.3rem;margin:.4rem 0}
@@ -146,6 +148,7 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
   <div class="stat" id="corn">🌽 3</div>
   <div class="spacer"></div>
   <button id="bHelp" type="button">How to play</button>
+  <button id="bRead" type="button">Read aloud off</button>
   <button id="bMute" type="button">Sound on</button>
 </header>
 
@@ -173,6 +176,7 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
         <input type="text" id="name" maxlength="20" autocomplete="off" placeholder="Pilgrim">
       </label>
       <div class="skins" id="skins" role="group" aria-label="Choose your pilgrim"></div>
+      <label class="field" id="readopt"><input type="checkbox" id="readchk"> Read the questions and answer choices out loud to me</label>
       <div class="row">
         <button class="btn" id="start" type="button">Start a new adventure</button>
         <button class="btn ghost" id="cont" type="button" hidden>Continue</button>
@@ -781,9 +785,42 @@ function fit(){
   scale = k * dpr; cv.width = Math.round(VW * scale); cv.height = Math.round(VH * scale);
 }
 
+/* ---------------- Read aloud ---------------- */
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+let autoRead = false; try { autoRead = localStorage.getItem('violet-read') === '1'; } catch (e) {}
+let utters = [], sayT = 0, voice = null;
+function pickVoice(){ try { const vs = speechSynthesis.getVoices(); voice = vs.find(v => v.lang === 'en-US' && v.localService) || vs.find(v => v.lang === 'en-US') || vs.find(v => /^en/i.test(v.lang)) || null; } catch (e) {} }
+if (canSpeak) { pickVoice(); try { speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
+function hush(){ clearTimeout(sayT); if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {} }
+function say(parts){
+  if (!canSpeak) return;
+  clearTimeout(sayT);
+  try { if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); } catch (e) {}
+  sayT = setTimeout(() => {
+    try {
+      if (!voice) pickVoice();
+      speechSynthesis.resume();
+      utters = [].concat(parts).filter(Boolean).map(t => { const u = new SpeechSynthesisUtterance(t); u.rate = .92; u.lang = voice ? voice.lang : 'en-US'; if (voice) u.voice = voice; return u; });
+      utters.forEach(u => speechSynthesis.speak(u));
+    } catch (e) {}
+  }, 150);
+}
+function spoken(h){
+  return String(h).replace(/<span class="bigline">/g, '. ').replace(/<[^>]+>/g, '').replace(/_{2,}/g, ' blank ').replace(/▢/g, ' blank ')
+    .replace(/(\d+) (\d+)\/(\d+)/g, '$1 and $2 over $3').replace(/(\d+)\/(\d+)/g, '$1 over $2').replace(/Ctrl \+ /g, 'Control plus ').replace(/×/g, ' times ')
+    .replace(/^>$/, 'greater than').replace(/^<$/, 'less than').replace(/^=$/, 'equals');
+}
+function readQ(){
+  const q = ses && ses.qs[ses.i]; if (!q) return;
+  const t = [spoken(q.q)];
+  if (q.type === 'mc') q.choices.forEach((c, k) => t.push(`Choice ${k + 1}: ${spoken(c)}`));
+  else if (q.type === 'order') { t.push('The choices are:'); ses.shuf.forEach(k => t.push(spoken(q.steps[k]))); }
+  say(t);
+}
+
 /* ---------------- Puzzles ---------------- */
 const modal = $('#modal'), card = $('#card');
-function closeModal(){ modal.hidden = true; ses = null; setState('play'); player.inv = Math.max(player.inv, 2); }
+function closeModal(){ hush(); modal.hidden = true; ses = null; setState('play'); player.inv = Math.max(player.inv, 2); }
 function openStation(s){ setState('modal'); ses = {s, qs:shuffle(s.pool()).slice(0, 3), i:0}; modal.hidden = false; renderQ(); }
 function renderQ(){
   const {s, qs, i} = ses, q = qs[i]; ses.missed = false; ses.done = false;
@@ -796,9 +833,11 @@ function renderQ(){
   card.innerHTML = `<div class="who"><span class="badge">${s.icon}</span><div class="grow"><h2>${s.name}</h2><p class="sub">${s.who} needs help with: ${s.skill.toLowerCase()}</p></div><button type="button" class="leave" id="leave">Leave</button></div>
     ${i === 0 ? `<p class="say">“${s.intro}”</p>` : ''}
     <div class="dots" aria-label="Question ${i + 1} of 3">${[0, 1, 2].map(k => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('')}</div>
+    ${canSpeak && autoRead ? '<button type="button" class="btn ghost readbtn" id="read">🔊 Read it again</button>' : ''}
     <p class="q">${q.q}</p>${body}<p class="fb" id="fb" role="status"></p>
     <button type="button" class="btn" id="next" hidden></button>`;
   $('#leave').onclick = closeModal;
+  hush(); if (canSpeak && autoRead) { $('#read').onclick = readQ; readQ(); }
   $('#next').onclick = () => { ses.i++; if (ses.i >= ses.qs.length) award(); else renderQ(); };
   if (q.type === 'mc') card.querySelectorAll('.choice').forEach(b => b.onclick = () => {
     if (ses.done) return;
@@ -837,7 +876,7 @@ function right(){
 }
 function wrong(msg){ ses.missed = true; sfx.bad(); const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Not quite. ' + msg; }
 function award(){
-  const s = ses.s; S.solved.add(s.id); ses = null; save(); updateHud(); sfx.piece();
+  hush(); const s = ses.s; S.solved.add(s.id); ses = null; save(); updateHud(); sfx.piece();
   const n = S.solved.size;
   card.innerHTML = `<div class="center"><h2>You earned piece ${n} of ${N}!</h2>${keySVG(STATIONS.indexOf(s), 'big')}
     <p class="say">“${s.thanks}”</p>
@@ -966,6 +1005,9 @@ $('#bThrow').addEventListener('pointerdown', e => { e.preventDefault(); throwAco
 if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dl = d; const b = $('#savecert'); if (b && d) b.hidden = false; }).catch(() => {});
 $('#bHelp').onclick = e => { e.currentTarget.blur(); showHelp(); };
 $('#bMute').onclick = e => { muted = !muted; e.currentTarget.textContent = muted ? 'Sound off' : 'Sound on'; e.currentTarget.blur(); };
+const bRead = $('#bRead'), readChk = $('#readchk');
+function setRead(v, tell){ autoRead = v; bRead.textContent = v ? 'Read aloud on' : 'Read aloud off'; readChk.checked = v; if (!v) hush(); else if (tell) say('Reading out loud is on.'); try { localStorage.setItem('violet-read', v ? '1' : '0'); } catch (e) {} }
+if (!canSpeak) { bRead.hidden = true; $('#readopt').hidden = true; } else { setRead(autoRead); bRead.onclick = () => { setRead(!autoRead, true); bRead.blur(); }; readChk.onchange = () => setRead(readChk.checked, true); }
 
 /* ---------------- Title ---------------- */
 const skinBox = $('#skins');
