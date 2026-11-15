@@ -66,6 +66,9 @@ canvas{display:block;border-radius:10px}
 .field{display:block;font-weight:600;margin:.6rem 0}
 input[type=text]{display:block;margin-top:.25rem;padding:.5rem .7rem;border-radius:10px;border:2px solid var(--line);background:var(--paper);width:100%;max-width:340px}
 input[type=text]:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.grades{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem}
+.grades button{min-width:64px;padding:.45rem .9rem;border-radius:12px;border:2px solid var(--line);background:var(--paper);font-weight:600;cursor:pointer}
+.grades button[aria-pressed=true]{background:var(--violet);color:var(--violet-ink);border-color:var(--violet)}
 .skins{display:flex;gap:.5rem;align-items:center;margin:.4rem 0 .9rem}
 .skins button{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);cursor:pointer;padding:0}
 .skins button[aria-pressed=true]{border-color:var(--violet);box-shadow:0 0 0 3px var(--gold)}
@@ -164,7 +167,7 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
   <div class="overlay" id="title">
     <div class="card">
       <h1>The Feast Key of Violet</h1>
-      <p class="sub">A Thanksgiving adventure for fourth graders</p>
+      <p class="sub">A Thanksgiving adventure for grades 1 to 4</p>
       <p>Dinner is ready in the Pilgrim town of Violet, but the troublemaking turkeys pecked the golden Feast Key into <b>9 pieces</b> and scattered them across the farm. Visit each villager, solve their puzzles, and rebuild the key before the food gets cold!</p>
       <div class="how">
         <div><b>Move</b><span>Arrow keys or W A S D</span></div>
@@ -175,6 +178,13 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
       <label class="field">Your first name
         <input type="text" id="name" maxlength="20" autocomplete="off" placeholder="Pilgrim">
       </label>
+      <div class="field">What grade are you in?
+        <div class="grades" id="grades" role="group" aria-label="Your grade">
+          <button type="button" data-g="1" aria-pressed="false">1st</button><button type="button" data-g="2" aria-pressed="false">2nd</button>
+          <button type="button" data-g="3" aria-pressed="false">3rd</button><button type="button" data-g="4" aria-pressed="false">4th</button>
+        </div>
+      </div>
+      <p class="fb no" id="gradeMsg" role="status"></p>
       <div class="skins" id="skins" role="group" aria-label="Choose your pilgrim"></div>
       <label class="field" id="readopt"><input type="checkbox" id="readchk"> Read the questions and answer choices out loud to me</label>
       <div class="row">
@@ -371,8 +381,11 @@ const SHORT = [
  ['y', 'Ctrl + Y', 'REDO what you just undid', 'It is the letter right before Z.']
 ];
 const KEYNAME = {c:'Copy', v:'Paste', x:'Cut', z:'Undo', a:'Select all', b:'Bold', i:'Italic', u:'Underline', y:'Redo'};
-const smithPool = () => SHORT.map(([key, label, act, hint]) => ({type:'key', key, label,
-  q:`Press the real keyboard shortcut to <b>${act}</b>.`, hint:`Hold Ctrl and tap one letter. ${hint}`}));
+const ctrlQ = ([key, label, act, hint]) => ({type:'key', ctrl:true, key, cap:key.toUpperCase(), label,
+  q:`Press the real keyboard shortcut to <b>${act}</b>.`, altq:`Which shortcut do you press to <b>${act}</b>?`, hint:`Hold Ctrl and tap one letter. ${hint}`});
+const keyQ = (act, key, cap, hint, o) => Object.assign({type:'key', key, cap, label:cap, q:`Press the key you use to <b>${act}</b>.`, altq:`Which key do you use to <b>${act}</b>?`, hint}, o || {});
+const withOthers = p => { p.forEach(q => { q.others = p.map(x => x.label); }); return p; };
+const smithPool = () => withOthers(SHORT.map(ctrlQ));
 
 function bakeryPool(){
   const dg = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, 3).concat(0), set = new Set();
@@ -389,6 +402,335 @@ function bakeryPool(){
   ];
 }
 
+/* ---------------- Grades 1 to 3 ---------------- */
+const big = t => `<span class="bigline">${t}</span>`;
+const p2 = n => String(n).padStart(2, '0');
+const cmpQ = (la, lb, va, vb, hint) => mc(`Which symbol makes this true?${big(`${la} ▢ ${lb}`)}`, va > vb ? '>' : '<', ['>', '<', '='], hint);
+
+function barn1(){
+  const o = [];
+  { const a = R(3, 9), b = R(2, 9); o.push(num(`Farmer Josiah has <b>${a}</b> red apples and <b>${b}</b> green apples. How many apples in all?`, a + b, `Start at ${a} and count up ${b} more.`)); }
+  { const a = R(11, 19), b = R(2, 9); o.push(num(`There are <b>${a}</b> eggs in the nest. Josiah takes <b>${b}</b> eggs. How many eggs are left?`, a - b, `Start at ${a} and count back ${b}.`)); }
+  { const a = R(2, 9), t = R(a + 2, Math.min(a + 9, 18)); o.push(num(`What number is missing?${big(`${a} + ▢ = ${t}`)}`, t - a, `Count up from ${a} until you get to ${t}. How many did you count?`)); }
+  { const a = R(2, 6), b = R(2, 6), c = R(1, 5); o.push(num(`The barn has <b>${a}</b> cows, <b>${b}</b> pigs, and <b>${c}</b> sheep. How many animals is that?`, a + b + c, `Add two of the numbers first. Then add the last one.`)); }
+  { const a = R(4, 9); o.push(num(`What is the double?${big(`${a} + ${a} = ▢`)}`, 2 * a, `Count ${a}, then count ${a} more.`)); }
+  { const x = R(8, 15), y = R(2, x - 2); o.push(num(`Josiah has <b>${x}</b> pumpkins. Hope has <b>${y}</b> pumpkins. How many <b>more</b> pumpkins does Josiah have?`, x - y, `Take ${y} away from ${x}.`)); }
+  { const a = R(1, 9); o.push(num(`What is the sum?${big(`10 + ${a} = ▢`)}`, 10 + a, `One ten and ${a} more ones.`)); }
+  return o;
+}
+function barn2(){
+  const o = [];
+  { const a = R(21, 58), b = R(13, 39); o.push(num(`Farmer Josiah picked <b>${a}</b> apples in the morning and <b>${b}</b> apples after lunch. How many apples did he pick?`, a + b, `Add the tens. Add the ones. Then put them together.`)); }
+  { const a = R(45, 95), b = R(12, a - 10); o.push(num(`There were <b>${a}</b> ears of corn in the barn. The turkeys ate <b>${b}</b> of them. How many are left?`, a - b, `Subtract the tens, then the ones. You may need to regroup.`)); }
+  { const r = R(2, 5), c = R(2, 5); o.push(num(`Josiah plants <b>${r}</b> rows of pumpkins. There are <b>${c}</b> pumpkins in each row. How many pumpkins is that?`, r * c, `Add ${c} again and again, ${r} times.`)); }
+  { const st = pick([5, 10, 2]), s0 = R(2, 8) * st; o.push(mc(`What number comes next?${big(`${s0}, ${s0 + st}, ${s0 + 2 * st}, ▢`)}`, s0 + 3 * st, [s0 + 3 * st + 1, s0 + 4 * st, s0 + 2 * st + 1], `The numbers are skip counting by ${st}s.`)); }
+  { o.push(mc(`Which number is <b>even</b>?`, pick([12, 24, 36, 48, 50, 18]), shuffle([11, 23, 35, 47, 19, 51]).slice(0, 3), `Even numbers end in 0, 2, 4, 6, or 8.`)); }
+  { const a = R(20, 40), b = R(10, 25), c = R(5, 15); o.push(num(`Josiah has <b>${a}</b> eggs. He finds <b>${b}</b> more. Then he sells <b>${c}</b>. How many eggs does he have now?`, a + b - c, `Two steps: add first, then subtract.`)); }
+  { const a = R(20, 60), t = a + R(11, 35); o.push(num(`What number is missing?${big(`${a} + ▢ = ${t}`)}`, t - a, `Count up from ${a} to ${t}, or subtract ${a} from ${t}.`)); }
+  return o;
+}
+function barn3(){
+  const o = [];
+  { const a = R(3, 9), b = R(3, 9); o.push(num(`Farmer Josiah has <b>${a}</b> baskets with <b>${b}</b> eggs in each basket. How many eggs is that?`, a * b, `Multiply ${a} × ${b}, or count by ${b}s ${a} times.`)); }
+  { const d = R(3, 9), q = R(3, 9); o.push(num(`<b>${d * q}</b> apples are shared equally among <b>${d}</b> horses. How many apples does each horse get?`, q, `Think: ${d} × ▢ = ${d * q}.`)); }
+  { const a = R(3, 9), b = R(3, 9); o.push(num(`What number is missing?${big(`${a} × ▢ = ${a * b}`)}`, b, `Count by ${a}s until you reach ${a * b}. How many counts?`)); }
+  { const a = R(3, 6), b = R(4, 8), c = R(3, 10); o.push(num(`Josiah has <b>${a}</b> bags with <b>${b}</b> carrots in each bag. The horses eat <b>${c}</b> carrots. How many carrots are left?`, a * b - c, `Two steps: multiply first, then subtract.`)); }
+  { const a = R(150, 480), b = R(125, 460); o.push(num(`The barn holds <b>${a}</b> bales of hay. Josiah adds <b>${b}</b> more. How many bales now?`, a + b, `Add the ones, then the tens, then the hundreds.`)); }
+  { const a = R(400, 900), b = R(120, 350); o.push(num(`Josiah had <b>${a}</b> ears of corn. He sold <b>${b}</b>. How many are left?`, a - b, `Subtract the ones, then the tens, then the hundreds. Regroup if you need to.`)); }
+  { const a = R(2, 9), b = R(2, 9) * 10; o.push(num(`What is the product?${big(`${a} × ${b} = ▢`)}`, a * b, `Think of ${a} × ${b / 10} tens.`)); }
+  return o;
+}
+
+function mill1(){
+  const o = [];
+  { const t = R(2, 9), n = R(1, 9); o.push(mc(`Miller Thomas has <b>${t}</b> bags of ten and <b>${n}</b> more. What number is ${t} tens and ${n} ones?`, t * 10 + n, [n * 10 + t, t + n, t * 10 + n + 10], `The tens go first. The ones go second.`)); }
+  { const a = R(11, 98); let b = R(11, 98); if (b === a) b = a > 50 ? a - 7 : a + 7; o.push(cmpQ(a, b, a, b, `Look at the tens first. The number with more tens is greater.`)); }
+  { const n = R(12, 85); o.push(num(`What number is <b>10 more</b> than ${n}?`, n + 10, `Add one more ten. The ones stay the same.`)); }
+  { const n = R(22, 95); o.push(num(`What number is <b>10 less</b> than ${n}?`, n - 10, `Take away one ten. The ones stay the same.`)); }
+  { const h = R(1, 12); o.push(mc(`The short hand points to ${h}. The long hand points to 12. What time is it?`, `${h}:00`, [`${h}:30`, `${h % 12 + 1}:00`, `${(h + 10) % 12 + 1}:00`], `The short hand tells the hour. A long hand on 12 means “o’clock.”`)); }
+  { const h = R(1, 12); o.push(mc(`It is <b>half past ${h}</b>. How do you write that time?`, `${h}:30`, [`${h}:00`, `${h}:15`, `${h % 12 + 1}:30`], `Half past means 30 minutes after the hour.`)); }
+  { const b = R(3, 9), a = b + R(2, 8); o.push(num(`The rope is <b>${a}</b> blocks long. The stick is <b>${b}</b> blocks long. How many blocks <b>longer</b> is the rope?`, a - b, `Take ${b} away from ${a}.`)); }
+  { const n = R(28, 118); o.push(num(`What number comes right <b>after</b> ${n}?`, n + 1, `Count one more.`)); }
+  return o;
+}
+function mill2(){
+  const o = [];
+  { const h = R(1, 9), t = R(1, 9), n = R(1, 9); o.push(num(`What number has <b>${h} hundreds, ${t} tens, and ${n} ones</b>?`, h * 100 + t * 10 + n, `Write the hundreds first, then the tens, then the ones.`)); }
+  { const a = R(120, 980); let b = R(120, 980); if (b === a) b = a > 500 ? a - 13 : a + 13; o.push(cmpQ(a, b, a, b, `Compare the hundreds first. If they match, compare the tens.`)); }
+  { const q = R(1, 3), d = R(1, 4); o.push(num(`Thomas has <b>${q}</b> ${q === 1 ? 'quarter' : 'quarters'} and <b>${d}</b> ${d === 1 ? 'dime' : 'dimes'}. How many <b>cents</b> is that?`, 25 * q + 10 * d, `A quarter is 25 cents. A dime is 10 cents.`)); }
+  { const n = R(2, 6), c = R(1, 4); o.push(num(`Thomas has <b>${n}</b> nickels and <b>${c}</b> ${c === 1 ? 'penny' : 'pennies'}. How many <b>cents</b> is that?`, 5 * n + c, `A nickel is 5 cents. A penny is 1 cent.`)); }
+  { const h = R(1, 12), k = R(1, 11), m = 5 * k; o.push(mc(`The short hand is just past ${h}. The long hand points to ${k}. What time is it?`, `${h}:${p2(m)}`, [`${h}:${p2(k)}`, `${h % 12 + 1}:${p2(m)}`, `${h}:${p2((m + 30) % 60)}`], `Count by 5s around the clock to find the minutes.`)); }
+  { const n = R(120, 880); o.push(num(`What number is <b>100 more</b> than ${n}?`, n + 100, `Add one more hundred. The tens and ones stay the same.`)); }
+  { const a = R(12, 40), b = a + R(8, 30); o.push(num(`The pumpkin vine is <b>${a}</b> inches long. The corn stalk is <b>${b}</b> inches tall. How many inches <b>longer</b> is the corn stalk?`, b - a, `Subtract the smaller number from the bigger number.`)); }
+  { const h = R(1, 9), t = R(1, 9), n = R(1, 9); o.push(num(`What number is this?${big(`${h}00 + ${t}0 + ${n}`)}`, h * 100 + t * 10 + n, `Put the hundreds, tens, and ones together.`)); }
+  return o;
+}
+function mill3(){
+  const o = [];
+  { let n = R(21, 989); while (n % 10 === 0) n++; o.push(num(`The mill ground <b>${n}</b> pounds of corn. Round that to the nearest <b>ten</b>.`, Math.round(n / 10) * 10, `Look at the ones digit. 5 or more rounds up. 4 or less rounds down.`)); }
+  { let n = R(120, 980); while (n % 100 === 0) n++; o.push(num(`The town picked <b>${n}</b> apples. Round that to the nearest <b>hundred</b>.`, Math.round(n / 100) * 100, `Look at the tens digit. 5 or more rounds up. 4 or less rounds down.`)); }
+  { const l = R(3, 9), w = R(2, 7); o.push(num(`The garden is <b>${l}</b> feet long and <b>${w}</b> feet wide. What is its <b>area</b> in square feet?`, l * w, `Area = length × width.`)); }
+  { const l = R(4, 12), w = R(2, 9); o.push(num(`Miller Thomas walks all the way around a pen that is <b>${l}</b> yards long and <b>${w}</b> yards wide. How many yards does he walk?`, 2 * (l + w), `Perimeter means add all four sides: ${l} + ${w} + ${l} + ${w}.`)); }
+  { const h = R(1, 11), s0 = pick([5, 10, 15, 20]), d = pick([20, 25, 30, 35]); o.push(num(`Thomas starts grinding corn at <b>${h}:${p2(s0)}</b> and stops at <b>${h}:${p2(s0 + d)}</b>. How many <b>minutes</b> did he work?`, d, `Count by 5s from ${p2(s0)} to ${s0 + d}.`)); }
+  { const k = R(2, 9), n = R(3, 6); o.push(num(`One sack of flour has a mass of <b>${k}</b> kilograms. What is the mass of <b>${n}</b> sacks, in kilograms?`, k * n, `Multiply ${n} × ${k}.`)); }
+  { const dg = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, 4), N4 = +dg.join(''), i = R(0, 2), D = dg[i], p = 3 - i;
+    o.push(mc(`What is the <b>value</b> of the digit ${D} in ${fmt(N4)}?`, fmt(D * 10 ** p), [0, 1, 2, 3].filter(k => k !== p).map(k => fmt(D * 10 ** k)), `Name the place the digit sits in: ones, tens, hundreds, or thousands.`)); }
+  return o;
+}
+
+const PATCH1 = [
+ [`A pie is cut into 2 equal pieces. What is each piece called?`, `A half`, [`A fourth`, `A whole`, `A circle`], `Two equal pieces are called halves.`],
+ [`A pie is cut into 4 equal pieces. What is each piece called?`, `A fourth`, [`A half`, `A whole`, `A circle`], `Four equal pieces are called fourths.`],
+ [`Which piece of pie is <b>bigger</b>?`, `Half of the pie`, [`A fourth of the pie`, `They are the same size`], `Fewer pieces means bigger pieces.`],
+ [`How many sides does a triangle have?`, `3`, [`4`, `5`, `6`], `Tri means three.`],
+ [`How many corners does a square have?`, `4`, [`3`, `5`, `0`], `Count each pointy corner.`],
+ [`Which shape has no corners?`, `Circle`, [`Square`, `Triangle`, `Rectangle`], `It is round all the way around.`],
+ [`Goody Prudence shares one pie fairly with 1 friend. How many equal pieces does she cut?`, `2`, [`1`, `3`, `4`], `Prudence gets a piece and her friend gets a piece.`],
+ [`A pumpkin is shaped most like which solid shape?`, `Sphere`, [`Cube`, `Cone`, `Cylinder`], `A sphere is round like a ball.`],
+ [`How many halves make one whole pie?`, `2`, [`1`, `3`, `4`], `Two halves fit together to make a whole.`],
+ [`How many fourths make one whole pie?`, `4`, [`1`, `2`, `3`], `Four fourths fit together to make a whole.`],
+ [`A can of pumpkin is shaped like which solid shape?`, `Cylinder`, [`Cube`, `Sphere`, `Cone`], `A cylinder has a circle on the top and bottom.`],
+ [`Which shape has 4 sides that are all the same length?`, `Square`, [`Triangle`, `Circle`, `Hexagon`], `All four sides match.`]
+];
+const PATCH2 = [
+ [`A pie is cut into 3 equal pieces. What is each piece called?`, `A third`, [`A half`, `A fourth`, `A whole`], `Three equal pieces are called thirds.`],
+ [`How many thirds make one whole pie?`, `3`, [`2`, `4`, `1`], `Three thirds fit together to make a whole.`],
+ [`Which piece is the <b>biggest</b>?`, `One half of a pie`, [`One third of a pie`, `One fourth of a pie`], `Fewer pieces means bigger pieces.`],
+ [`How many sides does a pentagon have?`, `5`, [`4`, `6`, `8`], `Think of a house shape with a pointy roof.`],
+ [`How many sides does a hexagon have?`, `6`, [`5`, `8`, `4`], `Hexagon and six both have an x.`],
+ [`How many faces does a cube have?`, `6`, [`4`, `8`, `12`], `Think of the sides of a number cube.`],
+ [`How many angles does a quadrilateral have?`, `4`, [`3`, `5`, `6`], `Quad means four.`],
+ [`Two fourths of a pie is the same amount as…`, `One half`, [`One third`, `One whole`, `One fourth`], `Put two of the four pieces together.`],
+ [`Four friends share a pie fairly. What does each friend get?`, `A fourth`, [`A half`, `A third`, `The whole pie`], `Four equal pieces are called fourths.`],
+ [`A pie is cut into fourths. Goody Prudence eats 1 piece. How many pieces are left?`, `3`, [`1`, `2`, `4`], `Fourths means 4 pieces. Take 1 away.`],
+ [`Which shape has exactly 3 angles?`, `Triangle`, [`Square`, `Pentagon`, `Hexagon`], `Tri means three.`]
+];
+function patch2(){
+  const r = R(2, 4), c = R(2, 5);
+  return fromList(PATCH2).concat([num(`Goody Prudence cuts a pan of cornbread into <b>${r}</b> rows with <b>${c}</b> pieces in each row. How many pieces is that?`, r * c, `Add ${c} for each row.`)]);
+}
+function patch3(){
+  const o = [];
+  { const d = pick([3, 4, 6, 8]); o.push(mc(`A pie is cut into ${d} equal slices. What fraction of the pie is <b>one</b> slice?`, `1/${d}`, [`${d}/1`, `1/${d + 1}`, `${d}/${d}`], `One slice out of ${d} equal slices.`)); }
+  { const d = pick([4, 6, 8]), n = R(2, d - 1); o.push(mc(`A pie is cut into ${d} equal slices. The children eat ${n} slices. What fraction of the pie did they eat?`, `${n}/${d}`, [`${d}/${n}`, `${d - n}/${d}`, `${n}/${d + n}`], `The bottom number is how many slices in the whole pie. The top number is how many were eaten.`)); }
+  { const d = pick([4, 6, 8]), a = R(1, d - 1); let b = R(1, d - 1); if (b === a) b = a === 1 ? 2 : a - 1; o.push(cmpQ(`${a}/${d}`, `${b}/${d}`, a, b, `The pieces are the same size, so compare the top numbers.`)); }
+  { const ds = shuffle([2, 3, 4, 6, 8]); o.push(cmpQ(`1/${ds[0]}`, `1/${ds[1]}`, ds[1], ds[0], `More pieces in the whole means each piece is smaller.`)); }
+  { const [x, c, w] = pick([['1/2','2/4',['2/3','1/4','3/4']],['1/2','3/6',['2/6','1/6','5/6']],['1/2','4/8',['2/8','3/8','6/8']],['1/3','2/6',['3/6','1/6','4/6']],['2/3','4/6',['2/6','3/6','5/6']],['1/4','2/8',['4/8','1/8','6/8']],['3/4','6/8',['3/8','4/8','7/8']]]);
+    o.push(mc(`Which fraction is the <b>same amount</b> as ${x}?`, c, w, `Picture the pie. Cutting every piece in two makes twice as many pieces.`)); }
+  { const d = pick([3, 4, 6, 8]); o.push(mc(`Which fraction equals <b>one whole</b> pie?`, `${d}/${d}`, [`1/${d}`, `${d}/1`, `${d - 1}/${d}`], `A whole pie means you have every slice.`)); }
+  { const d = pick([3, 4, 6, 8]); o.push(num(`How many 1/${d} pieces make one whole pie?`, d, `The bottom number tells how many equal pieces are in the whole.`)); }
+  return o;
+}
+
+const SCHOOL1 = [
+ [`Which sentence starts the right way?`, `The turkey ran away.`, [`the turkey ran away.`, `the Turkey ran away.`], `A sentence starts with a capital letter.`],
+ [`Which mark goes at the end?${big('Where is the pie')}`, `Question mark ?`, [`Period .`, `Exclamation mark !`], `An asking sentence ends with a question mark.`],
+ [`Which mark goes at the end?${big('I like corn')}`, `Period .`, [`Question mark ?`, `Comma ,`], `A telling sentence ends with a period.`],
+ [`Which word is a <b>naming word</b> (a noun)?`, `barn`, [`run`, `jump`, `eat`], `A noun names a person, place, or thing.`],
+ [`Which word is an <b>action word</b> (a verb)?`, `run`, [`pie`, `barn`, `hat`], `A verb is something you can do.`],
+ [`One pumpkin. Two ____.`, `pumpkins`, [`pumpkin`, `pumpkines`, `pumpkinz`], `Add s to show more than one.`],
+ [`Which sentence is written the right way?`, `Sam and I ate pie.`, [`Sam and i ate pie.`, `sam and I ate pie.`], `The word I and people’s names get capital letters.`],
+ [`The turkeys ____ loud.`, `are`, [`is`, `am`], `Use “are” when there is more than one.`],
+ [`Yesterday I ____ to the barn.`, `walked`, [`walk`, `walking`], `The ending -ed tells that it already happened.`],
+ [`Which word tells about the pie?${big('The hot pie is on the table.')}`, `hot`, [`pie`, `table`, `is`], `A describing word tells what something is like.`],
+ [`Which one is a complete sentence?`, `The dog barks.`, [`The dog`, `barks at`, `big brown dog`], `A sentence tells who and what they do.`],
+ [`Which word names <b>more than one</b>?`, `hats`, [`hat`, `cat`, `pig`], `Look for the s at the end.`]
+];
+const SCHOOL2 = [
+ [`One mouse. Two ____.`, `mice`, [`mouses`, `mouse`, `mices`], `Some words change instead of adding s.`],
+ [`One foot. Two ____.`, `feet`, [`foots`, `feets`, `foot`], `Some words change instead of adding s.`],
+ [`Yesterday the turkey ____ away.`, `ran`, [`runned`, `run`, `running`], `“Run” changes to a new word in the past.`],
+ [`Last night we ____ pumpkin pie.`, `ate`, [`eated`, `eat`, `eating`], `“Eat” changes to a new word in the past.`],
+ [`Which is the short way to write “do not”?`, `don’t`, [`dont`, `do’nt`, `don,t`], `The apostrophe takes the place of the missing o.`],
+ [`Which is the short way to write “I am”?`, `I’m`, [`Im`, `I’am`, `Iam`], `The apostrophe takes the place of the missing a.`],
+ [`This hat belongs to the farmer. It is the ____ hat.`, `farmer’s`, [`farmers`, `farmer`, `farmers’s`], `Add an apostrophe and s to show who owns it.`],
+ [`Which sentence uses capital letters correctly?`, `We eat turkey on Thanksgiving.`, [`We eat turkey on thanksgiving.`, `we eat turkey on Thanksgiving.`, `We Eat Turkey On Thanksgiving.`], `The first word and the names of holidays get capital letters.`],
+ [`Which word is an <b>adjective</b> (a describing word)?`, `golden`, [`quickly`, `corn`, `ran`], `An adjective tells what something is like.`],
+ [`The turkey ran ____.`, `quickly`, [`quick`, `quicker`, `quickest`], `Words that tell how something is done often end in -ly.`],
+ [`Which greeting is written correctly?`, `Dear Grandma,`, [`Dear Grandma.`, `Dear, Grandma`, `dear grandma,`], `A greeting in a letter ends with a comma.`],
+ [`Which word is spelled correctly?`, `because`, [`becuz`, `becaus`, `beecause`], `Say it slowly: be-cause.`],
+ [`She gave the biggest slice to ____.`, `me`, [`I`, `my`, `mine`], `Try the sentence with each word. Which one sounds right?`]
+];
+const SCHOOL3 = [
+ [`The turkeys ____ across the field every morning.`, `run`, [`runs`, `running`, `is run`], `With more than one turkey, the verb does not end in s.`],
+ [`Josiah ____ the cows every day.`, `feeds`, [`feed`, `feeding`, `are feed`], `With one person, the verb ends in s.`],
+ [`This pumpkin is ____ than that one.`, `bigger`, [`biggest`, `more big`, `big`], `Use -er to compare two things.`],
+ [`That is the ____ pie I have ever eaten!`, `best`, [`goodest`, `better`, `most good`], `Good, better, best.`],
+ [`These hats belong to the boys. They are the ____ hats.`, `boys’`, [`boy’s`, `boys`, `boys’s`], `When the owners already end in s, add only an apostrophe.`],
+ [`Which address is written correctly?`, `12 Maple Street, Violet, Ohio`, [`12 Maple Street Violet Ohio`, `12, Maple Street Violet, Ohio`, `12 Maple, Street Violet Ohio`], `Commas go between the street, the town, and the state.`],
+ [`Which sentence uses quotation marks correctly?`, `Hope said, “Watch out for the turkey!”`, [`Hope said, Watch out for the turkey!`, `“Hope said, Watch out for the turkey!”`, `Hope “said,” Watch out for the turkey!`], `Quotation marks go around only the words that were spoken.`],
+ [`I wanted pie, ____ it was all gone.`, `but`, [`or`, `so`, `because`], `“But” joins two ideas that are different.`],
+ [`Which word is an <b>abstract noun</b> (something you cannot touch)?`, `kindness`, [`pumpkin`, `barn`, `wagon`], `You can feel it in your heart, but not with your hands.`],
+ [`Tomorrow we ____ the feast.`, `will eat`, [`ate`, `eats`, `eated`], `“Tomorrow” tells you it has not happened yet.`],
+ [`Yesterday Prudence ____ three pies.`, `made`, [`maked`, `make`, `making`], `“Make” changes to a new word in the past.`],
+ [`Which word is spelled correctly?`, `happiness`, [`happyness`, `hapiness`, `happynes`], `Change the y to i before you add -ness.`],
+ [`Which word is an <b>adverb</b>?`, `quietly`, [`quiet`, `mouse`, `small`], `Adverbs tell how something is done. Many end in -ly.`],
+ [`Which book title is written correctly?`, `The Turkey Who Loved Corn`, [`the turkey who loved corn`, `The turkey who loved corn`, `The Turkey who Loved corn`], `The important words in a title get capital letters.`]
+];
+
+const PRINT1 = [
+ [`Which word rhymes with <b>hat</b>?`, `cat`, [`hen`, `pig`, `cup`], `Rhyming words sound the same at the end.`],
+ [`Which word rhymes with <b>pie</b>?`, `sky`, [`pan`, `pot`, `pig`], `Rhyming words sound the same at the end.`],
+ [`What is the opposite of <b>hot</b>?`, `cold`, [`warm`, `big`, `fast`], `Opposite means as different as can be.`],
+ [`What is the opposite of <b>day</b>?`, `night`, [`sun`, `noon`, `play`], `When is the sky dark?`],
+ [`Which word means the same as <b>big</b>?`, `large`, [`small`, `tiny`, `short`], `Think of an elephant.`],
+ [`Which one is a <b>food</b>?`, `corn`, [`barn`, `hat`, `wagon`], `Which one can you eat?`],
+ [`Which one is an <b>animal</b>?`, `turkey`, [`pie`, `fence`, `boot`], `Which one is alive?`],
+ [`“The cat sat on a red mat.” What color is the mat?`, `red`, [`blue`, `green`, `black`], `Look for the color word in the sentence.`],
+ [`“Sam fed the hens. Then Sam went home.” Who fed the hens?`, `Sam`, [`The hens`, `A turkey`, `Mom`], `Look for the name in the first sentence.`],
+ [`“The pig sleeps in the mud.” Where does the pig sleep?`, `In the mud`, [`In a bed`, `In the barn`, `On a hill`], `Look at the end of the sentence.`],
+ [`Which word starts with the same sound as <b>pumpkin</b>?`, `pie`, [`corn`, `turkey`, `barn`], `Pumpkin starts with the p sound.`],
+ [`“The puppy was tiny. It could fit in a hat.” What does tiny mean?`, `Very small`, [`Very big`, `Very loud`, `Very fast`], `What size fits inside a hat?`],
+ [`How many claps (syllables) are in the word <b>turkey</b>?`, `2`, [`1`, `3`, `4`], `Clap it out: tur-key.`]
+];
+const PRINT2 = [
+ [`Which two words make the compound word <b>cornbread</b>?`, `corn + bread`, [`cor + nbread`, `cornb + read`, `co + rnbread`], `A compound word is two smaller words put together.`],
+ [`Which word is a <b>compound word</b>?`, `scarecrow`, [`turkey`, `harvest`, `basket`], `Look for two smaller words hiding inside.`],
+ [`Which word means almost the same as <b>happy</b>?`, `glad`, [`sad`, `mad`, `tired`], `How do you feel when you smile?`],
+ [`What is the opposite of <b>empty</b>?`, `full`, [`open`, `small`, `light`], `Think of a basket with nothing in it. Now fill it up.`],
+ [`If you <b>retell</b> a story, what do you do?`, `Tell it again`, [`Tell it wrong`, `Never tell it`, `Tell it before`], `Re- means again.`],
+ [`If a pie is <b>unbaked</b>, it is…`, `not baked`, [`baked again`, `baked too long`, `baked before`], `Un- means not.`],
+ [`“The wagon was so <b>heavy</b> that two horses had to pull it.” What does heavy mean?`, `Hard to lift or move`, [`Very fast`, `Brightly colored`, `Easy to carry`], `Use the clue: it took two horses.`],
+ [`“Turkeys have feathers. Turkeys can run fast. Turkeys say gobble.” What is this mostly about?`, `Turkeys`, [`Feathers`, `Running`, `Farms`], `What does every sentence tell about?`],
+ [`Which word means the <b>biggest</b> size?`, `gigantic`, [`big`, `large`, `medium`], `One of these words is stronger than the others.`],
+ [`In the word <b>careful</b>, what does -ful mean?`, `full of`, [`without`, `again`, `not`], `Careful means full of care.`],
+ [`“First, wash the apples. Next, cut them. Last, bake the pie.” What happens <b>first</b>?`, `Wash the apples`, [`Cut the apples`, `Bake the pie`, `Eat the pie`], `Look for the word “first.”`],
+ [`Which word has a <b>silent letter</b>?`, `knife`, [`fork`, `spoon`, `plate`], `One word starts with a letter you cannot hear.`],
+ [`Why does an author write a recipe?`, `To tell how to make something`, [`To tell a funny joke`, `To make you feel sad`, `To tell about a king`], `What do you do with a recipe?`]
+];
+const PRINT3 = [
+ [`If you <b>preheat</b> the oven, when do you heat it?`, `Before you bake`, [`After you bake`, `Never`, `Again and again`], `Pre- means before.`],
+ [`What does <b>dislike</b> mean?`, `To not like`, [`To like again`, `To like a lot`, `To like before`], `Dis- means not.`],
+ [`A <b>helper</b> is…`, `a person who helps`, [`without help`, `full of help`, `to help again`], `The ending -er can mean a person who does something.`],
+ [`“The <b>enormous</b> pumpkin was too big to fit in the wagon.” What does enormous mean?`, `Very large`, [`Very small`, `Very old`, `Very sweet`], `Use the clue: it did not fit in the wagon.`],
+ [`“Hope <b>trembled</b> as the giant turkey stomped closer.” What does trembled mean?`, `Shook with fear`, [`Laughed loudly`, `Fell asleep`, `Sang a song`], `How would you feel if a giant turkey came close?`],
+ [`Josiah says, “It is raining cats and dogs.” What does he mean?`, `It is raining very hard.`, [`Animals are falling from the sky.`, `His pets are outside.`, `It is not raining.`], `Some sayings do not mean exactly what the words say.`],
+ [`“Corn was important in Violet. People ate it, fed it to animals, and ground it into flour.” What is the <b>main idea</b>?`, `Corn was used in many ways.`, [`Animals like corn.`, `Flour is white.`, `Violet is a town.`], `The main idea is what the whole paragraph is mostly about.`],
+ [`What is the root word of <b>thankfulness</b>?`, `thank`, [`ful`, `ness`, `kful`], `Take away the endings. What word is left?`],
+ [`“A bat flew out of the barn.” In this sentence, a bat is…`, `an animal that flies`, [`a stick for hitting a ball`, `a kind of hat`, `a loud sound`], `Use the clue: it flew.`],
+ [`Which word is a <b>synonym</b> for “shout”?`, `yell`, [`whisper`, `listen`, `hum`], `A synonym means almost the same thing.`],
+ [`A boy shares his corn with a hungry bird. Later, the bird leads him home when he is lost. What is the <b>lesson</b>?`, `Being kind to others is a good thing.`, [`Birds eat too much corn.`, `Never walk in the woods.`, `Corn is hard to grow.`], `What did the boy do, and what good thing happened after?`],
+ [`“I hid behind the barn and watched the turkeys.” Who is telling this story?`, `A character in the story`, [`Someone outside the story`, `The turkeys`], `Look for the word “I.”`],
+ [`Where would you look to find the meaning of a word?`, `A dictionary or glossary`, [`A map`, `A calendar`, `A recipe`], `It lists words in ABC order and tells what they mean.`]
+];
+
+const SLIDES1 = [
+ [`What do you click to make a new slide?`, `The plus sign (+)`, [`The trash can`, `The X`, `The printer`], `Plus means add one more.`],
+ [`Where do you click to type words on a slide?`, `Inside a text box`, [`On the trash can`, `On the printer`, `On the X`], `It is a box that holds words.`],
+ [`You made a mistake! Which button takes it back?`, `The undo arrow`, [`The print button`, `The plus sign`, `The trash can`], `Undo means “take it back.”`],
+ [`How do you move a picture to a new spot?`, `Click it and drag it`, [`Shake the Chromebook`, `Press the power button`, `Close the tab`], `Hold it with a click and slide it over.`],
+ [`What do you click to show your slides on the big full screen?`, `Slideshow`, [`Print`, `Delete`, `Sign out`], `It has the word “show” in it.`],
+ [`Which key erases a letter?`, `Backspace`, [`Enter`, `Space bar`, `Shift`], `It goes back one space and erases.`],
+ [`What do you use to move the arrow on the screen?`, `The touchpad or mouse`, [`The power button`, `The charger`, `The volume keys`], `You slide your finger on it.`],
+ [`You want a picture of a turkey on your slide. What do you click?`, `Insert, then Image`, [`File, then Print`, `The trash can`, `Slideshow`], `Insert means “put in.”`],
+ [`Which key makes a space between words?`, `Space bar`, [`Enter`, `Backspace`, `Shift`], `It is the longest key on the keyboard.`],
+ [`What should you do when you are done with the Chromebook?`, `Sign out and close it gently`, [`Slam it shut`, `Leave it on the floor`, `Pull on the keys`], `Take good care of your tools.`],
+ [`How do you type a capital letter?`, `Hold Shift and press the letter`, [`Press the letter two times`, `Press Enter`, `Press Backspace`], `Shift makes letters big.`]
+];
+const SLIDES2 = [
+ [`Which menu do you open to add a picture?`, `Insert`, [`File`, `Tools`, `Help`], `Insert means “put in.”`],
+ [`What do you click to make your words a different color?`, `Text color (the A with a color bar)`, [`The printer`, `The plus sign`, `Slideshow`], `Look for the letter A with a color under it.`],
+ [`How do you make a picture bigger?`, `Drag a corner of the picture`, [`Press Backspace`, `Click Slideshow`, `Press the letter B`], `Grab a corner dot and pull.`],
+ [`How do you make a new slide?`, `Click the plus sign (+)`, [`Click the trash can`, `Click Undo`, `Click the printer`], `Plus means add one more.`],
+ [`You want to change the way your letters look. What do you change?`, `The font`, [`The slide number`, `The volume`, `The battery`], `It is the style of the letters.`],
+ [`What does the undo arrow do?`, `Takes back your last change`, [`Deletes the whole slideshow`, `Prints your slide`, `Adds a new slide`], `Undo means “take it back.”`],
+ [`How do you delete a picture you do not want?`, `Click it, then press Backspace or Delete`, [`Close the Chromebook`, `Click Slideshow`, `Make a new slide`], `Pick the picture first. Then erase it.`],
+ [`What do you click to show your slides on the full screen?`, `Slideshow`, [`Share`, `Print`, `Undo`], `It has the word “show” in it.`],
+ [`What is the box called where you type words on a slide?`, `A text box`, [`A lunch box`, `A sandbox`, `A toolbox`], `Text is another word for words.`],
+ [`How do you make your title bigger?`, `Highlight it and choose a bigger font size`, [`Type it again and again`, `Press the space bar`, `Turn up the volume`], `Font size is the number next to the font name.`],
+ [`Does Google Slides save your work by itself?`, `Yes, it saves as you work`, [`No, you must print it`, `No, it is erased every day`], `Look at the top for the little cloud.`],
+ [`How do you go to the next slide when you are presenting?`, `Press the right arrow key or click`, [`Press Backspace`, `Close the tab`, `Press the power button`], `Arrows point the way forward.`]
+];
+const DIG12 = [
+ [`Who should you tell if something online makes you feel scared or sad?`, `A trusted adult`, [`Nobody`, `A stranger online`, `Only your pet`], `Grown-ups you trust can help.`],
+ [`Should you tell a stranger online where you live?`, `No, never`, [`Yes, always`, `Only if they ask nicely`], `Where you live is private.`],
+ [`Who is it okay to share your password with?`, `Your parents or your teacher`, [`Your best friend`, `Everyone in class`, `A stranger`], `Passwords are private, like a key to your house.`],
+ [`How should you treat people online?`, `Be kind, just like in person`, [`Be mean because no one can see you`, `Say anything you want`, `Type in ALL CAPS to yell`], `There is a real person on the other side of the screen.`],
+ [`A box pops up that says “You win a prize! Click here!” What should you do?`, `Do not click. Tell an adult.`, [`Click it fast`, `Type your name in it`, `Click it two times`], `If it sounds too good to be true, it is a trick.`],
+ [`How should you carry a Chromebook?`, `Closed, with two hands`, [`By the screen`, `With one finger`, `On your head`], `Two hands keep it safe.`],
+ [`Is it okay to use someone else’s account?`, `No. Only use your own.`, [`Yes, if they are not looking`, `Yes, if you know their password`], `Your account is yours. Their account is theirs.`],
+ [`You want to play a new game online. What should you do first?`, `Ask a grown-up`, [`Just start playing`, `Type in your address`, `Ask a stranger online`], `A grown-up can check that it is safe.`],
+ [`Where should food and drinks go when you use a Chromebook?`, `Far away from it`, [`On the keyboard`, `Next to the screen`], `Spills can break a Chromebook.`],
+ [`What is a healthy way to use screens?`, `Some screen time, and lots of time to play and sleep`, [`All day and all night`, `Every minute you can`], `Your body needs to move, play, and rest.`],
+ [`A friend made a slideshow you really like. What should you do?`, `Say something kind about it`, [`Copy it and say it is yours`, `Delete their slides`, `Laugh at it`], `Good digital citizens are kind and honest.`],
+ [`Which of these is okay to share online?`, `Your favorite color`, [`Your home address`, `Your phone number`, `Your password`], `Private things can help someone find you.`]
+];
+
+function smith1(){
+  const L = shuffle('ABDEFGHJKLMNPRSTUW'.split('')).slice(0, 3), D = R(2, 9);
+  return withOthers([
+    keyQ('make a SPACE between words', ' ', 'Space bar', 'It is the longest key, at the bottom of the keyboard.'),
+    keyQ('start a NEW LINE', 'Enter', 'Enter', 'Look on the right side for the word Enter.'),
+    keyQ('ERASE a letter', 'Backspace', 'Backspace', 'Look at the top right. It may show an arrow pointing left.'),
+    ...L.map(c => keyQ(`type the letter ${c}`, c.toLowerCase(), c, 'Look across the three rows of letters.')),
+    keyQ(`type the number ${D}`, String(D), String(D), 'The numbers are in the row above the letters.')
+  ]);
+}
+function smith2(){
+  const c = pick('ABDEFGHJKLMNPRST'.split(''));
+  return withOthers([
+    keyQ('make a SPACE between words', ' ', 'Space bar', 'It is the longest key, at the bottom of the keyboard.'),
+    keyQ('start a NEW LINE', 'Enter', 'Enter', 'Look on the right side for the word Enter.'),
+    keyQ('ERASE a letter', 'Backspace', 'Backspace', 'Look at the top right. It may show an arrow pointing left.'),
+    keyQ(`type a CAPITAL ${c}`, c.toLowerCase(), c, 'Hold Shift, then tap the letter.', {shift:true, label:`Shift + ${c}`}),
+    keyQ('type a QUESTION MARK', '?', '?', 'Hold Shift and tap the key just left of the right Shift key.', {shift:true, label:'Shift + /'}),
+    keyQ('type an EXCLAMATION MARK', '!', '!', 'Hold Shift and tap the number 1.', {shift:true, label:'Shift + 1'}),
+    ...SHORT.filter(x => 'cvz'.includes(x[0])).map(ctrlQ)
+  ]);
+}
+const smith3 = () => withOthers(SHORT.filter(x => 'cvxzab'.includes(x[0])).map(ctrlQ));
+
+function bake1(){
+  const nums = shuffle(Array.from({length:50}, (_, i) => i + 1)).slice(0, 4).sort((a, b) => a - b), s0 = R(3, 96), a0 = R(0, 22);
+  return [
+    order(`Put the numbers in order from <b>smallest to biggest</b>.`, nums.map(String), `Find the smallest number first.`),
+    order(`Put the numbers in <b>counting order</b>.`, [s0, s0 + 1, s0 + 2, s0 + 3].map(String), `Count out loud. Which number do you say first?`),
+    order(`Put the letters in <b>ABC order</b>.`, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.slice(a0, a0 + 4).split(''), `Sing the ABC song in your head.`),
+    order(`Put the story in order.`, [`Patience mixes the dough.`, `She bakes the pie.`, `She eats the pie.`], `What has to happen first?`),
+    order(`Put the morning in order.`, [`Wake up`, `Eat breakfast`, `Go to school`], `What do you do first each day?`),
+    order(`Put the steps in order to <b>start your work</b>.`, [`Open the Chromebook`, `Type your password`, `Start your work`], `You cannot type until it is open.`),
+    order(`Put the steps in order to <b>grow a pumpkin</b>.`, [`Plant a seed`, `A sprout comes up`, `A pumpkin grows`, `Pick the pumpkin`], `Everything starts with a seed.`)
+  ];
+}
+function bake2(){
+  const set = new Set(); while (set.size < 4) set.add(R(105, 990));
+  const st = pick([5, 10]), s0 = R(2, 12) * st, words = shuffle(['apple', 'barn', 'corn', 'feast', 'gravy', 'hat', 'pie', 'turkey', 'wagon', 'yam']).slice(0, 4).sort();
+  return [
+    order(`Put the numbers in order from <b>least to greatest</b>.`, [...set].sort((a, b) => a - b).map(String), `Compare the hundreds first.`),
+    order(`Put the numbers in <b>skip-counting order</b>.`, [s0, s0 + st, s0 + 2 * st, s0 + 3 * st].map(String), `Count by ${st}s.`),
+    order(`Put the words in <b>ABC order</b>.`, words, `Look at the first letter of each word.`),
+    order(`Put the story in order.`, [`First, Patience rolled out the pie dough.`, `Next, she filled the crust with pumpkin.`, `Then, she baked the pie until it was golden.`, `Finally, she set it on the windowsill to cool.`], `Look for the words first, next, then, and finally.`),
+    order(`Put the steps in order to <b>get to Google Slides</b>.`, [`Open the Chromebook`, `Type your username`, `Type your password`, `Open Google Slides`], `Your username comes before your password.`),
+    order(`Put the steps in order to <b>add words</b> to a slide.`, [`Click inside the text box`, `Type your words`, `Click outside the box`], `You have to click in the box before you can type.`),
+    order(`Put the days in order.`, [`Monday`, `Tuesday`, `Wednesday`, `Thursday`], `Thanksgiving is on the last day in this list.`),
+    order(`Put the steps in order to <b>grow a pumpkin</b>.`, [`Plant a seed`, `A sprout comes up`, `A pumpkin grows`, `Pick the pumpkin`], `Everything starts with a seed.`)
+  ];
+}
+
+const LOW = {
+  barn:{1:barn1, 2:barn2, 3:barn3},
+  school:{1:() => fromList(SCHOOL1), 2:() => fromList(SCHOOL2), 3:() => fromList(SCHOOL3)},
+  print:{1:() => fromList(PRINT1), 2:() => fromList(PRINT2), 3:() => fromList(PRINT3)},
+  mill:{1:mill1, 2:mill2, 3:mill3},
+  patch:{1:() => fromList(PATCH1), 2:patch2, 3:patch3},
+  smith:{1:smith1, 2:smith2, 3:smith3},
+  meet:{1:() => fromList(SLIDES1), 2:() => fromList(SLIDES2), 3:() => fromList(SLIDES.filter((_, i) => i !== 9 && i !== 10))},
+  bake:{1:bake1, 2:bake2},
+  watch:{1:() => fromList(DIG12), 2:() => fromList(DIG12)}
+};
+const SKILL = {
+  barn:{1:'Adding and subtracting', 2:'Adding and subtracting', 3:'Multiplying and dividing'},
+  school:{1:'Sentences', 2:'Grammar', 3:'Grammar'},
+  print:{1:'Words and stories', 2:'Words and stories', 3:'Word meanings and reading'},
+  mill:{1:'Tens, ones, and telling time', 2:'Place value, money, and time', 3:'Rounding and measuring'},
+  patch:{1:'Shapes and equal shares', 2:'Shapes and equal shares'},
+  smith:{1:'Keyboard keys', 2:'Keyboard keys and shortcuts'},
+  meet:{1:'Chromebook and Slides skills', 2:'Google Slides'},
+  watch:{1:'Being safe and kind online', 2:'Being safe and kind online'}
+};
+const poolFor = s => ((LOW[s.id] || {})[S.grade] || s.pool)();
+const skillOf = s => (SKILL[s.id] || {})[S.grade] || s.skill;
+
 /* ---------------- Town ---------------- */
 const STATIONS = [
  {id:'barn', name:'Red Barn', who:'Farmer Josiah', icon:'🐄', x:8, y:4, w:5, h:4, wall:'#b8412f', roof:'#6e2218', skill:'Multiply and divide',
@@ -400,9 +742,9 @@ const STATIONS = [
  {id:'mill', name:'Grist Mill', who:'Miller Thomas', icon:'🌾', x:37, y:4, w:5, h:4, wall:'#cdbb96', roof:'#5a4632', skill:'Measurement and place value',
   intro:'I must measure the fields and count the flour before the feast. Lend me your sharp mind!', thanks:'Measured to perfection. I found this piece in a flour sack.', pool:millPool},
  {id:'patch', name:'Pumpkin Shed', who:'Goody Prudence', icon:'🎃', x:8, y:22, w:5, h:3, wall:'#cf8f3e', roof:'#5d7a2c', skill:'Fractions',
-  intro:'I am slicing pies and pumpkins into fair shares. Fractions, dear! Help me get them right.', thanks:'Fair shares for everyone! A turkey dropped this piece in my patch.', pool:patchPool},
+  intro:'I am cutting pies and pumpkins into fair shares. Help me get them just right, dear.', thanks:'Fair shares for everyone! A turkey dropped this piece in my patch.', pool:patchPool},
  {id:'smith', name:'Blacksmith', who:'Blacksmith Hope', icon:'⚒️', x:17, y:22, w:5, h:3, wall:'#73757f', roof:'#2f3138', skill:'Keyboard shortcuts',
-  intro:'I forge shortcuts here! Press the real keys on your keyboard to hammer each one into shape.', thanks:'Those fingers are quick as sparks! Here, I forged this piece back together.', pool:smithPool},
+  intro:'I forge keyboard skills here! Press the real keys on your keyboard to hammer each one into shape.', thanks:'Those fingers are quick as sparks! Here, I forged this piece back together.', pool:smithPool},
  {id:'meet', name:'Meeting House', who:'Elder Samuel', icon:'🖥️', x:27, y:22, w:5, h:3, wall:'#f1ead8', roof:'#5b3a8c', skill:'Google Slides',
   intro:'I am making a slideshow to welcome our guests, but I keep clicking the wrong things.', thanks:'What a splendid slideshow. This piece was under my hat the whole time!', pool:() => fromList(SLIDES)},
  {id:'bake', name:'Bakery', who:'Baker Patience', icon:'🥧', x:36, y:22, w:5, h:3, wall:'#e6b98a', roof:'#a2452b', skill:'Putting steps in order',
@@ -449,7 +791,7 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
 
 /* ---------------- State ---------------- */
 const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
-const S = {state:'title', name:'Pilgrim', skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:''};
+const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:''};
 const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
 const keys = {up:false, down:false, left:false, right:false};
 const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
@@ -460,7 +802,7 @@ let drops = [], shots = [], parts = [], cool = 0, tick = 0, shake = 0, scale = 1
 const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
 const solidP = (x, y) => SOLID.has(tile(x, y));
 const solidT = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.PLAZA || t === T.STEP; };
-const activeTurkeys = () => Math.min(turkeys.length, 6 + Math.floor(S.solved.size / 2));
+const activeTurkeys = () => Math.min(turkeys.length, ({1:3, 2:4, 3:5}[S.grade] || 6) + Math.floor(S.solved.size / 2));
 function resetWorld(){
   player.x = 24.5 * TS; player.y = 19.5 * TS; player.inv = 0; player.dir = 'down';
   turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false}));
@@ -469,7 +811,7 @@ function resetWorld(){
 }
 
 const KEY = 'violet-feast-v1';
-function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total})); } catch (e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total})); } catch (e) {} }
 function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
 
 /* ---------------- Sound ---------------- */
@@ -586,7 +928,7 @@ function update(dt){
   parts = parts.filter(p => p.t > 0);
   for (let i = 0; i < n; i++) {
     const t = turkeys[i]; t.anim += dt * 9;
-    let sp = t.sp * (1 + .05 * S.solved.size), vx = 0, vy = 0, tg = null, bd = 7 * TS;
+    let sp = t.sp * (1 + .05 * S.solved.size) * ({1:.7, 2:.8, 3:.9}[S.grade] || 1), vx = 0, vy = 0, tg = null, bd = 7 * TS;
     for (const c of drops) { const d = Math.hypot(c.x - t.x, c.y - t.y); if (d < bd) { bd = d; tg = c; } }
     const pd = Math.hypot(player.x - t.x, player.y - t.y) || 1;
     t.peck = false; t.alert = false; t.busy = !!tg || t.flee > 0;
@@ -808,7 +1150,7 @@ function say(parts){
 function spoken(h){
   return String(h).replace(/<span class="bigline">/g, '. ').replace(/<[^>]+>/g, '').replace(/_{2,}/g, ' blank ').replace(/▢/g, ' blank ')
     .replace(/(\d+) (\d+)\/(\d+)/g, '$1 and $2 over $3').replace(/(\d+)\/(\d+)/g, '$1 over $2').replace(/Ctrl \+ /g, 'Control plus ').replace(/×/g, ' times ')
-    .replace(/^>$/, 'greater than').replace(/^<$/, 'less than').replace(/^=$/, 'equals');
+    .replace(/−/g, ' minus ').replace(/^>$/, 'greater than').replace(/^<$/, 'less than').replace(/^=$/, 'equals');
 }
 function readQ(){
   const q = ses && ses.qs[ses.i]; if (!q) return;
@@ -821,18 +1163,18 @@ function readQ(){
 /* ---------------- Puzzles ---------------- */
 const modal = $('#modal'), card = $('#card');
 function closeModal(){ hush(); modal.hidden = true; ses = null; setState('play'); player.inv = Math.max(player.inv, 2); }
-function openStation(s){ setState('modal'); ses = {s, qs:shuffle(s.pool()).slice(0, 3), i:0}; modal.hidden = false; renderQ(); }
+function openStation(s){ setState('modal'); ses = {s, qs:shuffle(poolFor(s)).slice(0, S.grade === 1 ? 2 : 3), i:0}; modal.hidden = false; renderQ(); }
 function renderQ(){
   const {s, qs, i} = ses, q = qs[i]; ses.missed = false; ses.done = false;
   let body = '';
   if (q.type === 'mc') body = `<div class="choices">${q.choices.map((c, k) => `<button type="button" class="choice" data-k="${k}"><span class="n">${k + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>`;
   else if (q.type === 'num') body = `<div class="numrow"><input type="text" id="ans" inputmode="numeric" autocomplete="off" maxlength="9" aria-label="Your answer"><button type="button" class="btn" id="chk">Check my answer</button></div>`;
-  else if (q.type === 'key') body = `<div class="keys"><kbd>Ctrl</kbd><span>+</span><kbd id="kc">?</kbd></div><p class="tip">Hold Ctrl, then tap the letter. <button type="button" class="leave" id="nokeys">No keyboard? Show choices instead</button></p>`;
+  else if (q.type === 'key') body = `<div class="keys">${q.ctrl ? '<kbd>Ctrl</kbd><span>+</span>' : q.shift ? '<kbd>Shift</kbd><span>+</span>' : ''}<kbd id="kc">?</kbd></div><p class="tip">${q.ctrl ? 'Hold Ctrl, then tap the letter.' : q.shift ? 'Hold Shift, then tap the key.' : 'Find the key on your keyboard and press it.'} <button type="button" class="leave" id="nokeys">No keyboard? Show choices instead</button></p>`;
   else { ses.pick = []; do { ses.shuf = shuffle(q.steps.map((_, k) => k)); } while (ses.shuf.every((v, k) => v === k));
     body = `<p class="tip">Tap the steps in order. Tap a numbered step to take it back.</p><div class="order" id="ord"></div><button type="button" class="btn" id="chk" disabled>Check my order</button>`; }
-  card.innerHTML = `<div class="who"><span class="badge">${s.icon}</span><div class="grow"><h2>${s.name}</h2><p class="sub">${s.who} needs help with: ${s.skill.toLowerCase()}</p></div><button type="button" class="leave" id="leave">Leave</button></div>
+  card.innerHTML = `<div class="who"><span class="badge">${s.icon}</span><div class="grow"><h2>${s.name}</h2><p class="sub">${s.who} needs help with: ${skillOf(s).toLowerCase()}</p></div><button type="button" class="leave" id="leave">Leave</button></div>
     ${i === 0 ? `<p class="say">“${s.intro}”</p>` : ''}
-    <div class="dots" aria-label="Question ${i + 1} of 3">${[0, 1, 2].map(k => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('')}</div>
+    <div class="dots" aria-label="Question ${i + 1} of ${qs.length}">${qs.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('')}</div>
     ${canSpeak && autoRead ? '<button type="button" class="btn ghost readbtn" id="read">🔊 Read it again</button>' : ''}
     <p class="q">${q.q}</p>${body}<p class="fb" id="fb" role="status"></p>
     <button type="button" class="btn" id="next" hidden></button>`;
@@ -846,7 +1188,7 @@ function renderQ(){
   });
   if (q.type === 'num') { $('#chk').onclick = checkNum; $('#ans').focus(); }
   if (q.type === 'key') $('#nokeys').onclick = () => {
-    const m = mc(q.q.replace('Press the real keyboard shortcut', 'Which shortcut do you press'), q.label, shuffle(SHORT.map(x => x[1])), q.hint);
+    const m = mc(q.altq, q.label, shuffle(q.others), q.hint);
     ses.qs[ses.i] = m; renderQ();
   };
   if (q.type === 'order') {
@@ -872,7 +1214,7 @@ function checkNum(){
 function right(){
   ses.done = true; S.total++; if (!ses.missed) S.first++; sfx.ok();
   const fb = $('#fb'), nx = $('#next'); fb.className = 'fb ok'; fb.textContent = pick(['Correct!', 'Nicely done!', 'You got it!', 'Sharp thinking!']);
-  nx.hidden = false; nx.textContent = ses.i < 2 ? 'Next question' : 'Claim the key piece'; nx.focus();
+  nx.hidden = false; nx.textContent = ses.i < ses.qs.length - 1 ? 'Next question' : 'Claim the key piece'; nx.focus();
 }
 function wrong(msg){ ses.missed = true; sfx.bad(); const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Not quite. ' + msg; }
 function award(){
@@ -914,7 +1256,7 @@ function drawCert(){
   g.font = '64px ' + B; g.fillStyle = '#000';
   for (const [x, y, e] of [[140, 165, '🍁'], [1510, 165, '🍂'], [140, 1160, '🌽'], [1510, 1160, '🥧']]) g.fillText(e, x, y);
   text('Certificate of Achievement', CX, 230, '96px ' + D, '#5b3a8c', 1250);
-  text('The Thanksgiving Feast in the Town of Violet', CX, 300, '500 38px ' + B, '#66566e');
+  text(`The Thanksgiving Feast in the Town of Violet, Grade ${S.grade || 4}`, CX, 300, '500 38px ' + B, '#66566e');
   text('This certifies that', CX, 400, '34px ' + B, '#2a1c33');
   text(S.name, CX, 520, '112px ' + D, '#2a1c33', 1200);
   g.fillStyle = '#e3a008'; g.fillRect(CX - 380, 548, 760, 5);
@@ -959,7 +1301,7 @@ function showHelp(){
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
     <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
     <div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
-    <p>Answer 3 questions for each villager to earn a piece of the Feast Key. Collect all 9, then go to the Feast Hall at the north end of town.</p>
+    <p>Answer each villager’s questions to earn a piece of the Feast Key. Collect all 9, then go to the Feast Hall at the north end of town.</p>
     <button type="button" class="btn" id="go">Back to Violet</button>`;
   $('#go').onclick = closeModal; $('#go').focus();
 }
@@ -987,12 +1329,18 @@ function modalKey(e){
     if (!e.ctrlKey && !e.metaKey && k >= 0 && k < q.choices.length) { const b = card.querySelector(`.choice[data-k="${k}"]`); if (b && !b.disabled) b.click(); }
   } else if (q.type === 'key') {
     if (['Control', 'Meta', 'Shift', 'Alt'].includes(e.key)) return;
-    const k = e.key.toLowerCase();
-    if (e.ctrlKey || e.metaKey) {
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, shown = k === ' ' ? 'the Space bar' : k.length === 1 ? k.toUpperCase() : k;
+    if (!q.ctrl) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      e.preventDefault();
+      if (k === q.key && (!q.shift || e.shiftKey)) { $('#kc').textContent = q.cap; right(); }
+      else if (k === q.key) wrong('Hold down Shift while you tap the key.');
+      else wrong(`You pressed ${shown}. ${q.hint}`);
+    } else if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       const ok = (k === q.key && !(k === 'z' && e.shiftKey)) || (q.key === 'y' && k === 'z' && e.shiftKey);
-      if (ok) { $('#kc').textContent = q.key.toUpperCase(); right(); }
-      else wrong(`You pressed Ctrl + ${k.toUpperCase()}${KEYNAME[k] ? `, which is ${KEYNAME[k]}` : ''}. ${q.hint}`);
+      if (ok) { $('#kc').textContent = q.cap; right(); }
+      else wrong(`You pressed Ctrl + ${shown}${KEYNAME[k] ? `, which is ${KEYNAME[k]}` : ''}. ${q.hint}`);
     } else if (/^[a-z]$/.test(k)) { const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Hold down Ctrl first, then tap the letter.'; }
   }
 }
@@ -1013,10 +1361,14 @@ if (!canSpeak) { bRead.hidden = true; $('#readopt').hidden = true; } else { setR
 const skinBox = $('#skins');
 skinBox.innerHTML = SKINS.map((c, i) => `<button type="button" style="background:${c}" data-i="${i}" aria-label="Pilgrim ${i + 1}" aria-pressed="${i === 0}"></button>`).join('');
 skinBox.onclick = e => { const b = e.target.closest('button'); if (!b) return; S.skin = +b.dataset.i; skinBox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+const gradeBox = $('#grades');
+function setGrade(g){ S.grade = g; gradeBox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', +x.dataset.g === g)); $('#gradeMsg').textContent = ''; }
+gradeBox.onclick = e => { const b = e.target.closest('button'); if (!b) return; setGrade(+b.dataset.g); if (S.grade <= 2 && canSpeak && !autoRead) setRead(true, true); };
 function begin(saved){
+  if (!saved && !S.grade) { $('#gradeMsg').textContent = 'Pick your grade first.'; return; }
   resetWorld();
   if (saved) {
-    S.name = saved.name || 'Pilgrim'; S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
+    S.name = saved.name || 'Pilgrim'; setGrade(saved.grade >= 1 && saved.grade <= 4 ? saved.grade : 4); S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
     S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
   } else {
     S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
@@ -1034,7 +1386,7 @@ if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else ad
 let last = performance.now();
 function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], W, H};
 })();
 </script>
 </body>
