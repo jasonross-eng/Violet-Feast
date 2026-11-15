@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Feast Key of Violet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Fredoka:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#e9e0f2; --ink:#2a1c33; --paper:#fffdf6; --violet:#5b3a8c; --violet-ink:#ffffff;
+  --gold:#e3a008; --key-empty:#d8cde3; --muted:#66566e; --ok:#2c7a31; --no:#b3261e;
+  --stage:#251a30; --scrim:rgba(28,16,40,.74); --line:#dccfe8; --soft:#f3ecf9;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#1a1322; --ink:#f3ebdc; --paper:#2b2036; --violet:#b99cec; --violet-ink:#1a1322;
+    --gold:#f2b632; --key-empty:#4b3d5a; --muted:#bcadc6; --ok:#84d688; --no:#ff8f85;
+    --stage:#100b16; --scrim:rgba(8,4,14,.8); --line:#45375261; --soft:#362a43;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1a1322; --ink:#f3ebdc; --paper:#2b2036; --violet:#b99cec; --violet-ink:#1a1322;
+  --gold:#f2b632; --key-empty:#4b3d5a; --muted:#bcadc6; --ok:#84d688; --no:#ff8f85;
+  --stage:#100b16; --scrim:rgba(8,4,14,.8); --line:#45375261; --soft:#362a43;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
+  font-family:Fredoka,"Trebuchet MS","Segoe UI",sans-serif;font-size:17px;line-height:1.45}
+button,input{font:inherit;color:inherit}
+h1,h2{font-family:Caprasimo,Georgia,"Times New Roman",serif;font-weight:400;line-height:1.1;margin:0}
+
+#hud{display:flex;align-items:center;gap:.9rem;padding:.4rem .8rem;flex-wrap:wrap}
+#hud .brand{font-family:Caprasimo,Georgia,serif;font-size:1.15rem;color:var(--violet)}
+#hud .stat{font-weight:600;white-space:nowrap}
+#hud .spacer{flex:1}
+#hud button{background:none;border:2px solid var(--line);border-radius:999px;padding:.15rem .8rem;cursor:pointer;font-weight:500}
+#hud button:hover{border-color:var(--violet)}
+#pies .lost{opacity:.22;filter:grayscale(1)}
+svg.key{display:block}
+svg.key.hk{width:120px;height:42px}
+svg.key.big{width:min(320px,80%);height:auto;margin:.8rem auto}
+.kp{fill:var(--key-empty)}
+.kp.got{fill:var(--gold)}
+.kp.new{animation:shine 1.2s ease-out 2}
+@keyframes shine{0%{fill:#fff}60%{fill:#ffe9a3}100%{fill:var(--gold)}}
+
+#stage{position:relative;flex:1;min-height:0;display:grid;place-items:center;overflow:hidden;background:var(--stage)}
+canvas{display:block;border-radius:10px}
+.overlay{position:absolute;inset:0;display:flex;padding:1rem;overflow:auto;background:var(--scrim)}
+.overlay[hidden]{display:none}
+.card{margin:auto;background:var(--paper);color:var(--ink);border-radius:18px;padding:1.3rem 1.5rem;
+  width:100%;max-width:640px;border:3px solid var(--violet);box-shadow:0 8px 0 rgba(0,0,0,.25)}
+.card h1{font-size:clamp(1.8rem,5vw,2.6rem);color:var(--violet)}
+.card h2{font-size:1.5rem;color:var(--violet)}
+.card p{margin:.6rem 0}
+.sub{color:var(--muted);margin:0}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.4rem .9rem;margin:.8rem 0;padding:.7rem .9rem;background:var(--soft);border-radius:12px}
+.how b{display:block}
+.how span{color:var(--muted);font-size:.93rem}
+.field{display:block;font-weight:600;margin:.6rem 0}
+input[type=text]{display:block;margin-top:.25rem;padding:.5rem .7rem;border-radius:10px;border:2px solid var(--line);background:var(--paper);width:100%;max-width:340px}
+input[type=text]:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.skins{display:flex;gap:.5rem;align-items:center;margin:.4rem 0 .9rem}
+.skins button{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);cursor:pointer;padding:0}
+.skins button[aria-pressed=true]{border-color:var(--violet);box-shadow:0 0 0 3px var(--gold)}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.8rem}
+.btn{background:var(--violet);color:var(--violet-ink);border:0;border-radius:12px;padding:.6rem 1.2rem;font-weight:600;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:none;color:var(--violet);border:2px solid var(--violet);box-shadow:none}
+
+.who{display:flex;align-items:center;gap:.8rem}
+.who .badge{font-size:1.9rem;width:54px;height:54px;display:grid;place-items:center;background:var(--soft);border-radius:50%;flex:none}
+.who .grow{flex:1}
+.leave{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer}
+.say{font-style:italic;background:var(--soft);border-radius:12px;padding:.6rem .9rem}
+.dots{display:flex;gap:.4rem;margin:.7rem 0 .2rem}
+.dots i{width:34px;height:8px;border-radius:4px;background:var(--key-empty)}
+.dots i.done{background:var(--gold)}
+.dots i.now{background:var(--violet)}
+.q{font-size:1.2rem;font-weight:500}
+.q .bigline{display:block;font-size:1.7rem;font-weight:700;margin-top:.4rem;letter-spacing:.03em}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.5rem}
+.choice,.step{display:flex;align-items:center;gap:.6rem;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:.55rem .7rem;cursor:pointer;font-weight:500}
+.choice:hover:not(:disabled),.step:hover:not(:disabled){border-color:var(--violet)}
+.choice .n,.step .n{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--soft);font-weight:700;font-size:.9rem}
+.choice.bad{opacity:.45;text-decoration:line-through}
+.choice.good,.step.good{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--paper))}
+.order{display:grid;gap:.45rem;margin-bottom:.7rem}
+.step.on{border-color:var(--violet)}
+.step.on .n{background:var(--violet);color:var(--violet-ink)}
+.tip{color:var(--muted);font-size:.95rem}
+.btn.readbtn{padding:.25rem .8rem;font-size:.95rem;margin-top:.5rem}
+.numrow{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.numrow input{width:150px;margin:0;font-size:1.3rem;font-weight:600}
+.keys{display:flex;align-items:center;gap:.5rem;font-size:1.3rem;margin:.4rem 0}
+kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding:.5rem .8rem;border-radius:10px;border:2px solid var(--ink);border-bottom-width:5px;background:var(--paper)}
+.fb{min-height:1.5em;font-weight:600}
+.fb.ok{color:var(--ok)} .fb.no{color:var(--no)}
+.center{text-align:center}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.5rem;margin:.9rem 0}
+.stats div{background:var(--soft);border-radius:12px;padding:.5rem .7rem}
+.stats b{display:block;font-size:1.35rem}
+.stats span{color:var(--muted);font-size:.9rem}
+.table{font-size:clamp(1.5rem,5vw,2.3rem);letter-spacing:.12em;border-bottom:10px solid #8a5a34;border-radius:0 0 6px 6px;padding-bottom:.1rem;margin:.6rem 0}
+.todo{margin:.4rem 0;padding-left:1.2rem}
+
+#toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:var(--paper);color:var(--ink);border:2px solid var(--violet);
+  border-radius:999px;padding:.4rem 1rem;font-weight:500;max-width:92%;text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
+#toast.show{opacity:1}
+.pad{position:absolute;bottom:14px;display:none;gap:6px;z-index:2}
+.pad button{width:56px;height:56px;border-radius:14px;border:0;background:rgba(255,255,255,.55);font-size:1.4rem;touch-action:none;user-select:none;color:#2a1c33}
+#dpad{left:14px;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px)}
+#dpad .u{grid-column:2;grid-row:1} #dpad .l{grid-column:1;grid-row:2} #dpad .d{grid-column:2;grid-row:2} #dpad .r{grid-column:3;grid-row:2}
+#act{right:14px;grid-template-columns:repeat(2,56px)}
+@media (hover:none) and (pointer:coarse){ .pad{display:grid} #toast{bottom:150px} }
+.leaves{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.leaves span{position:absolute;top:-8%;font-size:1.6rem;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(120vh) rotate(420deg)}}
+@media (prefers-reduced-motion:reduce){ .leaves{display:none} .kp.new{animation:none} }
+@media (max-width:640px){ #hud .brand{display:none} }
+#wincard{max-width:780px;position:relative}
+.certimg{display:block;width:100%;height:auto;border-radius:8px;margin:.8rem 0;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+@media print{
+  @page{size:landscape;margin:.4in}
+  :root{padding:0}
+  html,body{height:auto;display:block;background:#fff}
+  #hud,#game,#toast,.pad,#title,#modal,.leaves,.noprint{display:none!important}
+  #stage{display:block;overflow:visible;background:none}
+  #win{position:static;display:block;padding:0;background:none;overflow:visible}
+  #wincard{border:0;box-shadow:none;padding:0;max-width:none;background:none}
+  .certimg{box-shadow:none;margin:0 auto;border-radius:0;width:auto;max-width:100%;max-height:7.3in;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<header id="hud">
+  <div class="brand">The Feast Key of Violet</div>
+  <div id="keywrap"></div>
+  <div class="stat" id="pieces">0 of 9</div>
+  <div class="stat" id="pies" aria-label="Pies left"></div>
+  <div class="stat" id="corn">🌽 3</div>
+  <div class="spacer"></div>
+  <button id="bHelp" type="button">How to play</button>
+  <button id="bRead" type="button">Read aloud off</button>
+  <button id="bMute" type="button">Sound on</button>
+</header>
+
+<main id="stage">
+  <canvas id="game" width="832" height="544" aria-label="Map of the town of Violet"></canvas>
+  <div id="toast" role="status"></div>
+  <div class="pad" id="dpad">
+    <button class="u" data-k="up" aria-label="Up">▲</button><button class="l" data-k="left" aria-label="Left">◀</button>
+    <button class="d" data-k="down" aria-label="Down">▼</button><button class="r" data-k="right" aria-label="Right">▶</button>
+  </div>
+  <div class="pad" id="act"><button id="bCorn" aria-label="Drop corn">🌽</button><button id="bThrow" aria-label="Throw an acorn">🌰</button></div>
+
+  <div class="overlay" id="title">
+    <div class="card">
+      <h1>The Feast Key of Violet</h1>
+      <p class="sub">A Thanksgiving adventure for fourth graders</p>
+      <p>Dinner is ready in the Pilgrim town of Violet, but the troublemaking turkeys pecked the golden Feast Key into <b>9 pieces</b> and scattered them across the farm. Visit each villager, solve their puzzles, and rebuild the key before the food gets cold!</p>
+      <div class="how">
+        <div><b>Move</b><span>Arrow keys or W A S D</span></div>
+        <div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
+        <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away!</span></div>
+        <div><b>Drop corn</b><span>C key. Turkeys stop to eat it.</span></div>
+      </div>
+      <label class="field">Your first name
+        <input type="text" id="name" maxlength="20" autocomplete="off" placeholder="Pilgrim">
+      </label>
+      <div class="skins" id="skins" role="group" aria-label="Choose your pilgrim"></div>
+      <div class="row">
+        <button class="btn" id="start" type="button">Start a new adventure</button>
+        <button class="btn ghost" id="cont" type="button" hidden>Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="modal" hidden><div class="card" id="card"></div></div>
+  <div class="overlay" id="win" hidden><div class="leaves" id="leaves"></div><div class="card center" id="wincard"></div></div>
+</main>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const TS = 32, VW = 832, VH = 544, W = 48, H = 34;
+const T = {G:0, P:1, TREE:2, WATER:3, CORN:5, BLD:6, HAY:7, PUMP:8, WELL:9, PLAZA:10, STEP:11, FLOWER:12};
+const SOLID = new Set([T.TREE, T.WATER, T.CORN, T.BLD, T.HAY, T.PUMP, T.WELL]);
+const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[R(0, a.length - 1)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = R(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = n => n.toLocaleString('en-US');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function mulberry(a){return () => {a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296;};}
+const hash = (x, y) => { let h = (x * 374761393 + y * 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+
+/* ---------------- Question pools ---------------- */
+function mc(q, correct, wrongs, hint){
+  const seen = new Set([String(correct)]), w = [];
+  for (const x of wrongs) { const k = String(x); if (!seen.has(k)) { seen.add(k); w.push(k); } }
+  const choices = shuffle([String(correct), ...w.slice(0, 3)]);
+  return {type:'mc', q, choices, a:choices.indexOf(String(correct)), hint};
+}
+const num = (q, ans, hint) => ({type:'num', q, ans:String(ans), hint});
+const order = (q, steps, hint) => ({type:'order', q, steps, hint});
+const fromList = list => list.map(([q, c, w, h]) => mc(q, c, w, h));
+
+function barnPool(){
+  const out = [];
+  { const a = R(13, 48), b = R(3, 9), t = Math.floor(a / 10) * 10, o = a % 10;
+    out.push(num(`Farmer Josiah has <b>${b}</b> crates. Each crate holds <b>${a}</b> apples. How many apples is that in all?`, a * b,
+      `Break ${a} apart. ${b} × ${t} = ${b * t}${o ? `, and ${b} × ${o} = ${b * o}. Now add them.` : '.'}`)); }
+  { const a = R(112, 460), b = R(2, 6);
+    out.push(num(`The barn has <b>${b}</b> shelves with <b>${a}</b> ears of corn on each shelf. How many ears of corn are there?`, a * b,
+      `Multiply the hundreds, then the tens, then the ones. Add the three parts.`)); }
+  { const d = R(3, 8), q = R(6, 12), r = R(1, d - 1), n = d * q + r;
+    out.push(num(`Josiah gathered <b>${n}</b> eggs. He puts <b>${d}</b> eggs in each basket. How many eggs are <b>left over</b>?`, r,
+      `Count by ${d}s. Find the biggest multiple of ${d} that is not more than ${n}, then subtract it from ${n}.`)); }
+  { const d = R(3, 8), q = R(6, 12), r = R(1, d - 1), n = d * q + r;
+    out.push(num(`Josiah has <b>${n}</b> pumpkins. A wagon holds <b>${d}</b> pumpkins. How many wagons can he fill <b>all the way</b>?`, q,
+      `${d} × ? gets close to ${n} without going over.`)); }
+  { const a = R(11, 24), b = R(11, 19);
+    out.push(num(`The hayloft has <b>${a}</b> rows of hay bales with <b>${b}</b> bales in each row. How many bales is that?`, a * b,
+      `Try ${a} × 10 = ${a * 10}, then ${a} × ${b - 10} = ${a * (b - 10)}. Add them.`)); }
+  { const x = R(6, 9), k = R(3, 8);
+    out.push(num(`The barn cat weighs <b>${x}</b> pounds. The piglet weighs <b>${k} times as much</b>. How many pounds does the piglet weigh?`, x * k,
+      `“${k} times as much” means multiply by ${k}.`)); }
+  { const a = R(8, 12), b = R(5, 7), c = R(10, 25);
+    out.push(num(`Josiah collects <b>${a}</b> eggs each morning for <b>${b}</b> days. Then he gives <b>${c}</b> eggs to a neighbor. How many eggs does he have left?`, a * b - c,
+      `Two steps: multiply ${a} × ${b} first, then subtract ${c}.`)); }
+  { const d = R(3, 7), q = R(12, 24), n = d * q;
+    out.push(num(`<b>${n}</b> apples are shared equally among <b>${d}</b> families. How many apples does each family get?`, q,
+      `Think: ${d} × ? = ${n}.`)); }
+  return out;
+}
+
+function patchPool(){
+  const out = [], big = s => `<span class="bigline">${s}</span>`;
+  { const [n, d] = pick([[1,2],[1,3],[2,3],[1,4],[3,4],[2,5]]), k = R(2, 4);
+    out.push(mc(`Goody Prudence cut a pumpkin pie. Which fraction is the <b>same amount</b> as ${n}/${d} of the pie?`, `${n*k}/${d*k}`,
+      [`${n*k}/${d*k+1}`, `${n+k}/${d+k}`, `${n*k+1}/${d*k}`], `Multiply the top and the bottom by the same number.`)); }
+  { const d = R(6, 12), a = R(1, d - 1); let b = R(1, d - 1); if (b === a) b = a === 1 ? 2 : a - 1;
+    out.push(mc(`Which symbol makes this true?${big(`${a}/${d} ▢ ${b}/${d}`)}`, a > b ? '>' : '<', ['>', '<', '='],
+      `The denominators match, so the pieces are the same size. Compare the numerators.`)); }
+  { const n = R(2, 3), ds = shuffle([4, 5, 6, 8, 10, 12]), d1 = ds[0], d2 = ds[1];
+    out.push(mc(`Which symbol makes this true?${big(`${n}/${d1} ▢ ${n}/${d2}`)}`, d1 < d2 ? '>' : '<', ['>', '<', '='],
+      `Same numerator: a smaller denominator means bigger pieces.`)); }
+  { const d = R(6, 12), a = R(1, d - 3), b = R(1, d - a - 1);
+    out.push(mc(`Prudence used ${a}/${d} of her pumpkins for pie and ${b}/${d} for bread. What fraction did she use in all?`, `${a+b}/${d}`,
+      [`${a+b}/${2*d}`, `${a+b+1}/${d}`, `${Math.abs(a-b) || 1}/${d}`], `Add the numerators. The denominator stays the same.`)); }
+  { const d = R(6, 12), a = R(4, d - 1), b = R(1, a - 2);
+    out.push(mc(`There was ${a}/${d} of a pie on the table. The children ate ${b}/${d} of the pie. How much is left?`, `${a-b}/${d}`,
+      [`${a+b}/${d}`, `${a-b}/${d-1}`, `${a-b+1}/${d}`], `Subtract the numerators. The denominator stays the same.`)); }
+  { out.push(mc(`Which fraction is <b>greater than 1/2</b>?`, pick(['3/4','5/8','4/6','7/10','5/6','2/3']),
+      shuffle(['1/4','3/8','2/6','3/10','1/3','2/5','4/10','1/6']).slice(0, 3),
+      `A fraction is more than 1/2 when the numerator is more than half of the denominator.`)); }
+  { const [n, d] = pick([[7,4],[9,4],[5,2],[7,3],[11,5]]), w = Math.floor(n / d), r = n % d;
+    out.push(mc(`Prudence baked ${n}/${d} pies’ worth of filling. Which mixed number equals ${n}/${d}?`, `${w} ${r}/${d}`,
+      [`${w+1} ${r}/${d}`, d - r !== r ? `${w} ${d-r}/${d}` : `${w} ${r}/${d+1}`, `${r} ${w}/${d}`],
+      `How many whole groups of ${d} fit in ${n}? What is left over?`)); }
+  return out;
+}
+
+function millPool(){
+  const out = [];
+  { const l = R(6, 12), w = R(3, 9);
+    out.push(num(`The wheat field is <b>${l}</b> yards long and <b>${w}</b> yards wide. What is its <b>area</b> in square yards?`, l * w, `Area = length × width.`)); }
+  { const l = R(12, 30), w = R(5, 11);
+    out.push(num(`Miller Thomas wants a fence all the way around a garden that is <b>${l}</b> feet long and <b>${w}</b> feet wide. How many feet of fence does he need?`, 2 * (l + w),
+      `Perimeter means add all four sides: ${l} + ${w} + ${l} + ${w}.`)); }
+  { let n = R(1150, 9849); while (n % 100 === 0) n++;
+    out.push(num(`The mill ground <b>${fmt(n)}</b> pounds of flour. Round that to the nearest <b>hundred</b>.`, Math.round(n / 100) * 100,
+      `Look at the tens digit. 5 or more rounds up. 4 or less rounds down.`)); }
+  { let n = R(11500, 98499); while (n % 1000 === 0) n++;
+    out.push(num(`The town harvested <b>${fmt(n)}</b> ears of corn. Round that to the nearest <b>thousand</b>.`, Math.round(n / 1000) * 1000,
+      `Look at the hundreds digit. 5 or more rounds up. 4 or less rounds down.`)); }
+  { const dg = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, 5), N = +dg.join(''), i = R(0, 3), D = dg[i], p = 4 - i;
+    out.push(mc(`What is the <b>value</b> of the digit ${D} in ${fmt(N)}?`, fmt(D * 10 ** p),
+      shuffle([0,1,2,3,4].filter(k => k !== p)).map(k => fmt(D * 10 ** k)), `Name the place the digit sits in: ones, tens, hundreds, thousands, or ten thousands.`)); }
+  { const [n, c, w] = pick([[24,'4 and 6',['5 and 6','3 and 9','7 and 4']],[36,'4 and 9',['5 and 7','8 and 4','6 and 7']],[48,'6 and 8',['5 and 9','7 and 6','9 and 4']],
+      [30,'5 and 6',['4 and 8','7 and 3','9 and 5']],[42,'6 and 7',['4 and 8','5 and 9','8 and 6']],[56,'7 and 8',['6 and 9','5 and 11','9 and 7']]]);
+    out.push(mc(`Thomas stacks ${n} flour sacks in equal rows. Which pair of numbers is a <b>factor pair</b> of ${n}?`, c, w, `A factor pair multiplies to make the number exactly.`)); }
+  { out.push(mc(`Which number is <b>prime</b>?`, pick([13,17,19,23,29,31]), shuffle([15,21,27,33,39,49,51]).slice(0, 3),
+      `A prime number has exactly two factors: 1 and itself.`)); }
+  { const f = R(3, 9);
+    out.push(num(`The mill rope is <b>${f}</b> feet long. How many <b>inches</b> long is it?`, 12 * f, `1 foot = 12 inches, so multiply by 12.`)); }
+  return out;
+}
+
+const SCHOOL = [
+ [`The Pilgrims carried ____ baskets to the feast.`, `their`, [`there`, `they’re`], `“Their” shows that something belongs to them.`],
+ [`____ going to bake three pumpkin pies today.`, `They’re`, [`Their`, `There`], `“They’re” is short for “they are.”`],
+ [`Please set the bread over ____ on the table.`, `there`, [`their`, `they’re`], `“There” tells where.`],
+ [`I ate ____ much stuffing!`, `too`, [`to`, `two`], `“Too” can mean “more than enough.”`],
+ [`____ invited to the Thanksgiving feast!`, `You’re`, [`Your`, `Yore`], `“You’re” is short for “you are.”`],
+ [`The turkey fluffed ____ feathers.`, `its`, [`it’s`, `its’`], `“It’s” means “it is.” “Its” shows belonging.`],
+ [`Which sentence uses capital letters correctly?`, `We visit Grandma in Ohio every Thanksgiving.`, [`We visit grandma in ohio every thanksgiving.`, `we visit Grandma in Ohio every Thanksgiving.`, `We visit Grandma in ohio every Thanksgiving.`], `Names, places, and holidays start with a capital letter. So does the first word.`],
+ [`Which sentence uses a comma correctly?`, `The pie was hot, so we let it cool.`, [`The pie was hot so, we let it cool.`, `The pie, was hot so we let it cool.`, `The pie was hot so we, let it cool.`], `In a compound sentence, the comma goes before the joining word (and, but, so).`],
+ [`Which one is a complete sentence?`, `The children gathered corn.`, [`Running through the field.`, `Because the turkeys were loud.`, `The big orange pumpkin on the porch.`], `A complete sentence has a subject, a verb, and a whole thought.`],
+ [`Right now, Constance ____ the school bell.`, `is ringing`, [`was ringing`, `will be ringing`, `rang`], `“Right now” tells you it is happening in the present.`],
+ [`The girl ____ baked the pie won a ribbon.`, `who`, [`which`, `whose`, `whom`], `Use “who” for a person who does the action.`],
+ [`Which sentence is punctuated correctly?`, `“Please pass the corn,” said Josiah.`, [`“Please pass the corn” said Josiah.`, `“Please pass the corn, said Josiah.”`, `Please pass the corn,” said Josiah.`], `Quotation marks hug the spoken words, and the comma goes inside them.`],
+ [`Which words are in the right order?`, `a small red wagon`, [`a red small wagon`, `a wagon small red`, `small a red wagon`], `Size comes before color when you describe something.`],
+ [`We ____ to the feast if the rain stops.`, `can walk`, [`can walked`, `can walking`, `walks can`], `After a helping verb like “can” or “may,” use the plain verb.`]
+];
+const PRINT = [
+ [`“The pumpkin pie was as warm as a hug.” What kind of figurative language is this?`, `Simile`, [`Metaphor`, `Rhyme`, `Alliteration`], `A simile compares two things using “like” or “as.”`],
+ [`“The cornfield was a golden ocean.” What kind of figurative language is this?`, `Metaphor`, [`Simile`, `Rhyme`, `Idiom`], `A metaphor says one thing IS another thing, without “like” or “as.”`],
+ [`“The <b>famished</b> travelers each ate three bowls of stew.” What does famished mean?`, `Very hungry`, [`Very sleepy`, `Very rich`, `Very quiet`], `Use the clue: how much did they eat?`],
+ [`“The turkeys made such a <b>commotion</b> that the whole town woke up.” What is a commotion?`, `A loud, noisy fuss`, [`A tasty meal`, `A quiet nap`, `A long road`], `Use the clue: what would wake up a whole town?`],
+ [`Elias had to <b>reprint</b> the page. What does the prefix re- mean?`, `Again`, [`Not`, `Before`, `Under`], `Think of redo, reread, and rebuild.`],
+ [`The gate was <b>unlocked</b>. What does the prefix un- mean?`, `Not`, [`Again`, `Before`, `Full of`], `Think of unhappy and unsafe.`],
+ [`In the word <b>thankful</b>, what does the suffix -ful mean?`, `Full of`, [`Without`, `A person who`, `Before`], `Think of joyful and hopeful.`],
+ [`The night sky was <b>cloudless</b>. What does the suffix -less mean?`, `Without`, [`Full of`, `Again`, `More`], `Think of fearless and endless.`],
+ [`Which word is a <b>synonym</b> for “gather”?`, `Collect`, [`Scatter`, `Waste`, `Sleep`], `A synonym means almost the same thing.`],
+ [`Which word is an <b>antonym</b> of “generous”?`, `Selfish`, [`Kind`, `Giving`, `Thankful`], `An antonym means the opposite.`],
+ [`Elias says setting the type is “a piece of cake.” What does he mean?`, `It is very easy.`, [`He is hungry for dessert.`, `It is very messy.`, `It takes a long time.`], `An idiom does not mean exactly what the words say.`],
+ [`“Autumn was a busy time in Violet. Families picked apples, dried corn, and stacked wood for winter. Everyone had a job to do.” What is the <b>main idea</b>?`, `People in Violet worked hard in autumn to get ready for winter.`, [`Apples are the best fruit.`, `Winter is colder than autumn.`, `Corn takes a long time to dry.`], `The main idea is what the whole paragraph is mostly about.`],
+ [`“I tiptoed past the turkeys and held my breath.” What point of view is this?`, `First person`, [`Second person`, `Third person`], `Look for the words “I,” “me,” and “my.”`],
+ [`A girl shares her last loaf with a hungry traveler. The next day, her neighbors fill her basket. What is the <b>theme</b>?`, `Kindness comes back to you.`, [`Never talk to travelers.`, `Bread is hard to bake.`, `Always wake up early.`], `The theme is the lesson the story teaches.`]
+];
+const SLIDES = [
+ [`Which shortcut adds a <b>new slide</b> in Google Slides?`, `Ctrl + M`, [`Ctrl + N`, `Ctrl + S`, `Ctrl + P`], `M… think “More slides.”`],
+ [`You want to add a picture of a pumpkin to your slide. Which menu do you open?`, `Insert`, [`Format`, `Arrange`, `Tools`], `You are putting something new INTO the slide.`],
+ [`What do you add so you can type words anywhere on a slide?`, `A text box`, [`A theme`, `A transition`, `Speaker notes`], `It is a box that holds text.`],
+ [`What is a <b>transition</b>?`, `The effect that plays when you move from one slide to the next`, [`The colors and fonts for the whole slideshow`, `A box for typing words`, `Notes that only the speaker sees`], `Transition means changing from one thing to another.`],
+ [`You want every slide to have matching colors and fonts. What do you choose?`, `A theme`, [`A transition`, `Spell check`, `Zoom`], `It sets the look of the whole slideshow at once.`],
+ [`How do you show your slides to the class on the full screen?`, `Click Slideshow`, [`Click Share`, `Click File, then Print`, `Click Undo`], `Look at the top right corner of Google Slides.`],
+ [`You need an exact copy of a slide. What is the fastest way?`, `Right-click the slide and choose Duplicate slide`, [`Type everything again on a new slide`, `Delete the slide and start over`, `Change the theme`], `Duplicate means “make a copy.”`],
+ [`How do you make a picture bigger <b>without</b> stretching it out of shape?`, `Drag a corner handle`, [`Drag a side handle`, `Press Delete`, `Double-click the slide number`], `Corners keep the shape the same. Sides squish it.`],
+ [`How do you move slide 5 so it comes before slide 2?`, `Drag it up in the list of slides on the left`, [`Type it all again`, `Change the layout`, `Press Ctrl + Z`], `The small slides on the left side can be dragged.`],
+ [`Where do you type reminders that only the presenter sees?`, `Speaker notes`, [`The title box`, `The theme panel`, `A text box on the slide`], `Look below the slide.`],
+ [`You want a slide with a title on top and two columns below. What do you change?`, `The layout`, [`The transition`, `The font color`, `The zoom`], `Layout means how the boxes are arranged on the slide.`],
+ [`What do you change to put a new color behind everything on a slide?`, `The background`, [`The border`, `The text box`, `The transition`], `It sits in back of everything else.`],
+ [`Your title is hard to read. Which is the <b>best</b> fix?`, `Use a big font in a color that stands out from the background`, [`Make the words smaller`, `Make the words the same color as the background`, `Add ten more pictures`], `Good slides are easy to read from the back of the room.`]
+];
+const DIGCIT = [
+ [`Which of these makes the <b>strongest</b> password?`, `Purple!Turkey42Pie`, [`password`, `123456`, `your first name`], `Strong passwords are long and mix words, numbers, and symbols.`],
+ [`A friend asks for your password so they can “just check something.” What should you do?`, `Keep it private. Only share passwords with a parent or trusted adult.`, [`Tell them, because they are your friend`, `Write it on the board`, `Trade passwords with them`], `Passwords are like toothbrushes: you don’t share them with friends.`],
+ [`Which of these is <b>private information</b> you should not post online?`, `Your home address`, [`Your favorite pie`, `The name of a book you like`, `Your favorite color`], `Private information can be used to find you or pretend to be you.`],
+ [`Someone you do not know sends you a message in a game and asks where you live. What should you do?`, `Do not answer, and tell a trusted adult`, [`Tell them your street`, `Ask where they live first`, `Send them a photo instead`], `When something online feels wrong, stop and get a trusted adult.`],
+ [`You see a classmate being teased in a group chat. What is the <b>best</b> thing to do?`, `Do not join in, and tell a trusted adult`, [`Add a mean joke of your own`, `Share the chat with more people`, `Laugh so no one teases you`], `Upstanders help. Bystanders just watch.`],
+ [`What is your <b>digital footprint</b>?`, `The trail of everything you post and do online`, [`A drawing of your foot on a tablet`, `How fast you can type`, `The size of your computer screen`], `Footprints get left behind wherever you go, even online.`],
+ [`You used a photo from a website in your slideshow. What should you do?`, `Give credit by telling where the photo came from`, [`Say that you took the photo`, `Nothing, because everything online is free to use`, `Hide the photo on the last slide`], `Good digital citizens give credit to the person who made the work.`],
+ [`A pop-up says, “You won a free tablet! Click here!” What should you do?`, `Do not click it. Close it and tell an adult.`, [`Click it right away`, `Type in your name and address`, `Send it to all your friends`], `If it sounds too good to be true, it probably is.`],
+ [`Before you post a photo of a friend, what should you do?`, `Ask your friend if it is okay`, [`Post it quickly before they see it`, `Add a silly caption about them`, `Nothing. It is your photo.`], `Respect means asking permission first.`],
+ [`Which is the best clue that a website has information you can <b>trust</b>?`, `It tells who wrote it, and other good sources agree with it`, [`It has lots of bright colors`, `It has many pop-up ads`, `It is the first one you clicked`], `Check who made it and whether other sources say the same thing.`],
+ [`You are angry at a friend and type a mean comment. What should you do <b>before</b> you press Enter?`, `Stop and think: would I say this to their face?`, [`Send it fast before you change your mind`, `Type it in ALL CAPS`, `Send it from someone else’s account`], `Think before you post. Words online can last a long time.`],
+ [`You finish your work early on the Chromebook. Which is the responsible choice?`, `Stay on the sites and apps your teacher allows`, [`Search for games on any website`, `Change a classmate’s slides`, `Log in to someone else’s account`], `Use school technology the way your teacher expects.`],
+ [`Which is a healthy way to use screens?`, `Take breaks and make time to play, read, and sleep`, [`Stay on a screen all night`, `Skip meals to keep playing`, `Use a screen every minute you can`], `Balance means screens are only one part of your day.`]
+];
+const SHORT = [
+ ['c', 'Ctrl + C', 'COPY what you highlighted', 'C is for Copy.'],
+ ['v', 'Ctrl + V', 'PASTE what you copied', 'It is the key right next to C.'],
+ ['x', 'Ctrl + X', 'CUT what you highlighted', 'This letter looks like a pair of scissors.'],
+ ['z', 'Ctrl + Z', 'UNDO your last mistake', 'It is the last letter of the alphabet.'],
+ ['a', 'Ctrl + A', 'SELECT ALL', 'A is for All.'],
+ ['b', 'Ctrl + B', 'make words BOLD', 'B is for Bold.'],
+ ['i', 'Ctrl + I', 'make words ITALIC', 'I is for Italic.'],
+ ['u', 'Ctrl + U', 'UNDERLINE words', 'U is for Underline.'],
+ ['y', 'Ctrl + Y', 'REDO what you just undid', 'It is the letter right before Z.']
+];
+const KEYNAME = {c:'Copy', v:'Paste', x:'Cut', z:'Undo', a:'Select all', b:'Bold', i:'Italic', u:'Underline', y:'Redo'};
+const smithPool = () => SHORT.map(([key, label, act, hint]) => ({type:'key', key, label,
+  q:`Press the real keyboard shortcut to <b>${act}</b>.`, hint:`Hold Ctrl and tap one letter. ${hint}`}));
+
+function bakeryPool(){
+  const dg = shuffle([1,2,3,4,5,6,7,8,9]).slice(0, 3).concat(0), set = new Set();
+  while (set.size < 4) { const p = shuffle(dg); if (p[0] !== 0) set.add(+p.join('')); }
+  return [
+    order(`Put the steps in order to <b>add a picture</b> to a slide.`, [`Click the slide you want`, `Open the Insert menu`, `Choose Image`, `Pick your picture`, `Drag a corner to resize it`], `Start by choosing the slide. Resizing comes last.`),
+    order(`Put the steps in order to <b>copy and paste</b> a sentence.`, [`Highlight the sentence`, `Press Ctrl + C`, `Click where the copy should go`, `Press Ctrl + V`], `You have to highlight before you can copy, and copy before you can paste.`),
+    order(`Put the steps in order to make a title <b>bold</b>.`, [`Click inside the title box`, `Highlight the words`, `Press Ctrl + B`], `The computer needs to know which words you mean first.`),
+    order(`Put the steps in order to <b>make a slideshow</b>.`, [`Open Google Slides`, `Pick a theme`, `Type your title`, `Add your pictures and words`, `Click Slideshow to present`], `Presenting is always the last step.`),
+    order(`Put the story in order.`, [`First, Patience rolled out the pie dough.`, `Next, she filled the crust with pumpkin.`, `Then, she baked the pie until it was golden.`, `Finally, she set it on the windowsill to cool.`], `Look for the time-order words: first, next, then, finally.`),
+    order(`Put these numbers in order from <b>least to greatest</b>.`, [...set].sort((a, b) => a - b).map(fmt), `Compare the thousands first, then the hundreds, then the tens.`),
+    order(`Put these words in <b>alphabetical order</b>.`, [`cider`, `corn`, `cornbread`, `cranberry`], `When the first letters match, look at the next letter.`),
+    order(`Put these fractions in order from <b>least to greatest</b>.`, [`1/8`, `1/6`, `1/4`, `1/2`], `A bigger denominator means smaller pieces.`)
+  ];
+}
+
+/* ---------------- Town ---------------- */
+const STATIONS = [
+ {id:'barn', name:'Red Barn', who:'Farmer Josiah', icon:'🐄', x:8, y:4, w:5, h:4, wall:'#b8412f', roof:'#6e2218', skill:'Multiply and divide',
+  intro:'Those turkeys tipped over every basket in my barn! Help me count it all and this key piece is yours.', thanks:'Everything is counted. Take this piece, and mind the turkeys!', pool:barnPool},
+ {id:'school', name:'Schoolhouse', who:'Schoolmistress Constance', icon:'📚', x:15, y:5, w:5, h:3, wall:'#eadfc8', roof:'#7c2d2d', skill:'Grammar and punctuation',
+  intro:'A turkey ate my chalk right in the middle of the lesson. Help me finish these sentences!', thanks:'Perfect grammar! Here is the piece I hid in my desk.', pool:() => fromList(SCHOOL)},
+ {id:'print', name:'Print Shop', who:'Printer Elias', icon:'📰', x:29, y:5, w:5, h:3, wall:'#8d6c4b', roof:'#3f3a36', skill:'Word meanings and reading',
+  intro:'I am printing the feast invitations, but the turkeys mixed up all my words.', thanks:'Now the invitations make sense. This piece was holding down my papers!', pool:() => fromList(PRINT)},
+ {id:'mill', name:'Grist Mill', who:'Miller Thomas', icon:'🌾', x:37, y:4, w:5, h:4, wall:'#cdbb96', roof:'#5a4632', skill:'Measurement and place value',
+  intro:'I must measure the fields and count the flour before the feast. Lend me your sharp mind!', thanks:'Measured to perfection. I found this piece in a flour sack.', pool:millPool},
+ {id:'patch', name:'Pumpkin Shed', who:'Goody Prudence', icon:'🎃', x:8, y:22, w:5, h:3, wall:'#cf8f3e', roof:'#5d7a2c', skill:'Fractions',
+  intro:'I am slicing pies and pumpkins into fair shares. Fractions, dear! Help me get them right.', thanks:'Fair shares for everyone! A turkey dropped this piece in my patch.', pool:patchPool},
+ {id:'smith', name:'Blacksmith', who:'Blacksmith Hope', icon:'⚒️', x:17, y:22, w:5, h:3, wall:'#73757f', roof:'#2f3138', skill:'Keyboard shortcuts',
+  intro:'I forge shortcuts here! Press the real keys on your keyboard to hammer each one into shape.', thanks:'Those fingers are quick as sparks! Here, I forged this piece back together.', pool:smithPool},
+ {id:'meet', name:'Meeting House', who:'Elder Samuel', icon:'🖥️', x:27, y:22, w:5, h:3, wall:'#f1ead8', roof:'#5b3a8c', skill:'Google Slides',
+  intro:'I am making a slideshow to welcome our guests, but I keep clicking the wrong things.', thanks:'What a splendid slideshow. This piece was under my hat the whole time!', pool:() => fromList(SLIDES)},
+ {id:'bake', name:'Bakery', who:'Baker Patience', icon:'🥧', x:36, y:22, w:5, h:3, wall:'#e6b98a', roof:'#a2452b', skill:'Putting steps in order',
+  intro:'A good recipe has its steps in the right order. So do a lot of other things. Help me sort these out!', thanks:'Everything in its proper order. I baked this piece into a pie by mistake!', pool:bakeryPool},
+ {id:'watch', name:'Watch House', who:'Watchman Gideon', icon:'🛡️', x:27, y:11, w:5, h:3, wall:'#a9b4c2', roof:'#2d4a6e', skill:'Digital citizenship',
+  intro:'I keep Violet safe, on the road and online. Show me you know how to be safe, kind, and smart on the internet.', thanks:'You are a fine digital citizen! This piece was stuck in my lantern.', pool:() => fromList(DIGCIT)}
+];
+const HALL = {id:'hall', name:'Feast Hall', icon:'🍽️', x:21, y:1, w:7, h:4, wall:'#8a5c38', roof:'#4b2a66'};
+const ALL = [...STATIONS, HALL];
+for (const s of ALL) { s.door = {x:s.x + (s.w >> 1), y:s.y + s.h - 1}; s.step = {x:s.door.x, y:s.door.y + 1}; }
+const N = STATIONS.length;
+
+const map = new Uint8Array(W * H);
+const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W + x];
+(function buildMap(){
+  const set = (x, y, t) => { if (x >= 0 && y >= 0 && x < W && y < H) map[y * W + x] = t; };
+  const rect = (x, y, w, h, t) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) set(i, j, t); };
+  const rng = mulberry(1621);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (x === 0 || y === 0 || x === W - 1 || y === H - 1) set(x, y, T.TREE);
+    else if ((x === 1 || y === 1 || x === W - 2) && rng() < 0.6) set(x, y, T.TREE);
+  }
+  rect(3, 17, 42, 1, T.P); rect(6, 9, 37, 1, T.P); rect(6, 26, 37, 1, T.P);
+  rect(6, 9, 1, 18, T.P); rect(42, 9, 1, 18, T.P); rect(15, 9, 1, 18, T.P); rect(33, 9, 1, 18, T.P);
+  rect(24, 5, 1, 22, T.P); rect(29, 14, 1, 3, T.P);
+  rect(21, 14, 7, 7, T.PLAZA); set(24, 17, T.WELL);
+  rect(8, 11, 6, 5, T.CORN); rect(8, 13, 6, 1, T.P);
+  rect(35, 11, 6, 5, T.CORN); rect(35, 13, 6, 1, T.P);
+  rect(44, 2, 3, 5, T.WATER); set(44, 2, T.G); set(44, 6, T.G);
+  rect(2, 28, 4, 3, T.WATER); set(2, 28, T.G); set(5, 30, T.G);
+  for (const [x, y] of [[8,19],[10,19],[12,19],[9,21],[11,21],[13,20]]) set(x, y, T.PUMP);
+  for (const [x, y] of [[13,7],[7,7],[30,19],[31,19],[18,12],[36,7]]) set(x, y, T.HAY);
+  for (const s of ALL) { rect(s.x, s.y, s.w, s.h, T.BLD); set(s.step.x, s.step.y, T.STEP); }
+  const open = t => t === T.P || t === T.PLAZA || t === T.STEP || t === T.BLD || t === T.WELL;
+  for (let y = 2; y < 27; y++) for (let x = 2; x < W - 2; x++) {
+    const a = rng(), b = rng();
+    if (tile(x, y) !== T.G) continue;
+    let near = false;
+    for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) if (open(tile(x + i, y + j))) near = true;
+    if (!near && a < 0.09) set(x, y, T.TREE); else if (b < 0.12) set(x, y, T.FLOWER);
+  }
+  for (const y of [28, 30, 32]) for (let x = 8; x <= 40; x += 3) if (tile(x, y) === T.G) set(x, y, T.TREE);
+})();
+
+/* ---------------- State ---------------- */
+const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
+const S = {state:'title', name:'Pilgrim', skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:''};
+const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
+const keys = {up:false, down:false, left:false, right:false};
+const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
+const TSPAWN = [[10,9],[38,9],[6,20],[42,20],[12,26],[36,26],[33,12],[15,22],[28,9],[20,26]];
+let turkeys = [];
+const pickups = [[11,13],[38,13],[3,17],[44,17],[24,11],[6,22],[42,22],[19,29],[31,29],[24,23]].map(([x, y]) => ({x:(x + .5) * TS, y:(y + .5) * TS, t:0}));
+let drops = [], shots = [], parts = [], cool = 0, tick = 0, shake = 0, scale = 1, ses = null, dl = null;
+const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
+const solidP = (x, y) => SOLID.has(tile(x, y));
+const solidT = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.PLAZA || t === T.STEP; };
+const activeTurkeys = () => Math.min(turkeys.length, 6 + Math.floor(S.solved.size / 2));
+function resetWorld(){
+  player.x = 24.5 * TS; player.y = 19.5 * TS; player.inv = 0; player.dir = 'down';
+  turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false}));
+  drops = []; shots = []; parts = []; for (const p of pickups) p.t = 0;
+  S.pies = 3; S.corn = 3; S.armed = true;
+}
+
+const KEY = 'violet-feast-v1';
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total})); } catch (e) {} }
+function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
+
+/* ---------------- Sound ---------------- */
+let actx = null, muted = false;
+function beep(f, dur, type, vol, when){
+  if (muted) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + (when || 0);
+    o.type = type || 'square'; o.frequency.value = f;
+    g.gain.setValueAtTime(vol || .04, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0 + dur);
+  } catch (e) {}
+}
+const sfx = {
+  ok(){ beep(660, .12); beep(880, .18, 'square', .04, .1); },
+  bad(){ beep(170, .25, 'sawtooth', .04); },
+  piece(){ [523, 659, 784, 1047].forEach((f, i) => beep(f, .22, 'triangle', .07, i * .12)); },
+  gobble(){ for (let i = 0; i < 6; i++) beep(280 + (i % 2) * 130, .07, 'sawtooth', .04, i * .07); },
+  corn(){ beep(990, .08, 'triangle', .05); },
+  toss(){ beep(540, .06, 'triangle', .04); },
+  bonk(){ beep(230, .09, 'square', .05); beep(140, .12, 'square', .05, .08); },
+  win(){ [523, 659, 784, 659, 784, 1047, 1319].forEach((f, i) => beep(f, .25, 'triangle', .07, i * .15)); }
+};
+
+/* ---------------- HUD ---------------- */
+function keySVG(newIdx, pre){
+  const shape = '<path fill-rule="evenodd" d="M28 6a22 22 0 1 0 0 44a22 22 0 1 0 0-44zm0 13a9 9 0 1 1 0 18a9 9 0 1 1 0-18z"/><rect x="47" y="23" width="105" height="10" rx="3"/><rect x="112" y="31" width="10" height="15" rx="2"/><rect x="130" y="31" width="12" height="20" rx="2"/>';
+  let defs = '', g = '';
+  const sw = 160 / N;
+  for (let i = 0; i < N; i++) {
+    defs += `<clipPath id="${pre}c${i}"><rect x="${(i * sw + .6).toFixed(2)}" y="0" width="${(sw - 1.2).toFixed(2)}" height="56"/></clipPath>`;
+    g += `<g clip-path="url(#${pre}c${i})" class="kp${S.solved.has(STATIONS[i].id) ? ' got' : ''}${i === newIdx ? ' new' : ''}">${shape}</g>`;
+  }
+  return `<svg class="key ${pre}" viewBox="0 0 160 56" role="img" aria-label="Feast Key: ${S.solved.size} of ${N} pieces"><defs>${defs}</defs>${g}</svg>`;
+}
+function updateHud(){
+  $('#keywrap').innerHTML = keySVG(-1, 'hk');
+  $('#pieces').textContent = `${S.solved.size} of ${N}`;
+  $('#pies').innerHTML = [0, 1, 2].map(i => `<span class="${i < S.pies ? '' : 'lost'}">🥧</span>`).join('');
+  $('#corn').textContent = `🌽 ${S.corn}`;
+}
+let toastT = 0;
+function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 3600); }
+function setState(s){ S.state = s; keys.up = keys.down = keys.left = keys.right = false; }
+
+/* ---------------- Movement ---------------- */
+function blocked(x, y, hw, hh, solid){
+  const x0 = Math.floor((x - hw) / TS), x1 = Math.floor((x + hw) / TS), y0 = Math.floor((y - hh) / TS), y1 = Math.floor((y + hh) / TS);
+  for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) if (solid(tx, ty)) return true;
+  return false;
+}
+function move(e, dx, dy, solid){
+  let m = false;
+  if (dx && !blocked(e.x + dx, e.y, e.hw, e.hh, solid)) { e.x += dx; m = true; }
+  if (dy && !blocked(e.x, e.y + dy, e.hw, e.hh, solid)) { e.y += dy; m = true; }
+  return m;
+}
+function dropCorn(){
+  if (S.state !== 'play') return;
+  if (S.corn <= 0) { toast('No corn left! Look for 🌽 around town.'); return; }
+  const d = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]}[player.dir];
+  let x = player.x + d[0] * 44, y = player.y + d[1] * 44;
+  if (solidP(Math.floor(x / TS), Math.floor(y / TS))) { x = player.x; y = player.y; }
+  drops.push({x, y, t:6}); S.corn--; sfx.corn(); updateHud();
+}
+function throwAcorn(){
+  if (S.state !== 'play' || cool > 0) return;
+  const d = DIRS[player.dir];
+  shots.push({x:player.x + d[0] * 10, y:player.y + d[1] * 10, vx:d[0] * 430, vy:d[1] * 430, t:.6}); cool = .4; sfx.toss();
+}
+function gobble(t){
+  S.pies--; S.gobbles++; player.inv = 2.5; t.flee = 2; shake = .3; sfx.gobble();
+  if (S.pies <= 0) { S.pies = 3; player.x = 24.5 * TS; player.y = 19.5 * TS; toast(`Gobble gobble! ${t.name} chased you back to the well. Your pies are refilled.`); }
+  else toast(`${t.name} bumped you and you dropped a pie! Throw acorns with the Space bar to shoo turkeys away.`);
+  updateHud(); save();
+}
+function update(dt){
+  S.elapsed += dt;
+  let dx = 0, dy = 0;
+  if (keys.left) dx--; if (keys.right) dx++; if (keys.up) dy--; if (keys.down) dy++;
+  player.moving = false;
+  if (dx || dy) {
+    const l = Math.hypot(dx, dy), sp = 150 * dt;
+    player.moving = move(player, dx / l * sp, dy / l * sp, solidP);
+    player.walk += dt * 11;
+    player.dir = dx ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+  }
+  player.inv = Math.max(0, player.inv - dt);
+  shake = Math.max(0, shake - dt);
+  for (const p of pickups) {
+    if (p.t > 0) { p.t -= dt; continue; }
+    if (Math.hypot(p.x - player.x, p.y - player.y) < 22) { S.corn = Math.min(9, S.corn + 2); p.t = 45; sfx.corn(); toast('You found corn! Press C to drop it for the turkeys.'); updateHud(); }
+  }
+  for (const c of drops) c.t -= dt;
+  drops = drops.filter(c => c.t > 0);
+  const pt = tile(Math.floor(player.x / TS), Math.floor(player.y / TS)), safe = pt === T.PLAZA || pt === T.STEP;
+  const n = activeTurkeys();
+  cool = Math.max(0, cool - dt);
+  for (const s of shots) {
+    s.t -= dt; s.x += s.vx * dt; s.y += s.vy * dt;
+    const tt = tile(Math.floor(s.x / TS), Math.floor(s.y / TS));
+    if (tt === T.TREE || tt === T.BLD || tt === T.CORN) s.t = 0;
+    for (let i = 0; i < n && s.t > 0; i++) {
+      const t = turkeys[i];
+      if (Math.hypot(t.x - s.x, t.y - s.y) < 19) {
+        s.t = 0; t.flee = 4; S.shooed++; sfx.bonk();
+        for (let k = 0; k < 7; k++) parts.push({x:t.x, y:t.y - 10, vx:(Math.random() - .5) * 160, vy:-Math.random() * 120, t:.6, c:FAN[k % 5]});
+      }
+    }
+  }
+  shots = shots.filter(s => s.t > 0);
+  for (const p of parts) { p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; }
+  parts = parts.filter(p => p.t > 0);
+  for (let i = 0; i < n; i++) {
+    const t = turkeys[i]; t.anim += dt * 9;
+    let sp = t.sp * (1 + .05 * S.solved.size), vx = 0, vy = 0, tg = null, bd = 7 * TS;
+    for (const c of drops) { const d = Math.hypot(c.x - t.x, c.y - t.y); if (d < bd) { bd = d; tg = c; } }
+    const pd = Math.hypot(player.x - t.x, player.y - t.y) || 1;
+    t.peck = false; t.alert = false; t.busy = !!tg || t.flee > 0;
+    if (t.flee > 0) { t.flee -= dt; vx = (t.x - player.x) / pd; vy = (t.y - player.y) / pd; sp *= 2; }
+    else if (tg) { if (bd < 14) t.peck = true; else { vx = (tg.x - t.x) / bd; vy = (tg.y - t.y) / bd; sp *= 1.3; } }
+    else if (pd < 5.2 * TS && !safe && player.inv <= 0) { vx = (player.x - t.x) / pd; vy = (player.y - t.y) / pd; t.alert = true; sp *= 1.1; }
+    else {
+      t.wt -= dt;
+      if (t.wt <= 0) {
+        if (Math.random() < .25) { t.wx = 0; t.wy = 0; t.wt = .5 + Math.random(); }
+        else { const a = pick([[1,0],[-1,0],[0,1],[0,-1]]); t.wx = a[0]; t.wy = a[1]; t.wt = 1 + Math.random() * 2.5; }
+      }
+      vx = t.wx; vy = t.wy; sp *= .6;
+    }
+    t.moving = false;
+    if (vx || vy) { t.moving = move(t, vx * sp * dt, vy * sp * dt, solidT); if (!t.moving) t.wt = 0; if (Math.abs(vx) > .15) t.face = vx < 0 ? -1 : 1; }
+    if (!t.busy && player.inv <= 0 && !safe && pd < 20) gobble(t);
+  }
+  const tx = Math.floor(player.x / TS), ty = Math.floor(player.y / TS);
+  let on = null;
+  for (const s of ALL) if (s.step.x === tx && s.step.y === ty) on = s;
+  if (!on) S.armed = true;
+  else if (S.armed) {
+    S.armed = false;
+    if (on === HALL) openHall();
+    else if (S.solved.has(on.id)) toast(`${on.who}: “You already earned my piece. Keep going!”`);
+    else openStation(on);
+  }
+}
+
+/* ---------------- Drawing ---------------- */
+const cv = $('#game'), ctx = cv.getContext('2d');
+const FONT = 'Fredoka, "Trebuchet MS", sans-serif';
+function rr(x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function ell(x, y, rx, ry, c, rot){ ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot || 0, 0, 6.2832); ctx.fill(); }
+const LEAF = ['#d9641f', '#c8431f', '#e0a21a', '#b5651d', '#9c3a1a', '#e58a23'];
+function ground(x, y, t){
+  const px = x * TS, py = y * TS, h = hash(x, y);
+  if (t === T.P || t === T.STEP) {
+    ctx.fillStyle = '#dcb97c'; ctx.fillRect(px, py, TS + .6, TS + .6);
+    ctx.fillStyle = '#c9a465'; ctx.fillRect(px + 4 + h * 20, py + 6 + h * 14, 3, 2); ctx.fillRect(px + 22 - h * 14, py + 22 - h * 8, 2, 2);
+    if (t === T.STEP) { ctx.fillStyle = '#8a5a34'; rr(px + 5, py + 2, 22, 9, 3); ctx.fill(); }
+  } else if (t === T.PLAZA || t === T.WELL) {
+    ctx.fillStyle = '#cfc6b5'; ctx.fillRect(px, py, TS + .6, TS + .6);
+    ctx.strokeStyle = '#b3a995'; ctx.lineWidth = 1; ctx.strokeRect(px + 1.5, py + 1.5, 14, 14); ctx.strokeRect(px + 16.5, py + 16.5, 14, 14);
+  } else if (t === T.WATER) {
+    ctx.fillStyle = '#58a6cf'; ctx.fillRect(px, py, TS + .6, TS + .6);
+    ctx.fillStyle = '#9fd0ea'; const o = Math.sin(tick * 1.5 + x * 1.7 + y) * 4;
+    ctx.fillRect(px + 6 + o, py + 9, 9, 2); ctx.fillRect(px + 17 - o, py + 21, 8, 2);
+    if (tile(x, y - 1) !== T.WATER) { ctx.fillStyle = '#3c7fa3'; ctx.fillRect(px, py, TS + .6, 4); }
+  } else if (t === T.CORN) {
+    ctx.fillStyle = '#a9824a'; ctx.fillRect(px, py, TS + .6, TS + .6);
+  } else {
+    ctx.fillStyle = h < .5 ? '#93b657' : '#8baf51'; ctx.fillRect(px, py, TS + .6, TS + .6);
+    if (h > .7) { ctx.fillStyle = '#7a9f44'; ctx.fillRect(px + 8, py + 10, 2, 5); ctx.fillRect(px + 21, py + 20, 2, 5); }
+    if (h < .1) { ctx.fillStyle = LEAF[Math.floor(h * 60) % 6]; ctx.fillRect(px + 12 + h * 80, py + 18, 4, 3); }
+    if (t === T.FLOWER) { const c = h < .6 ? '#8e5bd0' : (h < .8 ? '#fff6d8' : '#f2c744'), fx = px + 9 + h * 12, fy = py + 10 + h * 10;
+      ctx.fillStyle = c; ctx.fillRect(fx - 3, fy, 7, 2); ctx.fillRect(fx - .5, fy - 3, 2, 7); ctx.fillStyle = '#f2c744'; ctx.fillRect(fx - .5, fy, 2, 2); }
+  }
+}
+function drawTall(o){
+  const x = o.x, y = o.y, px = x * TS, py = y * TS, cx = px + 16, h = hash(x, y);
+  if (o.k === T.TREE) {
+    ell(cx, py + 29, 12, 4, 'rgba(0,0,0,.18)');
+    ctx.fillStyle = '#6b4423'; ctx.fillRect(cx - 3, py + 12, 6, 18);
+    const c = LEAF[Math.floor(h * 6)];
+    ell(cx, py + 4, 17, 16, c); ell(cx - 9, py + 10, 9, 8, c); ell(cx + 9, py + 10, 9, 8, c);
+    ell(cx - 5, py - 2, 7, 6, 'rgba(255,255,255,.18)');
+  } else if (o.k === T.CORN) {
+    for (let i = 0; i < 3; i++) {
+      const sx = px + 5 + i * 10 + h * 3, top = py - 9 + ((i * 7 + h * 10) % 6);
+      ctx.fillStyle = '#7b9a35'; ctx.fillRect(sx, top, 3, py + 30 - top); ctx.fillRect(sx - 5, top + 11, 5, 3); ctx.fillRect(sx + 3, top + 19, 5, 3);
+      ctx.fillStyle = '#f2c744'; ctx.fillRect(sx - 1, top + 4, 5, 9); ctx.fillStyle = '#c9a44a'; ctx.fillRect(sx, top - 4, 3, 4);
+    }
+  } else if (o.k === T.HAY) {
+    ell(cx, py + 30, 14, 3, 'rgba(0,0,0,.18)');
+    ctx.fillStyle = '#e3b94f'; rr(px + 2, py + 5, 28, 25, 5); ctx.fill();
+    ctx.fillStyle = '#c2972f'; ctx.fillRect(px + 2, py + 12, 28, 2); ctx.fillRect(px + 2, py + 22, 28, 2); ctx.fillRect(px + 10, py + 5, 2, 25); ctx.fillRect(px + 21, py + 5, 2, 25);
+  } else if (o.k === T.PUMP) {
+    ell(cx, py + 29, 12, 3, 'rgba(0,0,0,.18)'); ell(cx, py + 19, 13, 10, '#e8791c'); ell(cx, py + 19, 6, 10, '#d5681a'); ell(cx, py + 19, 2, 10, '#e8791c');
+    ctx.fillStyle = '#5c7a2a'; ctx.fillRect(cx - 2, py + 5, 4, 6);
+  } else if (o.k === T.WELL) {
+    ell(cx, py + 20, 14, 10, '#8f897f'); ell(cx, py + 19, 9, 6, '#2f4a5c');
+    ctx.fillStyle = '#6b4423'; ctx.fillRect(cx - 13, py - 8, 3, 28); ctx.fillRect(cx + 10, py - 8, 3, 28);
+    ctx.fillStyle = '#5b3a8c'; ctx.beginPath(); ctx.moveTo(cx - 19, py - 6); ctx.lineTo(cx + 19, py - 6); ctx.lineTo(cx, py - 22); ctx.closePath(); ctx.fill();
+  }
+}
+function drawBuilding(b){
+  const px = b.x * TS, py = b.y * TS, pw = b.w * TS, ph = b.h * TS, wt = py + ph * .42, bot = py + ph, hall = b === HALL;
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(px + 2, bot - 3, pw, 7);
+  ctx.fillStyle = b.wall; ctx.fillRect(px + 3, wt, pw - 6, bot - wt);
+  ctx.fillStyle = 'rgba(0,0,0,.1)'; for (let i = px + 15; i < px + pw - 6; i += 12) ctx.fillRect(i, wt, 1.5, bot - wt);
+  const rt = py - 12, rb = wt + 6;
+  ctx.fillStyle = b.roof; ctx.beginPath(); ctx.moveTo(px - 5, rb); ctx.lineTo(px + pw + 5, rb); ctx.lineTo(px + pw - 16, rt); ctx.lineTo(px + 16, rt); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.2)'; ctx.lineWidth = 1.5;
+  for (let ry = rt + 9; ry < rb - 2; ry += 9) { const f = (ry - rt) / (rb - rt), ins = 16 - 21 * f; ctx.beginPath(); ctx.moveTo(px + ins, ry); ctx.lineTo(px + pw - ins, ry); ctx.stroke(); }
+  const dx = b.door.x * TS, dw = hall ? 30 : 22, dh = hall ? 38 : 30;
+  ctx.fillStyle = '#4a2f1b'; rr(dx + 16 - dw / 2, bot - dh, dw, dh + 2, 6); ctx.fill();
+  ctx.fillStyle = '#e3a008'; ctx.fillRect(dx + 16 + dw / 2 - 7, bot - dh / 2, 3, 3);
+  for (const wx of hall ? [px + 18, px + 52, px + pw - 66, px + pw - 32] : [px + 14, px + pw - 28]) {
+    ctx.fillStyle = '#ffe9a8'; ctx.fillRect(wx, wt + 12, 14, 14); ctx.fillStyle = '#4a2f1b'; ctx.fillRect(wx + 6, wt + 12, 2, 14); ctx.fillRect(wx, wt + 18, 14, 2);
+  }
+  const done = hall ? S.solved.size >= N : S.solved.has(b.id);
+  ell(dx + 16, wt - 8, 14, 14, '#4a2f1b'); ell(dx + 16, wt - 8, 12, 12, done ? '#ffe08a' : '#fff7e6');
+  ctx.font = '15px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000';
+  ctx.fillText(hall && !done ? '🔒' : b.icon, dx + 16, wt - 7);
+}
+function drawPlayer(){
+  if (player.inv > 0 && Math.floor(tick * 12) % 2) return;
+  const x = player.x, y = player.y, b = player.moving ? Math.sin(player.walk) * 1.5 : 0, sw = player.moving ? Math.sin(player.walk) : 0;
+  ell(x, y + 7, 10, 4, 'rgba(0,0,0,.22)');
+  ctx.fillStyle = '#3a2a1e'; ctx.fillRect(x - 6, y - 2 - (sw > .3 ? 2 : 0), 5, 9); ctx.fillRect(x + 1, y - 2 - (sw < -.3 ? 2 : 0), 5, 9);
+  ctx.fillStyle = '#2b3350'; rr(x - 9, y - 17 + b, 18, 17, 4); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillRect(x - 6, y - 17 + b, 12, 4);
+  ctx.fillStyle = '#15151b'; ctx.fillRect(x - 9, y - 8 + b, 18, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 9 + b, 4, 5);
+  ell(x, y - 23 + b, 8, 8, SKINS[S.skin]);
+  ctx.fillStyle = '#1c1c22';
+  if (player.dir === 'down') { ctx.fillRect(x - 4, y - 24 + b, 2, 3); ctx.fillRect(x + 2, y - 24 + b, 2, 3); }
+  else if (player.dir === 'left') ctx.fillRect(x - 6, y - 24 + b, 2, 3);
+  else if (player.dir === 'right') ctx.fillRect(x + 4, y - 24 + b, 2, 3);
+  rr(x - 12, y - 32 + b, 24, 4, 2); ctx.fill(); ctx.fillRect(x - 7, y - 42 + b, 14, 11);
+  ctx.fillStyle = '#7d55b8'; ctx.fillRect(x - 7, y - 35 + b, 14, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 36 + b, 4, 5);
+}
+const FAN = ['#b63a25', '#e2792a', '#f0bf3a', '#e2792a', '#b63a25'];
+function drawTurkey(t){
+  const x = t.x, y = t.y, f = t.face, b = t.moving ? Math.sin(t.anim) * 1.5 : 0;
+  ell(x, y + 8, 12, 4, 'rgba(0,0,0,.2)');
+  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 - f * .55 + (i - 2) * .36; ell(x + Math.cos(a) * 14, y - 8 + Math.sin(a) * 14 + b, 9, 5, FAN[i], a); }
+  ctx.fillStyle = '#e08a1e'; ctx.fillRect(x - 5, y + 2, 2, 6); ctx.fillRect(x + 3, y + 2, 2, 6);
+  ell(x, y - 6 + b, 11, 10, '#7a4a2b'); ell(x - f * 2, y - 5 + b, 6, 5, '#5f3820');
+  const hx = x + f * 10, hy = y - 17 + b + (t.peck ? 13 + Math.sin(tick * 14) * 3 : 0);
+  ell(hx, hy, 5, 5, '#8a5633');
+  ctx.fillStyle = '#f2b632'; ctx.beginPath(); ctx.moveTo(hx + f * 4, hy - 2); ctx.lineTo(hx + f * 10, hy + 1); ctx.lineTo(hx + f * 4, hy + 3); ctx.closePath(); ctx.fill();
+  ell(hx + f * 3, hy + 5, 2, 3.5, '#d12b2b'); ell(hx + f * 1.5, hy - 1.5, 1.3, 1.3, '#111');
+  if (t.flee > 0) { ctx.font = '700 13px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#f2c744'; ctx.fillText('★ ★', x, y - 34 + Math.sin(tick * 16) * 2); }
+  if (t.alert) { ctx.font = '700 16px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#c62020'; ctx.fillText('!', x, y - 36); }
+}
+function render(){
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.fillStyle = '#93b657'; ctx.fillRect(0, 0, VW, VH);
+  const camX = Math.round(clamp(player.x - VW / 2, 0, W * TS - VW)), camY = Math.round(clamp(player.y - VH / 2 - 12, 0, H * TS - VH));
+  ctx.save();
+  ctx.translate(-camX + (shake > 0 ? Math.sin(tick * 90) * 4 : 0), -camY);
+  const x0 = Math.floor(camX / TS), x1 = Math.min(W - 1, x0 + 27), y0 = Math.floor(camY / TS), y1 = Math.min(H - 1, y0 + 19);
+  const list = [];
+  for (let y = Math.max(0, y0 - 1); y <= y1; y++) for (let x = Math.max(0, x0 - 1); x <= x1; x++) {
+    const t = tile(x, y);
+    if (y >= y0 && x >= x0) ground(x, y, t);
+    if (t === T.TREE || t === T.CORN || t === T.HAY || t === T.PUMP || t === T.WELL) list.push({k:t, x, y, sy:(y + 1) * TS - 4});
+  }
+  for (const c of drops) { ctx.fillStyle = '#f2c744'; for (let i = 0; i < 6; i++) ctx.fillRect(c.x - 8 + (i * 7) % 16, c.y - 4 + (i * 5) % 9, 3, 3); }
+  for (const p of pickups) if (p.t <= 0) list.push({k:'pick', p, sy:p.y});
+  for (const s of shots) list.push({k:'shot', s, sy:s.y});
+  for (const b of ALL) list.push({k:'bld', b, sy:(b.y + b.h) * TS - 2});
+  const n = activeTurkeys(); for (let i = 0; i < n; i++) list.push({k:'tk', t:turkeys[i], sy:turkeys[i].y});
+  list.push({k:'me', sy:player.y});
+  list.sort((a, b) => a.sy - b.sy);
+  for (const o of list) {
+    if (o.k === 'bld') drawBuilding(o.b);
+    else if (o.k === 'tk') drawTurkey(o.t);
+    else if (o.k === 'me') drawPlayer();
+    else if (o.k === 'shot') { ell(o.s.x, o.s.y - 12, 5, 6, '#a06a32'); ell(o.s.x, o.s.y - 16, 5.5, 3, '#5a3a1c'); }
+    else if (o.k === 'pick') { ell(o.p.x, o.p.y + 8, 8, 3, 'rgba(0,0,0,.18)'); ctx.font = '20px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText('🌽', o.p.x, o.p.y - 4 + Math.sin(tick * 3 + o.p.x) * 3); }
+    else drawTall(o);
+  }
+  for (const p of parts) { ctx.fillStyle = p.c; ctx.fillRect(p.x - 2, p.y - 2, 5, 4); }
+  ctx.font = '600 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const b of ALL) {
+    const done = b !== HALL && S.solved.has(b.id), txt = (done ? '★ ' : '') + b.name, cx = (b.x + b.w / 2) * TS, cy = b.y * TS - 24, w = ctx.measureText(txt).width + 14;
+    ctx.fillStyle = done ? 'rgba(255,224,138,.95)' : 'rgba(255,250,240,.92)'; rr(cx - w / 2, cy - 9, w, 18, 9); ctx.fill();
+    ctx.fillStyle = '#2a1c33'; ctx.fillText(txt, cx, cy + 1);
+  }
+  ctx.restore();
+  if (S.state === 'play') drawGuide(camX, camY);
+}
+function drawGuide(camX, camY){
+  let tg = null, bd = 1e9;
+  if (S.solved.size >= N) tg = HALL;
+  else for (const s of STATIONS) { if (S.solved.has(s.id)) continue; const d = Math.hypot(s.step.x * TS + 16 - player.x, s.step.y * TS + 16 - player.y); if (d < bd) { bd = d; tg = s; } }
+  const sx = tg.step.x * TS + 16 - camX, sy = tg.y * TS - 44 - camY;
+  if (sx > 24 && sx < VW - 24 && sy > 4 && sy < VH - 60) {
+    const by = sy + Math.sin(tick * 5) * 4;
+    ctx.fillStyle = '#e3a008'; ctx.strokeStyle = '#2a1c33'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sx - 9, by - 8); ctx.lineTo(sx + 9, by - 8); ctx.lineTo(sx, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else {
+    const ty = tg.step.y * TS - camY, a = Math.atan2(ty - VH / 2, sx - VW / 2), ex = clamp(sx, 36, VW - 36), ey = clamp(ty, 36, VH - 36);
+    ctx.fillStyle = '#e3a008'; ctx.beginPath();
+    ctx.moveTo(ex + Math.cos(a) * 28, ey + Math.sin(a) * 28); ctx.lineTo(ex + Math.cos(a + 2.2) * 17, ey + Math.sin(a + 2.2) * 17); ctx.lineTo(ex + Math.cos(a - 2.2) * 17, ey + Math.sin(a - 2.2) * 17); ctx.closePath(); ctx.fill();
+    ell(ex, ey, 17, 17, '#5b3a8c'); ell(ex, ey, 14, 14, '#fff7e6');
+    ctx.font = '16px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText(tg.icon, ex, ey + 1);
+  }
+}
+function fit(){
+  const st = $('#stage'), k = Math.max(.1, Math.min(st.clientWidth / VW, st.clientHeight / VH)), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.style.width = Math.floor(VW * k) + 'px'; cv.style.height = Math.floor(VH * k) + 'px';
+  scale = k * dpr; cv.width = Math.round(VW * scale); cv.height = Math.round(VH * scale);
+}
+
+/* ---------------- Read aloud ---------------- */
+const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+let autoRead = false; try { autoRead = localStorage.getItem('violet-read') === '1'; } catch (e) {}
+function hush(){ if (canSpeak) try { speechSynthesis.cancel(); } catch (e) {} }
+function say(t){ if (!canSpeak) return; try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.rate = .92; u.lang = 'en-US'; speechSynthesis.speak(u); } catch (e) {} }
+function spoken(h){
+  return String(h).replace(/<span class="bigline">/g, '. ').replace(/<[^>]+>/g, '').replace(/_{2,}/g, ' blank ').replace(/▢/g, ' blank ')
+    .replace(/(\d+) (\d+)\/(\d+)/g, '$1 and $2 over $3').replace(/(\d+)\/(\d+)/g, '$1 over $2').replace(/Ctrl \+ /g, 'Control plus ').replace(/×/g, ' times ')
+    .replace(/^>$/, 'greater than').replace(/^<$/, 'less than').replace(/^=$/, 'equals');
+}
+function readQ(){
+  const q = ses && ses.qs[ses.i]; if (!q) return;
+  let t = spoken(q.q);
+  if (q.type === 'mc') t += '. ' + q.choices.map((c, k) => `Choice ${k + 1}: ${spoken(c)}`).join('. ');
+  else if (q.type === 'order') t += '. The choices are: ' + ses.shuf.map(k => spoken(q.steps[k])).join('. ');
+  say(t);
+}
+
+/* ---------------- Puzzles ---------------- */
+const modal = $('#modal'), card = $('#card');
+function closeModal(){ hush(); modal.hidden = true; ses = null; setState('play'); player.inv = Math.max(player.inv, 2); }
+function openStation(s){ setState('modal'); ses = {s, qs:shuffle(s.pool()).slice(0, 3), i:0}; modal.hidden = false; renderQ(); }
+function renderQ(){
+  const {s, qs, i} = ses, q = qs[i]; ses.missed = false; ses.done = false;
+  let body = '';
+  if (q.type === 'mc') body = `<div class="choices">${q.choices.map((c, k) => `<button type="button" class="choice" data-k="${k}"><span class="n">${k + 1}</span><span>${esc(c)}</span></button>`).join('')}</div>`;
+  else if (q.type === 'num') body = `<div class="numrow"><input type="text" id="ans" inputmode="numeric" autocomplete="off" maxlength="9" aria-label="Your answer"><button type="button" class="btn" id="chk">Check my answer</button></div>`;
+  else if (q.type === 'key') body = `<div class="keys"><kbd>Ctrl</kbd><span>+</span><kbd id="kc">?</kbd></div><p class="tip">Hold Ctrl, then tap the letter. <button type="button" class="leave" id="nokeys">No keyboard? Show choices instead</button></p>`;
+  else { ses.pick = []; do { ses.shuf = shuffle(q.steps.map((_, k) => k)); } while (ses.shuf.every((v, k) => v === k));
+    body = `<p class="tip">Tap the steps in order. Tap a numbered step to take it back.</p><div class="order" id="ord"></div><button type="button" class="btn" id="chk" disabled>Check my order</button>`; }
+  card.innerHTML = `<div class="who"><span class="badge">${s.icon}</span><div class="grow"><h2>${s.name}</h2><p class="sub">${s.who} needs help with: ${s.skill.toLowerCase()}</p></div><button type="button" class="leave" id="leave">Leave</button></div>
+    ${i === 0 ? `<p class="say">“${s.intro}”</p>` : ''}
+    <div class="dots" aria-label="Question ${i + 1} of 3">${[0, 1, 2].map(k => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('')}</div>
+    ${canSpeak ? '<button type="button" class="btn ghost readbtn" id="read">🔊 Read it to me</button>' : ''}
+    <p class="q">${q.q}</p>${body}<p class="fb" id="fb" role="status"></p>
+    <button type="button" class="btn" id="next" hidden></button>`;
+  $('#leave').onclick = closeModal;
+  hush(); if (canSpeak) { $('#read').onclick = readQ; if (autoRead) readQ(); }
+  $('#next').onclick = () => { ses.i++; if (ses.i >= ses.qs.length) award(); else renderQ(); };
+  if (q.type === 'mc') card.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+    if (ses.done) return;
+    if (+b.dataset.k === q.a) { b.classList.add('good'); card.querySelectorAll('.choice').forEach(c => c.disabled = true); right(); }
+    else { b.classList.add('bad'); b.disabled = true; wrong(q.hint); }
+  });
+  if (q.type === 'num') { $('#chk').onclick = checkNum; $('#ans').focus(); }
+  if (q.type === 'key') $('#nokeys').onclick = () => {
+    const m = mc(q.q.replace('Press the real keyboard shortcut', 'Which shortcut do you press'), q.label, shuffle(SHORT.map(x => x[1])), q.hint);
+    ses.qs[ses.i] = m; renderQ();
+  };
+  if (q.type === 'order') {
+    drawOrder();
+    $('#ord').onclick = e => { const b = e.target.closest('.step'); if (!b || ses.done) return; const k = +b.dataset.i, p = ses.pick.indexOf(k); if (p >= 0) ses.pick.splice(p, 1); else ses.pick.push(k); drawOrder(); };
+    $('#chk').onclick = () => {
+      if (ses.pick.every((v, k) => v === k)) { card.querySelectorAll('.step').forEach(b => { b.classList.add('good'); b.disabled = true; }); $('#chk').disabled = true; right(); }
+      else { let k = 0; while (ses.pick[k] === k) k++; ses.pick = ses.pick.slice(0, k); drawOrder(); wrong(`${k === 0 ? 'The first step is not right yet.' : `The first ${k} ${k === 1 ? 'step is' : 'steps are'} right.`} ${q.hint}`); }
+    };
+  }
+}
+function drawOrder(){
+  const q = ses.qs[ses.i];
+  $('#ord').innerHTML = ses.shuf.map(k => { const p = ses.pick.indexOf(k); return `<button type="button" class="step${p >= 0 ? ' on' : ''}" data-i="${k}"><span class="n">${p >= 0 ? p + 1 : ''}</span><span>${esc(q.steps[k])}</span></button>`; }).join('');
+  $('#chk').disabled = ses.pick.length < q.steps.length;
+}
+function checkNum(){
+  if (ses.done) return;
+  const q = ses.qs[ses.i], v = $('#ans').value.replace(/[,\s]/g, '');
+  if (!v) return;
+  if (v === q.ans) { $('#ans').disabled = true; $('#chk').disabled = true; right(); } else { wrong(q.hint); $('#ans').select(); }
+}
+function right(){
+  ses.done = true; S.total++; if (!ses.missed) S.first++; sfx.ok();
+  const fb = $('#fb'), nx = $('#next'); fb.className = 'fb ok'; fb.textContent = pick(['Correct!', 'Nicely done!', 'You got it!', 'Sharp thinking!']);
+  nx.hidden = false; nx.textContent = ses.i < 2 ? 'Next question' : 'Claim the key piece'; nx.focus();
+}
+function wrong(msg){ ses.missed = true; sfx.bad(); if (autoRead) say('Not quite. ' + spoken(msg)); const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Not quite. ' + msg; }
+function award(){
+  hush(); const s = ses.s; S.solved.add(s.id); ses = null; save(); updateHud(); sfx.piece();
+  const n = S.solved.size;
+  card.innerHTML = `<div class="center"><h2>You earned piece ${n} of ${N}!</h2>${keySVG(STATIONS.indexOf(s), 'big')}
+    <p class="say">“${s.thanks}”</p>
+    <p>${n < N ? `${N - n} more to find. Careful: the turkeys are getting bolder!` : 'The key is whole again! Hurry to the Feast Hall at the north end of town.'}</p>
+    <button type="button" class="btn" id="go">Back to Violet</button></div>`;
+  $('#go').onclick = closeModal; $('#go').focus();
+}
+function openHall(){
+  setState('modal'); ses = null; modal.hidden = false;
+  if (S.solved.size < N) {
+    const left = STATIONS.filter(s => !S.solved.has(s.id));
+    card.innerHTML = `<div class="who"><span class="badge">🔒</span><div class="grow"><h2>The Feast Hall is locked</h2><p class="sub">You have ${S.solved.size} of ${N} key pieces.</p></div></div>
+      <p>You can smell the pumpkin pie through the door! These villagers still need your help:</p>
+      <ul class="todo">${left.map(s => `<li>${s.icon} ${s.who} at the ${s.name}</li>`).join('')}</ul>
+      <button type="button" class="btn" id="go">Keep searching</button>`;
+    $('#go').onclick = closeModal; $('#go').focus();
+  } else {
+    card.innerHTML = `<div class="center"><h2>The key fits!</h2>${keySVG(-1, 'big')}
+      <p>Before the doors open, every guest in Violet shares one thing they are thankful for.</p>
+      <label class="field">I am thankful for…<input type="text" id="thx" maxlength="60" autocomplete="off" style="margin-inline:auto"></label>
+      <button type="button" class="btn" id="go">Open the doors</button></div>`;
+    const go = () => win($('#thx').value.trim());
+    $('#go').onclick = go; $('#thx').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#thx').focus();
+  }
+}
+function drawCert(){
+  const c = document.createElement('canvas'); c.width = 1650; c.height = 1275; c.className = 'certimg';
+  c.setAttribute('role', 'img'); c.setAttribute('aria-label', `Certificate of achievement for ${S.name}`);
+  const g = c.getContext('2d'), CX = 825, D = 'Caprasimo, Georgia, serif', B = 'Fredoka, "Trebuchet MS", sans-serif';
+  const text = (t, x, y, font, col, max) => { let px = +font.match(/(\d+)px/)[1]; g.font = font; while (max && g.measureText(t).width > max && px > 16) { px -= 2; g.font = font.replace(/\d+px/, px + 'px'); } g.fillStyle = col; g.fillText(t, x, y); };
+  g.fillStyle = '#fffdf6'; g.fillRect(0, 0, 1650, 1275);
+  g.strokeStyle = '#5b3a8c'; g.lineWidth = 14; g.strokeRect(40, 40, 1570, 1195);
+  g.strokeStyle = '#e3a008'; g.lineWidth = 5; g.strokeRect(64, 64, 1522, 1147);
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+  g.font = '64px ' + B; g.fillStyle = '#000';
+  for (const [x, y, e] of [[140, 165, '🍁'], [1510, 165, '🍂'], [140, 1160, '🌽'], [1510, 1160, '🥧']]) g.fillText(e, x, y);
+  text('Certificate of Achievement', CX, 230, '96px ' + D, '#5b3a8c', 1250);
+  text('The Thanksgiving Feast in the Town of Violet', CX, 300, '500 38px ' + B, '#66566e');
+  text('This certifies that', CX, 400, '34px ' + B, '#2a1c33');
+  text(S.name, CX, 520, '112px ' + D, '#2a1c33', 1200);
+  g.fillStyle = '#e3a008'; g.fillRect(CX - 380, 548, 760, 5);
+  text('rebuilt the golden Feast Key and saved Thanksgiving dinner', CX, 625, '500 40px ' + B, '#2a1c33');
+  text('using math, reading and writing, keyboard shortcuts, Google Slides, and digital citizenship.', CX, 678, '30px ' + B, '#66566e', 1400);
+  g.save(); g.translate(CX - 200, 715); g.scale(2.5, 2.5); g.fillStyle = '#e3a008';
+  g.beginPath(); g.arc(28, 28, 22, 0, 6.2832); g.arc(28, 28, 9, 0, 6.2832, true); g.fill();
+  g.fillRect(47, 23, 105, 10); g.fillRect(112, 31, 10, 15); g.fillRect(130, 31, 12, 20); g.restore();
+  const m = Math.floor(S.elapsed / 60), sec = String(Math.floor(S.elapsed % 60)).padStart(2, '0');
+  [[`${N} of ${N}`, 'key pieces found'], [`${S.first} of ${S.total}`, 'right on the first try'], [`${S.shooed}`, 'turkeys shooed away'], [`${m}:${sec}`, 'time in Violet']].forEach(([v, l], i) => {
+    const x = 285 + i * 360; text(v, x, 945, '700 54px ' + B, '#5b3a8c'); text(l, x, 985, '26px ' + B, '#66566e'); });
+  text(`${S.name} is thankful for ${S.thx}.`, CX, 1065, 'italic 34px ' + B, '#2a1c33', 1380);
+  g.fillStyle = '#2a1c33'; g.fillRect(260, 1150, 380, 3); g.fillRect(1010, 1150, 380, 3);
+  text(new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}), 450, 1138, '30px ' + B, '#2a1c33');
+  text('Date', 450, 1185, '24px ' + B, '#66566e'); text('Teacher', 1200, 1185, '24px ' + B, '#66566e');
+  return c;
+}
+function win(thx){
+  S.thx = thx || 'good friends and good food';
+  modal.hidden = true; setState('win'); save(); sfx.win();
+  $('#leaves').innerHTML = Array.from({length:20}, (_, i) => `<span style="left:${(i * 5.1 + 2) % 100}%;animation-duration:${6 + (i * 7) % 6}s;animation-delay:-${(i * 1.3) % 8}s">${i % 2 ? '🍂' : '🍁'}</span>`).join('');
+  $('#wincard').innerHTML = `<div class="noprint"><h1>Happy Thanksgiving, ${esc(S.name)}!</h1>
+    <div class="table">🦃 🥧 🌽 🍞 🥔 🍎 🧀 🍇 🦃</div>
+    <p>The doors swing open and all of Violet sits down together. Even the turkeys are here, as <b>guests</b>! It turns out they only wanted an invitation (and the corn).</p></div>
+    <div id="certbox"></div>
+    <div class="row noprint" style="justify-content:center"><button type="button" class="btn" id="print">Print my certificate</button>
+    <button type="button" class="btn ghost" id="savecert" ${dl ? '' : 'hidden'}>Save it as a picture</button>
+    <button type="button" class="btn ghost" id="again">Play again</button></div>
+    <p class="tip noprint" id="ptip">If the print window does not open, press Ctrl + P.</p>`;
+  const paint = () => { const box = $('#certbox'); if (box) box.replaceChildren(drawCert()); };
+  paint(); if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('96px Caprasimo'), document.fonts.load('34px Fredoka')]).then(paint).catch(() => {});
+  $('#win').hidden = false; $('#win').scrollTop = 0;
+  $('#print').onclick = () => { try { window.print(); } catch (e) {} };
+  $('#savecert').onclick = () => { const cv2 = $('#certbox canvas'); if (!dl || !cv2) return;
+    cv2.toBlob(blob => { if (blob) dl.save({filename:`violet-certificate-${S.name.replace(/[^A-Za-z0-9]+/g, '-') || 'pilgrim'}.png`, data:blob}).then(() => { $('#ptip').textContent = 'Saved! You can print the picture or add it to a slide.'; }).catch(() => {}); }, 'image/png'); };
+  $('#again').onclick = () => { try { localStorage.removeItem(KEY); } catch (e) {} $('#win').hidden = true; $('#cont').hidden = true; $('#title').hidden = false; setState('title'); };
+}
+function showHelp(){
+  if (S.state !== 'play') return;
+  setState('modal'); ses = null; modal.hidden = false;
+  card.innerHTML = `<h2>How to play</h2>
+    <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
+    <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
+    <div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
+    <p>Answer 3 questions for each villager to earn a piece of the Feast Key. Collect all 9, then go to the Feast Hall at the north end of town.</p>
+    <button type="button" class="btn" id="go">Back to Violet</button>`;
+  $('#go').onclick = closeModal; $('#go').focus();
+}
+
+/* ---------------- Input ---------------- */
+const KM = {ArrowUp:'up', KeyW:'up', ArrowDown:'down', KeyS:'down', ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right'};
+addEventListener('keydown', e => {
+  if (S.state === 'play') {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = KM[e.code];
+    if (k) { keys[k] = true; e.preventDefault(); }
+    else if (e.code === 'Space') { e.preventDefault(); throwAcorn(); }
+    else if (e.code === 'KeyC' && !e.repeat) dropCorn();
+  } else if (S.state === 'modal') modalKey(e);
+});
+addEventListener('keyup', e => { const k = KM[e.code]; if (k) keys[k] = false; });
+addEventListener('blur', () => { keys.up = keys.down = keys.left = keys.right = false; });
+function modalKey(e){
+  if (!ses) { if (e.key === 'Escape') closeModal(); return; }
+  const q = ses.qs[ses.i];
+  if (e.target && e.target.tagName === 'INPUT') { if (e.key === 'Enter') { e.preventDefault(); checkNum(); } return; }
+  if (ses.done) return;
+  if (q.type === 'mc') {
+    const k = +e.key - 1;
+    if (!e.ctrlKey && !e.metaKey && k >= 0 && k < q.choices.length) { const b = card.querySelector(`.choice[data-k="${k}"]`); if (b && !b.disabled) b.click(); }
+  } else if (q.type === 'key') {
+    if (['Control', 'Meta', 'Shift', 'Alt'].includes(e.key)) return;
+    const k = e.key.toLowerCase();
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const ok = (k === q.key && !(k === 'z' && e.shiftKey)) || (q.key === 'y' && k === 'z' && e.shiftKey);
+      if (ok) { $('#kc').textContent = q.key.toUpperCase(); right(); }
+      else wrong(`You pressed Ctrl + ${k.toUpperCase()}${KEYNAME[k] ? `, which is ${KEYNAME[k]}` : ''}. ${q.hint}`);
+    } else if (/^[a-z]$/.test(k)) { const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Hold down Ctrl first, then tap the letter.'; }
+  }
+}
+document.querySelectorAll('#dpad button').forEach(b => {
+  const k = b.dataset.k, on = e => { e.preventDefault(); if (S.state === 'play') keys[k] = true; }, off = () => { keys[k] = false; };
+  b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
+});
+$('#bCorn').addEventListener('pointerdown', e => { e.preventDefault(); dropCorn(); });
+$('#bThrow').addEventListener('pointerdown', e => { e.preventDefault(); throwAcorn(); });
+if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dl = d; const b = $('#savecert'); if (b && d) b.hidden = false; }).catch(() => {});
+$('#bHelp').onclick = e => { e.currentTarget.blur(); showHelp(); };
+$('#bMute').onclick = e => { muted = !muted; e.currentTarget.textContent = muted ? 'Sound off' : 'Sound on'; e.currentTarget.blur(); };
+const bRead = $('#bRead');
+if (!canSpeak) bRead.hidden = true; else { bRead.textContent = autoRead ? 'Read aloud on' : 'Read aloud off';
+  bRead.onclick = () => { autoRead = !autoRead; bRead.textContent = autoRead ? 'Read aloud on' : 'Read aloud off'; bRead.blur(); if (!autoRead) hush(); try { localStorage.setItem('violet-read', autoRead ? '1' : '0'); } catch (e) {} }; }
+
+/* ---------------- Title ---------------- */
+const skinBox = $('#skins');
+skinBox.innerHTML = SKINS.map((c, i) => `<button type="button" style="background:${c}" data-i="${i}" aria-label="Pilgrim ${i + 1}" aria-pressed="${i === 0}"></button>`).join('');
+skinBox.onclick = e => { const b = e.target.closest('button'); if (!b) return; S.skin = +b.dataset.i; skinBox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
+function begin(saved){
+  resetWorld();
+  if (saved) {
+    S.name = saved.name || 'Pilgrim'; S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
+    S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
+  } else {
+    S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
+  }
+  $('#title').hidden = true; setState('play'); updateHud(); save();
+  toast(S.solved.size ? `Welcome back, ${S.name}! Follow the gold arrow.` : `Welcome to Violet, ${S.name}! Follow the gold arrow to a villager.`);
+}
+$('#start').onclick = () => begin(null);
+$('#name').onkeydown = e => { if (e.key === 'Enter') begin(null); };
+const old = load();
+if (old && old.solved.length) { const c = $('#cont'); c.hidden = false; c.textContent = `Continue as ${old.name || 'Pilgrim'} (${old.solved.length} of ${N} pieces)`; c.onclick = () => begin(load()); }
+
+resetWorld(); updateHud(); fit();
+if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else addEventListener('resize', fit);
+let last = performance.now();
+function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); render(); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, W, H};
+})();
+</script>
+</body>
+</html>
