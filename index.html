@@ -140,6 +140,8 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
 #dpad .u{grid-column:2;grid-row:1} #dpad .l{grid-column:1;grid-row:2} #dpad .d{grid-column:2;grid-row:2} #dpad .r{grid-column:3;grid-row:2}
 #act{right:14px;grid-template-columns:repeat(2,56px)}
 @media (hover:none) and (pointer:coarse){ .pad{display:grid} #toast{bottom:150px} }
+body.touch .pad{display:grid}
+body.touch #toast{bottom:150px}
 .leaves{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .leaves span{position:absolute;top:-8%;font-size:1.6rem;animation:fall linear infinite}
 @keyframes fall{to{transform:translateY(120vh) rotate(420deg)}}
@@ -2558,6 +2560,10 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => { const k = KM[e.code]; if (k) keys[k] = false; });
 addEventListener('blur', () => { keys.up = keys.down = keys.left = keys.right = false; });
+const useTouch = () => { if (!document.body.classList.contains('touch')) { document.body.classList.add('touch'); try { localStorage.setItem('violet-touch', '1'); } catch (e) {} } };
+try { if (localStorage.getItem('violet-touch') === '1') document.body.classList.add('touch'); } catch (e) {}
+addEventListener('pointerdown', e => { if (e.pointerType === 'touch' || e.pointerType === 'pen') useTouch(); }, true);
+addEventListener('touchstart', useTouch, {capture:true, passive:true});
 function modalKey(e){
   if (!ses || ses.isMap || ses.isTeacher) {
     if (e.key === 'Escape' || (ses && ses.isMap && e.code === 'KeyM')) {
