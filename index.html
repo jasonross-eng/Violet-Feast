@@ -803,7 +803,7 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
 
 /* ---------------- State ---------------- */
 const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
-const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set()};
+const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set(), mis:{}, misN:{}, heard:new Set()};
 const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
 const keys = {up:false, down:false, left:false, right:false};
 const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
@@ -844,6 +844,119 @@ function foundSecret(id, n, msg){
   S.secrets.add(id); addFeathers(n); sfx.piece(); save();
   toast(`Secret ${S.secrets.size} of 3 found! ${msg}`);
 }
+/* ---------------- Villagers ---------------- */
+const NPCS = [
+  {id:'ezra', name:'Old Ezra', hx:40, hy:17, body:'#4a5a3a', hat:'tall', skin:1, kind:'clue', clue:'chest',
+   lines:['When I was a boy, I hid a treasure chest in the far top corner of town, past the pond by the Grist Mill. Walk along the grassy edge of the pond and look up!', 'You found my old treasure chest! You have sharp eyes, young pilgrim.']},
+  {id:'abigail', name:'Widow Abigail', hx:33, hy:24, body:'#6b3a5a', hat:'bonnet', skin:0, kind:'clue', clue:'maze',
+   lines:['Have you tried the corn maze south of the Bakery? Watch the corn closely. Some of it sways when there is no wind at all…', 'So you found the heart of the corn maze! Clever, clever pilgrim.']},
+  {id:'tobias', name:'Tobias the Tinker', hx:6, hy:15, body:'#7a4a2b', hat:'cap', skin:2, kind:'clue', clue:'hat',
+   lines:['A turkey stole my best pilgrim hat! He hides near the little pond in the bottom-left corner. He is too shy to chase you, so throw an acorn from far away.', 'You got that sneaky turkey! He can keep the hat. It looks better on him anyway.']},
+  {id:'mercy', name:'Little Mercy', hx:20, hy:26, body:'#c25b4a', hat:'bonnet', skin:3, kind:'doll', need:1, reward:8,
+   ask:'I lost my corn-husk doll in the orchard at the very bottom of town. Will you find it for me?',
+   wait:'Did you find my doll yet? It is somewhere among the trees at the bottom of town.',
+   done:'My doll! Thank you, thank you! Here are 8 golden feathers.'},
+  {id:'caleb', name:'Farmer Caleb', hx:12, hy:9, body:'#3a5a7a', hat:'straw', skin:1, kind:'crow', need:3, reward:10,
+   ask:'Crows keep stealing my seeds! Bonk 3 crows with acorns and I will pay you well.',
+   done:'No more crows in my field! Here are 10 golden feathers.'},
+  {id:'ruth', name:'Goodwife Ruth', hx:28, hy:17, body:'#5b3a8c', hat:'bonnet', skin:2, kind:'corn', need:3, reward:8,
+   ask:'My hens are hungry. Bring me 3 corn, and I will trade you golden feathers for it.',
+   done:'My hens thank you! Here are 8 golden feathers.'},
+  {id:'hannah', name:'Hannah the Herder', hx:42, hy:12, body:'#2c6b4a', hat:'cap', skin:0, kind:'turkey', need:4, reward:10,
+   ask:'The turkeys keep trampling my garden! Bonk 4 turkeys with acorns to teach them a lesson.',
+   done:'My garden is safe at last! Here are 10 golden feathers.'}
+];
+const DOLL = {x:19.5 * TS, y:31.5 * TS};
+const solidN = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.STEP || t === T.SCORN; };
+function resetNPCs(){ for (const v of NPCS) Object.assign(v, {x:(v.hx + .5) * TS, y:(v.hy + .5) * TS, hw:8, hh:6, dir:'down', wx:0, wy:0, wt:0, walk:0, moving:false, arm:true}); }
+function misNeed(v){ return v.kind === 'clue' ? !S.heard.has(v.id) : (S.mis[v.id] | 0) === 0; }
+function misReady(v){ return v.kind === 'corn' ? S.corn >= v.need : (S.misN[v.id] | 0) >= v.need; }
+function misTick(id){
+  const v = NPCS.find(x => x.id === id); if ((S.mis[id] | 0) !== 1) return;
+  S.misN[id] = (S.misN[id] | 0) + 1; save();
+  if (S.misN[id] < v.need) toast(`Mission for ${v.name}: ${S.misN[id]} of ${v.need} done.`);
+  else if (S.misN[id] === v.need) toast(`Mission done! Go back to ${v.name} for your reward.`);
+}
+function updateNPCs(dt){
+  for (const v of NPCS) {
+    const d = Math.hypot(player.x - v.x, player.y - v.y);
+    v.moving = false;
+    if (d < 70) v.dir = Math.abs(player.x - v.x) > Math.abs(player.y - v.y) ? (player.x < v.x ? 'left' : 'right') : (player.y < v.y ? 'up' : 'down');
+    else {
+      const hx = (v.hx + .5) * TS, hy = (v.hy + .5) * TS, hd = Math.hypot(hx - v.x, hy - v.y);
+      v.wt -= dt;
+      if (hd > 4 * TS) { v.wx = (hx - v.x) / hd; v.wy = (hy - v.y) / hd; v.wt = .5; }
+      else if (v.wt <= 0) { const a = pick([[1,0],[-1,0],[0,1],[0,-1],[0,0],[0,0]]); v.wx = a[0]; v.wy = a[1]; v.wt = 1 + Math.random() * 2.5; }
+      if (v.wx || v.wy) {
+        v.moving = move(v, v.wx * 38 * dt, v.wy * 38 * dt, solidN); v.walk += dt * 9;
+        if (!v.moving) v.wt = 0;
+        v.dir = Math.abs(v.wx) > Math.abs(v.wy) ? (v.wx < 0 ? 'left' : 'right') : (v.wy < 0 ? 'up' : 'down');
+      }
+    }
+    if (d > 56) v.arm = true;
+    else if (d < 26 && v.arm && S.state === 'play') { v.arm = false; talkTo(v); return; }
+  }
+  if ((S.mis.mercy | 0) === 1 && !S.misN.mercy && Math.hypot(DOLL.x - player.x, DOLL.y - player.y) < 22) { sfx.feather(); misTick('mercy'); }
+}
+function talkTo(v){
+  setState('modal'); ses = null; modal.hidden = false;
+  const st = S.mis[v.id] | 0; let text, btns = '<button type="button" class="btn" id="go">Goodbye</button>', after = null;
+  if (v.kind === 'clue') { text = S.secrets.has(v.clue) ? v.lines[1] : v.lines[0]; S.heard.add(v.id); }
+  else if (st === 0) {
+    text = v.ask;
+    btns = '<button type="button" class="btn" id="yes">I will do it!</button><button type="button" class="btn ghost" id="go">Not now</button>';
+  } else if (st === 1 && misReady(v)) {
+    if (v.kind === 'corn') { S.corn -= v.need; updateHud(); }
+    S.mis[v.id] = 2; addFeathers(v.reward); sfx.piece(); text = v.done;
+  } else if (st === 1) {
+    text = v.wait || (v.kind === 'corn' ? `Come back when you have ${v.need} corn. You have ${S.corn} right now. Look for corn around the farm or buy some at the General Store.`
+      : `You have bonked ${S.misN[v.id] | 0} of ${v.need} ${v.kind === 'crow' ? 'crows' : 'turkeys'}. Keep going!`);
+  } else text = pick(['Thank you again, friend!', 'Happy Thanksgiving, pilgrim!', 'Violet is lucky to have you.']);
+  save();
+  card.innerHTML = `<div class="who"><span class="badge" style="font-size:1.5rem">💬</span><div class="grow"><h2>${v.name}</h2><p class="sub">${v.kind === 'clue' ? 'Villager of Violet' : 'Secret mission'}</p></div></div>
+    <p class="say">“${text}”</p><div class="row">${btns}</div>`;
+  if (autoRead) say(text);
+  $('#go').onclick = closeModal; $('#go').focus();
+  const y = $('#yes'); if (y) { y.focus(); y.onclick = () => { S.mis[v.id] = 1; S.misN[v.id] = 0; save(); closeModal(); toast(`New mission from ${v.name}! It is listed under How to play.`); }; }
+}
+function drawVillager(v){
+  const x = v.x, y = v.y, b = v.moving ? Math.sin(v.walk) * 1.5 : 0, sw = v.moving ? Math.sin(v.walk) : 0, dress = v.hat === 'bonnet';
+  ell(x, y + 7, 10, 4, 'rgba(0,0,0,.22)');
+  if (dress) { ctx.fillStyle = v.body; ctx.beginPath(); ctx.moveTo(x - 7, y - 10 + b); ctx.lineTo(x + 7, y - 10 + b); ctx.lineTo(x + 11, y + 6); ctx.lineTo(x - 11, y + 6); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#f3ecdc'; ctx.fillRect(x - 5, y - 9 + b, 10, 13); }
+  else { ctx.fillStyle = '#3a2a1e'; ctx.fillRect(x - 6, y - 2 - (sw > .3 ? 2 : 0), 5, 9); ctx.fillRect(x + 1, y - 2 - (sw < -.3 ? 2 : 0), 5, 9); }
+  ctx.fillStyle = v.body; rr(x - 9, y - 17 + b, 18, dress ? 9 : 17, 4); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillRect(x - 6, y - 17 + b, 12, 4);
+  ell(x, y - 23 + b, 8, 8, SKINS[v.skin]);
+  ctx.fillStyle = '#1c1c22';
+  if (v.dir === 'down') { ctx.fillRect(x - 4, y - 24 + b, 2, 3); ctx.fillRect(x + 2, y - 24 + b, 2, 3); }
+  else if (v.dir === 'left') ctx.fillRect(x - 6, y - 24 + b, 2, 3);
+  else if (v.dir === 'right') ctx.fillRect(x + 4, y - 24 + b, 2, 3);
+  const hy = y + b;
+  if (dress) { ell(x, hy - 27, 10, 7, '#f7f2e6'); ctx.fillStyle = '#f7f2e6'; ctx.fillRect(x - 10, hy - 27, 3, 8); ctx.fillRect(x + 7, hy - 27, 3, 8); }
+  else if (v.hat === 'straw') { ell(x, hy - 30, 14, 4, '#e3c26a'); ctx.fillStyle = '#ecd58e'; rr(x - 7, hy - 39, 14, 9, 4); ctx.fill(); }
+  else if (v.hat === 'cap') { ell(x, hy - 29, 9, 6, '#6b4423'); ctx.fillStyle = '#6b4423'; ctx.fillRect(x - 9, hy - 29, 18, 3); }
+  else { ctx.fillStyle = '#1c1c22'; rr(x - 12, hy - 32, 24, 4, 2); ctx.fill(); ctx.fillRect(x - 7, hy - 42, 14, 11); ctx.fillStyle = '#d8cde3'; ctx.fillRect(x - 7, hy - 35, 14, 3); }
+  const near = Math.hypot(player.x - x, player.y - y) < 110, st = S.mis[v.id] | 0;
+  let mark = misNeed(v) ? '!' : (st === 1 && misReady(v) ? '★' : '');
+  if (mark) {
+    const my = hy - 56 + Math.sin(tick * 4 + v.hx) * 2;
+    ell(x, my, 10, 10, '#fffdf6'); ctx.strokeStyle = '#5b3a8c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, my, 10, 0, 6.2832); ctx.stroke();
+    ctx.font = '700 14px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = mark === '!' ? '#b3261e' : '#e3a008'; ctx.fillText(mark, x, my + 1);
+  }
+  if (near) {
+    ctx.font = '600 11px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const w = ctx.measureText(v.name).width + 12, ly = hy + 18;
+    ctx.fillStyle = 'rgba(255,250,240,.92)'; rr(x - w / 2, ly - 8, w, 16, 8); ctx.fill(); ctx.fillStyle = '#2a1c33'; ctx.fillText(v.name, x, ly + 1);
+  }
+}
+function drawDoll(){
+  const x = DOLL.x, y = DOLL.y + Math.sin(tick * 3) * 2;
+  ell(x, DOLL.y + 9, 8, 3, 'rgba(0,0,0,.2)');
+  ctx.fillStyle = '#e6c27a'; ctx.beginPath(); ctx.moveTo(x - 3, y - 6); ctx.lineTo(x + 3, y - 6); ctx.lineTo(x + 8, y + 8); ctx.lineTo(x - 8, y + 8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#b63a25'; ctx.fillRect(x - 4, y - 3, 8, 2);
+  ell(x, y - 10, 5, 5, '#f0d48f');
+  ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = `rgba(255,236,150,${.5 + Math.sin(tick * 5) * .5})`; ctx.fillText('✦', x + 11, y - 13);
+}
 function drawChest(){
   const x = CHEST.x, y = CHEST.y;
   ell(x, y + 10, 15, 4, 'rgba(0,0,0,.2)');
@@ -862,11 +975,12 @@ function resetWorld(){
   turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false, drop:0}));
   drops = []; shots = []; parts = []; crows = []; pops = []; crowT = 20; S.streak = 0; for (const p of pickups) p.t = 0;
   S.pies = maxPies(); S.corn = 3; S.armed = true; boss = null; pet.x = player.x; pet.y = player.y + 12;
+  resetNPCs();
   shy = {x:7.5 * TS, y:29.5 * TS, hw:10, hh:8, sp:70, face:1, wx:0, wy:0, wt:0, flee:0, anim:0, peck:false, alert:false, moving:false};
 }
 
 const KEY = 'violet-feast-v1';
-function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], mis:S.mis, misN:S.misN, heard:[...S.heard], got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
 function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
 
 /* ---------------- Sound ---------------- */
@@ -990,12 +1104,14 @@ function update(dt){
       if (Math.hypot(t.x - s.x, t.y - s.y) < 19) {
         s.t = 0; t.flee = S.owned.has('sling') ? 7 : 4; S.shooed++; sfx.bonk();
         if (t.drop <= 0) { t.drop = 30; addFeathers(1); pops.push({x:t.x, y:t.y - 30, t:1, txt:'+1'}); }
+        misTick('hannah');
         for (let k = 0; k < 7; k++) parts.push({x:t.x, y:t.y - 10, vx:(Math.random() - .5) * 160, vy:-Math.random() * 120, t:.6, c:FAN[k % 5]});
       }
     }
     for (const c of crows) if (s.t > 0 && !c.out && Math.hypot(c.x - s.x, c.y - 14 - s.y) < 24) {
       const n = c.gold ? 6 : 2;
       s.t = 0; c.out = true; c.t = 0; S.shooed++; sfx.bonk(); addFeathers(n); pops.push({x:c.x, y:c.y - 34, t:1, txt:`+${n}`});
+      misTick('caleb');
       for (let k = 0; k < 8; k++) parts.push({x:c.x, y:c.y - 24, vx:(Math.random() - .5) * 180, vy:-Math.random() * 130, t:.6, c:c.gold ? '#f2b632' : '#26222e'});
     }
     if (boss && s.t > 0 && boss.inv <= 0 && Math.hypot(boss.x - s.x, boss.y - 12 - s.y) < 30) { s.t = 0; sfx.bonk(); openBossQ(); }
@@ -1060,6 +1176,7 @@ function update(dt){
     if (vx || vy) { t.moving = move(t, vx * sp * dt, vy * sp * dt, solidT); if (!t.moving) t.wt = 0; if (Math.abs(vx) > .15) t.face = vx < 0 ? -1 : 1; }
   }
   if (!S.secrets.has('chest') && Math.hypot(CHEST.x - player.x, CHEST.y - player.y) < 24) foundSecret('chest', 15, 'The treasure chest behind the pond held 15 golden feathers.');
+  updateNPCs(dt); if (S.state !== 'play') return;
   if (boss && S.state === 'play') {
     const b = boss, dx = player.x - b.x, dy = player.y - b.y, d = Math.hypot(dx, dy) || 1, gs = {1:.7, 2:.8, 3:.9}[S.grade] || 1, rage = 1 + (b.max - b.hp) * .12;
     let vx = 0, vy = 0, sp = 0;
@@ -1266,6 +1383,8 @@ function render(){
   if (S.pet) list.push({k:'pet', sy:pet.y});
   list.push({k:'chest', sy:CHEST.y});
   for (const c of crows) list.push({k:'crow', c, sy:c.y + 40});
+  for (const v of NPCS) list.push({k:'npc', v, sy:v.y});
+  if ((S.mis.mercy | 0) === 1 && !S.misN.mercy) list.push({k:'doll', sy:DOLL.y});
   if (shy) list.push({k:'shy', sy:shy.y});
   if (boss) list.push({k:'boss', sy:boss.y});
   else if (S.bossDone) list.push({k:'king', sy:5.9 * TS});
@@ -1280,6 +1399,8 @@ function render(){
     else if (o.k === 'shy') drawTurkey(shy, 5, !S.secrets.has('hat'));
     else if (o.k === 'chest') drawChest();
     else if (o.k === 'crow') drawCrow(o.c);
+    else if (o.k === 'npc') drawVillager(o.v);
+    else if (o.k === 'doll') drawDoll();
     else if (o.k === 'king') { ctx.save(); ctx.translate(25.8 * TS, 5.9 * TS); ctx.scale(1.4, 1.4); drawTurkey({x:0, y:0, face:-1, moving:false, anim:0, peck:false, alert:false, flee:0}, 0); crownPath(-10, -22, 5, 6); ctx.restore(); }
     else if (o.k === 'shot') { ell(o.s.x, o.s.y - 12, 5, 6, '#a06a32'); ell(o.s.x, o.s.y - 16, 5.5, 3, '#5a3a1c'); }
     else if (o.k === 'pick') { ell(o.p.x, o.p.y + 8, 8, 3, 'rgba(0,0,0,.18)'); ctx.font = '20px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText('🌽', o.p.x, o.p.y - 4 + Math.sin(tick * 3 + o.p.x) * 3); }
@@ -1624,8 +1745,9 @@ function showHelp(){
   card.innerHTML = `<h2>How to play</h2>
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
     <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
-    <div><b>Golden feathers</b><span>Earn them with right answers (3 in a row on the first try is a bonus), bonus games, bonking crows, and bonking turkeys that show a bright golden tail feather. Spend them at the General Store by the town square.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
+    <div><b>Talk to villagers</b><span>Walk into anyone strolling around town. A red ! means they have a clue or a secret mission for you.</span></div><div><b>Golden feathers</b><span>Earn them with right answers (3 in a row on the first try is a bonus), bonus games, bonking crows, and bonking turkeys that show a bright golden tail feather. Spend them at the General Store by the town square.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
     <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all 9, then go to the Feast Hall at the north end of town. Violet also hides 3 secrets. Can you find them all?</p>
+    ${(() => { const a = NPCS.filter(v => (S.mis[v.id] | 0) === 1); return a.length ? `<p><b>Your missions:</b></p><ul class="todo">${a.map(v => `<li>${v.name}: ${v.kind === 'doll' ? (S.misN.mercy ? 'You found the doll! Bring it back.' : 'Find the lost doll in the orchard at the bottom of town.') : v.kind === 'corn' ? `Bring ${v.need} corn (you have ${S.corn}).` : `Bonk ${v.need} ${v.kind === 'crow' ? 'crows' : 'turkeys'} (${Math.min(S.misN[v.id] | 0, v.need)} done).`}</li>`).join('')}</ul>` : ''; })()}
     <button type="button" class="btn" id="go">Back to Violet</button>`;
   $('#go').onclick = closeModal; $('#go').focus();
 }
@@ -1698,10 +1820,11 @@ function begin(saved){
     S.name = saved.name || 'Pilgrim'; setGrade(saved.grade >= 1 && saved.grade <= 4 ? saved.grade : 4); S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
     S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
     S.feathers = saved.feathers | 0; S.earned = saved.earned | 0; S.owned = new Set(saved.owned || []); S.hat = saved.hat || ''; S.pet = saved.pet || ''; S.bossDone = !!saved.bossDone; S.secrets = new Set(saved.secrets || []);
+    S.mis = saved.mis || {}; S.misN = saved.misN || {}; S.heard = new Set(saved.heard || []);
     FEATH.forEach((f, i) => { f.got = (saved.got || []).includes(i); });
   } else {
     S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
-    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); FEATH.forEach(f => { f.got = false; });
+    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); S.mis = {}; S.misN = {}; S.heard = new Set(); FEATH.forEach(f => { f.got = false; });
   }
   S.pies = maxPies(); pet.x = player.x; pet.y = player.y + 12;
   if (S.solved.size >= N && !S.bossDone) spawnBoss();
@@ -1711,14 +1834,14 @@ function begin(saved){
 $('#start').onclick = () => begin(null);
 $('#name').onkeydown = e => { if (e.key === 'Enter') begin(null); };
 const old = load();
-if (old && old.solved.length) { const c = $('#cont'); c.hidden = false; c.textContent = `Continue as ${old.name || 'Pilgrim'} (${old.solved.length} of ${N} pieces)`; c.onclick = () => begin(load()); }
+if (old && (old.solved.length || old.earned)) { const c = $('#cont'); c.hidden = false; c.textContent = `Continue as ${old.name || 'Pilgrim'} (${old.solved.length} of ${N} pieces)`; c.onclick = () => begin(load()); }
 
 resetWorld(); updateHud(); fit();
 if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else addEventListener('resize', fit);
 let last = performance.now();
 function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, CHEST, W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, NPCS, DOLL, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, CHEST, W, H};
 })();
 </script>
 </body>
