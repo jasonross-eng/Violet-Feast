@@ -32,14 +32,14 @@
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{height:100%;margin:0;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);
   font-family:Fredoka,"Trebuchet MS","Segoe UI",sans-serif;font-size:17px;line-height:1.45}
-button,input{font:inherit;color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
 h1,h2{font-family:Caprasimo,Georgia,"Times New Roman",serif;font-weight:400;line-height:1.1;margin:0}
 
-#hud{display:flex;align-items:center;gap:.9rem;padding:.4rem .8rem;flex-wrap:wrap}
+#hud{display:flex;align-items:center;gap:.8rem;padding:.4rem .8rem;flex-wrap:wrap}
 #hud .brand{font-family:Caprasimo,Georgia,serif;font-size:1.15rem;color:var(--violet)}
 #hud .stat{font-weight:600;white-space:nowrap}
 #hud .spacer{flex:1}
-#hud button{background:none;border:2px solid var(--line);border-radius:999px;padding:.15rem .8rem;cursor:pointer;font-weight:500}
+#hud button{background:none;border:2px solid var(--line);border-radius:999px;padding:.15rem .75rem;cursor:pointer;font-weight:500}
 #hud button:hover{border-color:var(--violet)}
 #pies .lost{opacity:.22;filter:grayscale(1)}
 svg.key{display:block}
@@ -55,7 +55,7 @@ canvas{display:block;border-radius:10px}
 .overlay{position:absolute;inset:0;display:flex;padding:1rem;overflow:auto;background:var(--scrim)}
 .overlay[hidden]{display:none}
 .card{margin:auto;background:var(--paper);color:var(--ink);border-radius:18px;padding:1.3rem 1.5rem;
-  width:100%;max-width:640px;border:3px solid var(--violet);box-shadow:0 8px 0 rgba(0,0,0,.25)}
+  width:100%;max-width:660px;border:3px solid var(--violet);box-shadow:0 8px 0 rgba(0,0,0,.25)}
 .card h1{font-size:clamp(1.8rem,5vw,2.6rem);color:var(--violet)}
 .card h2{font-size:1.5rem;color:var(--violet)}
 .card p{margin:.6rem 0}
@@ -65,7 +65,7 @@ canvas{display:block;border-radius:10px}
 .how span{color:var(--muted);font-size:.93rem}
 .field{display:block;font-weight:600;margin:.6rem 0}
 input[type=text]{display:block;margin-top:.25rem;padding:.5rem .7rem;border-radius:10px;border:2px solid var(--line);background:var(--paper);width:100%;max-width:340px}
-input[type=text]:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input[type=text]:focus,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .grades{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem}
 .grades button{min-width:64px;padding:.45rem .9rem;border-radius:12px;border:2px solid var(--line);background:var(--paper);font-weight:600;cursor:pointer}
 .grades button[aria-pressed=true]{background:var(--violet);color:var(--violet-ink);border-color:var(--violet)}
@@ -113,6 +113,23 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
 .stats span{color:var(--muted);font-size:.9rem}
 .table{font-size:clamp(1.5rem,5vw,2.3rem);letter-spacing:.12em;border-bottom:10px solid #8a5a34;border-radius:0 0 6px 6px;padding-bottom:.1rem;margin:.6rem 0}
 .todo{margin:.4rem 0;padding-left:1.2rem}
+.mapcv{display:block;width:100%;height:auto;border:2px solid var(--violet);border-radius:12px;background:#93b657;margin:.6rem 0;cursor:pointer}
+.dirgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:.4rem;max-height:200px;overflow:auto;margin-top:.5rem;padding-right:.2rem}
+.diritem{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;border-radius:10px;background:var(--soft);border:2px solid transparent;font-size:.92rem;text-align:left;width:100%}
+.diritem.done{background:color-mix(in srgb,var(--gold) 18%,var(--paper))}
+.diritem.warp{cursor:pointer;border-color:var(--line)}
+.diritem.warp:hover{border-color:var(--violet)}
+.diritem.locked{opacity:.65}
+.diritem b{display:block;line-height:1.2}
+.diritem span{display:block;color:var(--muted);font-size:.82rem}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.4rem;margin:.6rem 0}
+.tchk{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;border:2px solid var(--line);border-radius:10px;cursor:pointer;font-size:.95rem}
+.tchk:has(input:checked){border-color:var(--violet);background:var(--soft)}
+.sumbox{width:100%;font-family:monospace;font-size:.85rem;padding:.5rem;border-radius:10px;border:2px solid var(--line);background:var(--soft);color:var(--ink);resize:none}
+.tbox{background:var(--soft);border-radius:12px;padding:.75rem .9rem;margin:.65rem 0;border:2px solid var(--line)}
+.tbox h3{margin:0 0 .35rem;font-size:1.05rem;color:var(--violet)}
+.trow{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.45rem}
+.tbadge{display:inline-block;padding:.12rem .55rem;border-radius:999px;background:var(--violet);color:var(--violet-ink);font-size:.82rem;font-weight:600}
 
 #toast{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:var(--paper);color:var(--ink);border:2px solid var(--violet);
   border-radius:999px;padding:.4rem 1rem;font-weight:500;max-width:92%;text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
@@ -127,7 +144,7 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
 .leaves span{position:absolute;top:-8%;font-size:1.6rem;animation:fall linear infinite}
 @keyframes fall{to{transform:translateY(120vh) rotate(420deg)}}
 @media (prefers-reduced-motion:reduce){ .leaves{display:none} .kp.new{animation:none} }
-@media (max-width:640px){ #hud .brand{display:none} }
+@media (max-width:680px){ #hud .brand{display:none} }
 #wincard{max-width:780px;position:relative}
 .shop{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:.5rem}
 .item{display:flex;align-items:center;gap:.6rem;border:2px solid var(--line);border-radius:12px;padding:.45rem .6rem}
@@ -157,14 +174,16 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
   <div class="stat" id="pies" aria-label="Pies left"></div>
   <div class="stat" id="corn">🌽 3</div>
   <div class="stat" id="feath" aria-label="Golden feathers">🪶 0</div>
+  <div class="stat" id="secHud" aria-label="Secrets found">Secrets: 0/4</div>
   <div class="spacer"></div>
+  <button id="bMap" type="button">Town Map (M)</button>
   <button id="bHelp" type="button">How to play</button>
   <button id="bRead" type="button">Read aloud off</button>
   <button id="bMute" type="button">Sound on</button>
 </header>
 
 <main id="stage">
-  <canvas id="game" width="832" height="544" aria-label="Map of the town of Violet"></canvas>
+  <canvas id="game" width="832" height="544" aria-label="Map of the town of Violet and surrounding regions"></canvas>
   <div id="toast" role="status"></div>
   <div class="pad" id="dpad">
     <button class="u" data-k="up" aria-label="Up">▲</button><button class="l" data-k="left" aria-label="Left">◀</button>
@@ -176,12 +195,12 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
     <div class="card">
       <h1>The Feast Key of Violet</h1>
       <p class="sub">A Thanksgiving adventure for grades 1 to 4</p>
-      <p>Dinner is ready in the Pilgrim town of Violet, but the troublemaking turkeys pecked the golden Feast Key into <b>9 pieces</b> and scattered them across the farm. Visit each villager, solve their puzzles, and rebuild the key before the food gets cold!</p>
+      <p>Dinner is ready in the Pilgrim town of Violet, but the troublemaking turkeys pecked the golden Feast Key into <b>9 pieces</b> and scattered them across the village. Visit each villager, solve their puzzles, and explore the outer <b>Whispering Woods</b> and <b>Cranberry Bog</b> as gates unlock!</p>
       <div class="how">
         <div><b>Move</b><span>Arrow keys or W A S D</span></div>
         <div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
         <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away!</span></div>
-        <div><b>Drop corn</b><span>C key. Turkeys stop to eat it.</span></div>
+        <div><b>Town Map &amp; Fast Travel</b><span>Press M or touch signposts to warp</span></div>
       </div>
       <label class="field">Your first name
         <input type="text" id="name" maxlength="20" autocomplete="off" placeholder="Pilgrim">
@@ -193,11 +212,18 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
         </div>
       </div>
       <p class="fb no" id="gradeMsg" role="status"></p>
+      <div class="field">Are you a boy or a girl?
+        <div class="grades" id="genders" role="group" aria-label="Boy or girl">
+          <button type="button" data-gen="boy" aria-pressed="true">Boy</button>
+          <button type="button" data-gen="girl" aria-pressed="false">Girl</button>
+        </div>
+      </div>
       <div class="skins" id="skins" role="group" aria-label="Choose your pilgrim"></div>
       <label class="field" id="readopt"><input type="checkbox" id="readchk"> Read the questions and answer choices out loud to me</label>
       <div class="row">
         <button class="btn" id="start" type="button">Start a new adventure</button>
         <button class="btn ghost" id="cont" type="button" hidden>Continue</button>
+        <button class="leave" id="openTeach" type="button" style="margin-left:auto">Teacher options</button>
       </div>
     </div>
   </div>
@@ -210,9 +236,10 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const TS = 32, VW = 832, VH = 544, W = 48, H = 34;
-const T = {G:0, P:1, TREE:2, WATER:3, CORN:5, BLD:6, HAY:7, PUMP:8, WELL:9, PLAZA:10, STEP:11, FLOWER:12, SCORN:13};
-const SOLID = new Set([T.TREE, T.WATER, T.CORN, T.BLD, T.HAY, T.PUMP, T.WELL]);
+// Expanded world: 64x46 tiles. Core town is (0..47, 0..33), Whispering Woods is East (48..63), Cranberry Bog is South (34..45)
+const TS = 32, VW = 832, VH = 544, W = 64, H = 46;
+const T = {G:0, P:1, TREE:2, WATER:3, CORN:5, BLD:6, HAY:7, PUMP:8, WELL:9, PLAZA:10, STEP:11, FLOWER:12, SCORN:13, BOG:14, BRIDGE:15, EGATE:16, SGATE:17};
+const SOLID = new Set([T.TREE, T.WATER, T.CORN, T.BLD, T.HAY, T.PUMP, T.WELL, T.BOG]);
 const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = a => a[R(0, a.length - 1)];
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = R(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -736,11 +763,20 @@ const SKILL = {
   meet:{1:'Chromebook and Slides skills', 2:'Google Slides'},
   watch:{1:'Being safe and kind online', 2:'Being safe and kind online'}
 };
-const poolFor = s => ((LOW[s.id] || {})[S.grade] || s.pool)();
+function builtInPoolFor(s){ return ((LOW[s.id] || {})[S.grade] || s.pool)(); }
+function poolFor(s){
+  const custom = (TCFG.customQ && TCFG.customQ[s.id]) || [];
+  if (!custom.length) return builtInPoolFor(s);
+  const mapped = custom.map(q => q.type === 'num'
+    ? num(q.q, q.ans, q.hint || 'Check your math carefully and try again.')
+    : mc(q.q, q.correct, q.wrongs, q.hint || 'Read every choice carefully and try again.')
+  );
+  return TCFG.customMode === 'mix' ? mapped.concat(builtInPoolFor(s)) : mapped;
+}
 const skillOf = s => (SKILL[s.id] || {})[S.grade] || s.skill;
 
-/* ---------------- Town ---------------- */
-const STATIONS = [
+/* ---------------- Town & Teacher Config ---------------- */
+const ALL_STATIONS = [
  {id:'barn', name:'Red Barn', who:'Farmer Josiah', icon:'🐄', x:8, y:4, w:5, h:4, wall:'#b8412f', roof:'#6e2218', skill:'Multiply and divide',
   intro:'Those turkeys tipped over every basket in my barn! Help me count it all and this key piece is yours.', thanks:'Everything is counted. Take this piece, and mind the turkeys!', pool:barnPool},
  {id:'school', name:'Schoolhouse', who:'Schoolmistress Constance', icon:'📚', x:15, y:5, w:5, h:3, wall:'#eadfc8', roof:'#7c2d2d', skill:'Grammar and punctuation',
@@ -762,24 +798,170 @@ const STATIONS = [
 ];
 const HALL = {id:'hall', name:'Feast Hall', icon:'🍽️', x:21, y:1, w:7, h:4, wall:'#8a5c38', roof:'#4b2a66'};
 const SHOP = {id:'shop', name:'General Store', icon:'🪶', x:17, y:11, w:5, h:3, wall:'#d7c7a3', roof:'#2f6b4f'};
-const ALL = [...STATIONS, HALL, SHOP];
+const ALL = [...ALL_STATIONS, HALL, SHOP];
 for (const s of ALL) { s.door = {x:s.x + (s.w >> 1), y:s.y + s.h - 1}; s.step = {x:s.door.x, y:s.door.y + 1}; }
-const N = STATIONS.length;
 
+const TCFG_KEY = 'violet-teacher-v1';
+let TCFG = {enabled:ALL_STATIONS.map(s => s.id), qCount:0, pin:'1621', customQ:{}, customMode:'replace'};
+try {
+  const tc = JSON.parse(localStorage.getItem(TCFG_KEY) || 'null');
+  if (tc && Array.isArray(tc.enabled) && tc.enabled.length) {
+    TCFG = {
+      enabled:tc.enabled.filter(id => ALL_STATIONS.some(s => s.id === id)),
+      qCount:tc.qCount | 0,
+      pin:typeof tc.pin === 'string' && tc.pin.trim() ? tc.pin.trim() : '1621',
+      customQ:(tc.customQ && typeof tc.customQ === 'object') ? tc.customQ : {},
+      customMode:tc.customMode === 'mix' ? 'mix' : 'replace'
+    };
+  }
+} catch (e) {}
+let teacherUnlocked = false;
+let STATIONS = ALL_STATIONS.filter(s => TCFG.enabled.includes(s.id));
+if (!STATIONS.length) STATIONS = ALL_STATIONS.slice();
+let N = STATIONS.length;
+
+function parseCSVRows(text){
+  const rows = [];
+  let row = [], cur = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], nx = text[i + 1];
+    if (inQ) {
+      if (ch === '"' && nx === '"') { cur += '"'; i++; }
+      else if (ch === '"') inQ = false;
+      else cur += ch;
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ',') { row.push(cur.trim()); cur = ''; }
+      else if (ch === '\n' || (ch === '\r' && nx === '\n')) {
+        if (ch === '\r') i++;
+        row.push(cur.trim());
+        if (row.some(c => c !== '')) rows.push(row);
+        row = []; cur = '';
+      } else if (ch !== '\r') cur += ch;
+    }
+  }
+  row.push(cur.trim());
+  if (row.some(c => c !== '')) rows.push(row);
+  return rows;
+}
+const STATION_ALIASES = {
+  barn:'barn', 'red barn':'barn', josiah:'barn', math:'barn',
+  school:'school', schoolhouse:'school', constance:'school', grammar:'school',
+  print:'print', 'print shop':'print', elias:'print', reading:'print',
+  mill:'mill', 'grist mill':'mill', thomas:'mill', measurement:'mill',
+  patch:'patch', 'pumpkin shed':'patch', prudence:'patch', fractions:'patch',
+  smith:'smith', blacksmith:'smith', hope:'smith', shortcuts:'smith',
+  meet:'meet', 'meeting house':'meet', samuel:'meet', slides:'meet',
+  bake:'bake', bakery:'bake', patience:'bake', order:'bake',
+  watch:'watch', 'watch house':'watch', gideon:'watch', safety:'watch'
+};
+function importQuestionsCSV(text){
+  const rows = parseCSVRows(text);
+  if (!rows.length) return {ok:false, msg:'The CSV file is empty.'};
+  const firstLow = rows[0].map(c => c.toLowerCase());
+  const startIdx = (firstLow[0] === 'station' || firstLow[0] === 'station_id' || firstLow[1] === 'type') ? 1 : 0;
+  const imported = {};
+  let added = 0, skipped = 0;
+  for (let i = startIdx; i < rows.length; i++) {
+    const r = rows[i];
+    const stKey = STATION_ALIASES[(r[0] || '').toLowerCase()];
+    if (!stKey) { skipped++; continue; }
+    const rawType = (r[1] || 'mc').toLowerCase();
+    const qText = r[2] || '';
+    const ans = r[3] || '';
+    if (!qText || !ans) { skipped++; continue; }
+    imported[stKey] = imported[stKey] || [];
+    if (rawType === 'num' || rawType === 'number') {
+      imported[stKey].push({type:'num', q:qText, ans:ans.replace(/[,\s]/g, ''), hint:r[7] || r[4] || ''});
+      added++;
+    } else {
+      const wrongs = [r[4], r[5], r[6]].filter(Boolean);
+      if (!wrongs.length) { skipped++; continue; }
+      imported[stKey].push({type:'mc', q:qText, correct:ans, wrongs, hint:r[7] || ''});
+      added++;
+    }
+  }
+  if (!added) return {ok:false, msg:'No valid questions found. Check that columns are: station, type, question, correct_answer, wrong1, wrong2, wrong3, hint'};
+  return {ok:true, imported, added, skipped};
+}
+function sampleCSV(){
+  return [
+    'station,type,question,correct_answer,wrong1,wrong2,wrong3,hint',
+    'barn,num,Farmer Josiah packed 6 boxes with 14 apples in each box. How many apples is that?,84,,,,Multiply 6 x 10 and 6 x 4 then add.',
+    'barn,mc,Which fraction is equal to 1/2?,3/6,2/5,1/3,4/6,Multiply the top and bottom by 3.',
+    'school,mc,Which word is a verb in: "The turkey ran fast"?,ran,turkey,fast,the,A verb is an action word.',
+    'print,mc,What does the prefix "re-" mean in "reheat"?,again,not,before,under,Think of redo and reread.',
+    'mill,num,Round 348 to the nearest hundred.,300,,,,Look at the tens digit (4).',
+    'patch,mc,How many fourths make one whole pie?,4,2,3,8,Four equal fourths make 1 whole.',
+    'smith,mc,Which shortcut copies highlighted text?,Ctrl + C,Ctrl + V,Ctrl + X,Ctrl + Z,C stands for Copy.',
+    'meet,mc,Which menu adds a picture in Google Slides?,Insert,Tools,Help,File,You are putting something INTO the slide.',
+    'bake,mc,Which word comes FIRST in ABC order?,apple,barn,corn,pie,Look at the first letter.',
+    'watch,mc,Who should you tell if something online makes you uncomfortable?,A trusted adult,A stranger,Nobody,Everyone online,Always ask a grown-up you trust.'
+  ].join('\n');
+}
+function downloadTextFile(filename, content){
+  const blob = new Blob([content], {type:'text/csv;charset=utf-8'});
+  if (dl) {
+    dl.save({filename, data:blob}).catch(() => {});
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+function customQuestionCount(){
+  return Object.values(TCFG.customQ || {}).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
+}
+
+function applyTeacherCfg(){
+  STATIONS = ALL_STATIONS.filter(s => TCFG.enabled.includes(s.id));
+  if (!STATIONS.length) STATIONS = ALL_STATIONS.slice();
+  N = STATIONS.length;
+  S.solved = new Set([...S.solved].filter(id => STATIONS.some(s => s.id === id)));
+  updateHud();
+}
+function activeSolvedCount(){ return STATIONS.filter(s => S.solved.has(s.id)).length; }
+function eastOpen(){ const k = activeSolvedCount(); return k >= Math.min(3, N) || k >= N; }
+function southOpen(){ const k = activeSolvedCount(); return k >= Math.min(5, N) || k >= N; }
+function buildSummary(){
+  const m = Math.floor(S.elapsed / 60), sec = String(Math.floor(S.elapsed % 60)).padStart(2, '0');
+  const pct = S.total ? Math.round((S.first / S.total) * 100) : 100;
+  return `VIOLET-FEAST | Name: ${S.name} | Grade: ${S.grade || 4} | Key: ${activeSolvedCount()}/${N} | First-Try: ${S.first}/${S.total} (${pct}%) | Feathers: ${S.earned} | Turkeys Shooed: ${S.shooed} | Secrets: ${S.secrets.size}/4 | Time: ${m}:${sec}${S.thx ? ` | Thankful: "${S.thx}"` : ''}`;
+}
+function copyText(txt, okMsg){
+  const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast(okMsg || 'Copied to clipboard!'); } catch (e) { toast('Select the text box and press Ctrl + C.'); }
+  ta.remove();
+}
+
+/* ---------------- Map Generation (64x46) ---------------- */
 const map = new Uint8Array(W * H);
 const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W + x];
 (function buildMap(){
   const set = (x, y, t) => { if (x >= 0 && y >= 0 && x < W && y < H) map[y * W + x] = t; };
   const rect = (x, y, w, h, t) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) set(i, j, t); };
   const rng = mulberry(1621);
+
+  // Outer perimeter & border woods separating Violet (0..47, 0..33) from outer expansions
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     if (x === 0 || y === 0 || x === W - 1 || y === H - 1) set(x, y, T.TREE);
-    else if ((x === 1 || y === 1 || x === W - 2) && rng() < 0.6) set(x, y, T.TREE);
+    else if ((x === 1 || y === 1) && rng() < 0.6) set(x, y, T.TREE);
   }
-  rect(3, 17, 42, 1, T.P); rect(6, 9, 37, 1, T.P); rect(6, 26, 37, 1, T.P);
+  // East border wall between village and Whispering Woods (x = 47, y = 0..33)
+  for (let y = 0; y < 34; y++) set(47, y, T.TREE);
+  // South border wall between village and Cranberry Bog (y = 33, x = 0..63)
+  for (let x = 0; x < W; x++) set(x, 33, T.TREE);
+
+  // Core Village Paths & Plaza
+  rect(3, 17, 44, 1, T.P); rect(6, 9, 37, 1, T.P); rect(6, 26, 37, 1, T.P);
   rect(6, 9, 1, 18, T.P); rect(42, 9, 1, 18, T.P); rect(15, 9, 1, 18, T.P); rect(33, 9, 1, 18, T.P);
-  rect(24, 5, 1, 22, T.P); rect(29, 14, 1, 3, T.P); rect(19, 14, 1, 3, T.P);
+  rect(24, 5, 1, 28, T.P); rect(29, 14, 1, 3, T.P); rect(19, 14, 1, 3, T.P);
   rect(21, 14, 7, 7, T.PLAZA); set(24, 17, T.WELL);
+
+  // Village Cornfields, Ponds, Pumpkins & Hay
   rect(8, 11, 6, 5, T.CORN); rect(8, 13, 6, 1, T.P);
   rect(35, 11, 6, 5, T.CORN); rect(35, 13, 6, 1, T.P);
   rect(44, 2, 3, 5, T.WATER); set(44, 2, T.G); set(44, 6, T.G);
@@ -787,30 +969,78 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
   for (const [x, y] of [[8,19],[10,19],[12,19],[9,21],[11,21],[13,20]]) set(x, y, T.PUMP);
   for (const [x, y] of [[13,7],[7,7],[30,19],[31,19],[36,7]]) set(x, y, T.HAY);
   for (const s of ALL) { rect(s.x, s.y, s.w, s.h, T.BLD); set(s.step.x, s.step.y, T.STEP); }
-  const open = t => t === T.P || t === T.PLAZA || t === T.STEP || t === T.BLD || t === T.WELL;
-  for (let y = 2; y < 27; y++) for (let x = 2; x < W - 2; x++) {
+
+  const open = t => t === T.P || t === T.PLAZA || t === T.STEP || t === T.BLD || t === T.WELL || t === T.BRIDGE;
+  for (let y = 2; y < 27; y++) for (let x = 2; x < 46; x++) {
     const a = rng(), b = rng();
     if (tile(x, y) !== T.G) continue;
     let near = false;
     for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) if (open(tile(x + i, y + j))) near = true;
     if (!near && a < 0.09) set(x, y, T.TREE); else if (b < 0.12) set(x, y, T.FLOWER);
   }
-  ['C.CCCCCCCCC.C', 'C....C....C.C', 'CCCC.C.CCsC.C', 'C......CXs..C', 'CCCCCCCCCCCCC'].forEach((row, j) => { for (let i = 0; i < row.length; i++) set(29 + i, 28 + j, row[i] === 'C' ? T.CORN : row[i] === 's' ? T.SCORN : T.P); });
+  // Corn Maze in SE corner of village
+  ['C.CCCCCCCCC.C', 'C....C....C.C', 'CCCC.C.CCsC.C', 'C......CXs..C', 'CCCCCCCCCCCCC'].forEach((row, j) => {
+    for (let i = 0; i < row.length; i++) set(29 + i, 28 + j, row[i] === 'C' ? T.CORN : row[i] === 's' ? T.SCORN : T.P);
+  });
   for (let y = 2; y <= 8; y++) if (tile(43, y) !== T.WATER) set(43, y, T.G);
   for (const [x, y] of [[44, 1], [45, 1], [46, 1], [44, 2]]) set(x, y, T.G);
-  for (const y of [28, 30, 32]) for (let x = 8; x <= 40; x += 3) if (tile(x, y) === T.G) set(x, y, T.TREE);
+  for (const y of [28, 30, 32]) for (let x = 8; x <= 22; x += 3) if (tile(x, y) === T.G) set(x, y, T.TREE);
+
+  /* ---- EXPANSION 1: Whispering Woods (x = 48..63, y = 0..33) ---- */
+  rect(48, 1, 15, 32, T.TREE);
+  // Winding woodland paths
+  rect(48, 17, 6, 1, T.P);
+  rect(53, 8, 1, 19, T.P);
+  rect(53, 8, 7, 1, T.P);
+  rect(53, 26, 7, 1, T.P);
+  // Forest clearings
+  rect(49, 15, 5, 5, T.G);
+  rect(57, 5, 5, 6, T.G);
+  rect(57, 23, 5, 6, T.G);
+  // Woodland Brook running N-S at x = 56 with wooden bridges at y = 8 and y = 26
+  for (let y = 2; y < 32; y++) set(56, y, T.WATER);
+  set(56, 8, T.BRIDGE); set(56, 26, T.BRIDGE);
+  // Northern chest clearing at (60, 4)
+  rect(59, 3, 3, 3, T.G); set(60, 5, T.P);
+  for (let y = 2; y < 32; y++) for (let x = 48; x < 63; x++) {
+    if (tile(x, y) === T.G && rng() < 0.22) set(x, y, T.FLOWER);
+  }
+  set(58, 24, T.PUMP); set(61, 27, T.HAY);
+  // East Gate at (47, 16..18)
+  rect(47, 16, 1, 3, T.EGATE);
+
+  /* ---- EXPANSION 2: Cranberry Bog & Southern Orchard (x = 0..63, y = 34..45) ---- */
+  rect(1, 34, 46, 11, T.BOG);
+  rect(47, 33, 16, 12, T.TREE); // SE deep forest corner
+  // South Gate at (23..25, 33)
+  rect(23, 33, 3, 1, T.SGATE);
+  // Main Arrival Island & Boardwalk Bridges
+  rect(21, 34, 7, 5, T.G);
+  rect(24, 34, 1, 5, T.P);
+  // West Bog Island (Pilgrim-Hat Turkey clearing)
+  rect(6, 36, 9, 7, T.G);
+  rect(15, 38, 6, 1, T.BRIDGE); // Boardwalk west
+  rect(9, 39, 4, 2, T.FLOWER);
+  // East Bog Island & Southern Orchard Grove (Little Mercy's Doll)
+  rect(34, 35, 11, 8, T.G);
+  rect(28, 38, 6, 1, T.BRIDGE); // Boardwalk east
+  rect(35, 38, 9, 1, T.P);
+  for (const [ox, oy] of [[36,36],[39,36],[42,36],[36,41],[39,41],[42,41]]) set(ox, oy, T.TREE);
+  for (let y = 35; y < 44; y++) for (let x = 6; x < 45; x++) {
+    if (tile(x, y) === T.G && rng() < 0.18) set(x, y, T.FLOWER);
+  }
 })();
 
 /* ---------------- State ---------------- */
 const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
-const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set(), mis:{}, misN:{}, heard:new Set(), jackDone:false};
+const S = {state:'title', name:'Pilgrim', grade:0, gender:'boy', skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set(), mis:{}, misN:{}, heard:new Set(), jackDone:false, gateNoticed:new Set()};
 const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
 const keys = {up:false, down:false, left:false, right:false};
 const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
 const TSPAWN = [[10,9],[38,9],[6,20],[42,20],[12,26],[36,26],[33,12],[15,22],[28,9],[20,26]];
 let turkeys = [];
-const pickups = [[11,13],[38,13],[3,17],[44,17],[24,11],[6,22],[42,22],[19,29],[31,29],[24,23]].map(([x, y]) => ({x:(x + .5) * TS, y:(y + .5) * TS, t:0}));
-const FEATH = [[8,9,1],[20,9,1],[27,9,1],[40,9,1],[6,12,1],[6,24,1],[42,12,1],[42,24,1],[15,13,1],[15,20,1],[33,15,1],[33,22,1],[9,13,2],[36,13,2],[22,26,1],[30,26,1],[12,17,1],[37,17,1],[24,25,1],[27,27,1],[14,29,3],[26,29,3],[37,31,8,'maze'],[31,31,1],[37,29,1]]
+const pickups = [[11,13],[38,13],[3,17],[44,17],[24,11],[6,22],[42,22],[19,29],[31,29],[24,23],[53,13],[58,20],[24,36],[11,38],[38,37]].map(([x, y]) => ({x:(x + .5) * TS, y:(y + .5) * TS, t:0}));
+const FEATH = [[8,9,1],[20,9,1],[27,9,1],[40,9,1],[6,12,1],[6,24,1],[42,12,1],[42,24,1],[15,13,1],[15,20,1],[33,15,1],[33,22,1],[9,13,2],[36,13,2],[22,26,1],[30,26,1],[12,17,1],[37,17,1],[24,25,1],[27,27,1],[14,29,3],[26,29,3],[37,31,8,'maze'],[31,31,1],[37,29,1],[53,10,2],[59,9,2],[59,25,2],[51,18,1],[22,36,2],[26,36,2],[12,41,2],[41,39,2]]
   .filter(([x, y]) => !SOLID.has(tile(x, y))).map(([x, y, v, sec]) => ({x:(x + .5) * TS, y:(y + .5) * TS, v, sec, got:false}));
 const SHOPITEMS = [
   {id:'straw', kind:'hat', icon:'👒', name:'Straw hat', cost:6, about:'A farmer’s favorite.'},
@@ -835,27 +1065,81 @@ function addFeathers(n){ S.feathers += n; S.earned += n; updateHud(); }
 function spawnBoss(){ const max = {1:3, 2:4}[S.grade] || 5; boss = {x:HOME.x, y:HOME.y, hw:15, hh:10, hp:max, max, name:'King Gobble', face:1, anim:0, mode:'strut', mt:2.5, vx:0, vy:0, inv:0, flee:0, moving:false}; }
 let crows = [], pops = [], crowT = 20;
 let drops = [], shots = [], parts = [], cool = 0, tick = 0, shake = 0, scale = 1, ses = null, dl = null;
+let dustPuffs = [], smokePuffs = [], ambLeaves = [];
 const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
-const solidP = (x, y) => SOLID.has(tile(x, y));
-const solidT = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.PLAZA || t === T.STEP || t === T.SCORN; };
-const CHEST = {x:46.5 * TS, y:1.5 * TS};
+const solidP = (x, y) => {
+  const t = tile(x, y);
+  if (t === T.EGATE) return !eastOpen();
+  if (t === T.SGATE) return !southOpen();
+  return SOLID.has(t);
+};
+const solidT = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.PLAZA || t === T.STEP || t === T.SCORN || t === T.EGATE || t === T.SGATE; };
+const CHEST = {x:60.5 * TS, y:4.5 * TS};
 let shy = null;
 function foundSecret(id, n, msg){
   if (S.secrets.has(id)) return;
   S.secrets.add(id); addFeathers(n); sfx.piece(); save();
   toast(`Secret ${S.secrets.size} of 4 found! ${msg}`);
 }
+
+/* ---------------- Fast-Travel Signposts ---------------- */
+const SIGNPOSTS = [
+  {id:'sp_plaza', x:26.5 * TS, y:18.5 * TS, label:'Fast Travel', arm:true},
+  {id:'sp_woods', x:50.5 * TS, y:16.5 * TS, label:'Town Square', arm:true},
+  {id:'sp_bog', x:22.5 * TS, y:35.5 * TS, label:'Town Square', arm:true}
+];
+function warpTo(wx, wy, label){
+  player.x = wx; player.y = wy; player.inv = Math.max(player.inv, 1.5);
+  if (S.pet) { pet.x = wx; pet.y = wy + 12; }
+  for (const sp of SIGNPOSTS) sp.arm = false;
+  for (let k = 0; k < 14; k++) parts.push({x:wx, y:wy - 10, vx:(Math.random() - .5) * 180, vy:-Math.random() * 140, t:.65, c:k % 2 ? '#f2b632' : '#b99cec'});
+  sfx.feather();
+  toast(`Warped to ${label}!`);
+}
+function openSignpost(sp){
+  setState('modal'); ses = null; modal.hidden = false;
+  const opts = [
+    {label:'⛲ Town Square (Center of Violet)', x:24.5 * TS, y:19.2 * TS, ok:true},
+    {label:eastOpen() ? '🌲 Whispering Woods (East)' : `🔒 Whispering Woods (Opens at ${Math.min(3, N)} key pieces)`, x:51.5 * TS, y:17.5 * TS, ok:eastOpen()},
+    {label:southOpen() ? '🫐 Cranberry Bog & Orchard (South)' : `🔒 Cranberry Bog (Opens at ${Math.min(5, N)} key pieces)`, x:24.5 * TS, y:37.5 * TS, ok:southOpen()}
+  ];
+  card.innerHTML = `<div class="who"><span class="badge">🪧</span><div class="grow"><h2>Fast-Travel Signpost</h2><p class="sub">Jump straight across the valley without backtracking</p></div><button type="button" class="leave" id="leave">Close</button></div>
+    <p class="say">“Where would you like to travel, ${esc(S.name)}?”</p>
+    <div class="choices">${opts.map((o, i) => `<button type="button" class="choice" data-idx="${i}" ${o.ok ? '' : 'disabled'}><span class="n">${i + 1}</span><span>${o.label}</span></button>`).join('')}</div>`;
+  $('#leave').onclick = closeModal;
+  card.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+    const o = opts[+b.dataset.idx];
+    if (!o || !o.ok) return;
+    closeModal();
+    warpTo(o.x, o.y, o.label.replace(/^[^ ]+ /, ''));
+  });
+}
+function drawSignpost(sp){
+  const x = sp.x, y = sp.y;
+  ell(x, y + 7, 9, 3, 'rgba(0,0,0,.2)');
+  ctx.fillStyle = '#5a3a22'; ctx.fillRect(x - 2, y - 16, 4, 24);
+  ctx.fillStyle = '#d9b478'; rr(x - 13, y - 15, 26, 9, 2); ctx.fill();
+  ctx.strokeStyle = '#5a3a22'; ctx.lineWidth = 1.2; ctx.strokeRect(x - 13, y - 15, 26, 9);
+  ctx.fillStyle = '#3e2716'; ctx.fillRect(x - 9, y - 12, 18, 1.5); ctx.fillRect(x - 7, y - 9.5, 14, 1.5);
+  if (Math.hypot(player.x - x, player.y - y) < 85) {
+    ctx.font = '600 11px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const w = ctx.measureText(sp.label).width + 12;
+    ctx.fillStyle = 'rgba(255,250,240,.92)'; rr(x - w / 2, y - 29, w, 15, 7); ctx.fill();
+    ctx.fillStyle = '#5b3a8c'; ctx.fillText(sp.label, x, y - 21);
+  }
+}
+
 /* ---------------- Villagers ---------------- */
 const NPCS = [
   {id:'ezra', name:'Old Ezra', hx:40, hy:17, body:'#4a5a3a', hat:'tall', skin:1, kind:'clue', clue:'chest',
-   lines:['When I was a boy, I hid a treasure chest in the far top corner of town, past the pond by the Grist Mill. Walk along the grassy edge of the pond and look up!', 'You found my old treasure chest! You have sharp eyes, young pilgrim.']},
+   lines:['When I was a boy, I hid a treasure chest in the Whispering Woods past the East Gate, north across the brook bridge!', 'You found my old treasure chest in the Whispering Woods! You have sharp eyes, young pilgrim.']},
   {id:'abigail', name:'Widow Abigail', hx:33, hy:24, body:'#6b3a5a', hat:'bonnet', skin:0, kind:'clue', clue:'maze',
    lines:['Have you tried the corn maze south of the Bakery? Watch the corn closely. Some of it sways when there is no wind at all…', 'So you found the heart of the corn maze! Clever, clever pilgrim.']},
   {id:'tobias', name:'Tobias the Tinker', hx:6, hy:15, body:'#7a4a2b', hat:'cap', skin:2, kind:'clue', clue:'hat',
-   lines:['A turkey stole my best pilgrim hat! He hides near the little pond in the bottom-left corner. He is too shy to chase you, so throw an acorn from far away.', 'You got that sneaky turkey! He can keep the hat. It looks better on him anyway.']},
+   lines:['A turkey stole my best pilgrim hat! He hides on the western island of the Cranberry Bog past the South Gate. Throw an acorn from far away!', 'You got that sneaky turkey! He can keep the hat. It looks better on him anyway.']},
   {id:'mercy', name:'Little Mercy', hx:20, hy:26, body:'#c25b4a', hat:'bonnet', skin:3, kind:'doll', need:1, reward:8,
-   ask:'I lost my corn-husk doll in the orchard at the very bottom of town. Will you find it for me?',
-   wait:'Did you find my doll yet? It is somewhere among the trees at the bottom of town.',
+   ask:'I lost my corn-husk doll in the Southern Orchard beyond the Cranberry Bog! Will you find it for me?',
+   wait:'Did you find my doll yet? Cross the South Gate into the Cranberry Bog and take the eastern boardwalk to the orchard.',
    done:'My doll! Thank you, thank you! Here are 8 golden feathers.'},
   {id:'caleb', name:'Farmer Caleb', hx:12, hy:9, body:'#3a5a7a', hat:'straw', skin:1, kind:'crow', need:3, reward:10,
    ask:'Crows keep stealing my seeds! Bonk 3 crows with acorns and I will pay you well.',
@@ -867,8 +1151,8 @@ const NPCS = [
    ask:'The turkeys keep trampling my garden! Bonk 4 turkeys with acorns to teach them a lesson.',
    done:'My garden is safe at last! Here are 10 golden feathers.'}
 ];
-const DOLL = {x:19.5 * TS, y:31.5 * TS};
-const solidN = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.STEP || t === T.SCORN; };
+const DOLL = {x:40.5 * TS, y:38.5 * TS};
+const solidN = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.STEP || t === T.SCORN || t === T.EGATE || t === T.SGATE; };
 function resetNPCs(){ for (const v of NPCS) Object.assign(v, {x:(v.hx + .5) * TS, y:(v.hy + .5) * TS, hw:8, hh:6, dir:'down', wx:0, wy:0, wt:0, walk:0, moving:false, arm:true}); }
 function misNeed(v){ return v.kind === 'clue' ? !S.heard.has(v.id) : (S.mis[v.id] | 0) === 0; }
 function misReady(v){ return v.kind === 'corn' ? S.corn >= v.need : (S.misN[v.id] | 0) >= v.need; }
@@ -901,7 +1185,7 @@ function updateNPCs(dt){
 }
 function talkTo(v){
   setState('modal'); ses = null; modal.hidden = false;
-  const st = S.mis[v.id] | 0; let text, btns = '<button type="button" class="btn" id="go">Goodbye</button>', after = null;
+  const st = S.mis[v.id] | 0; let text, btns = '<button type="button" class="btn" id="go">Goodbye</button>';
   if (v.kind === 'clue') { text = S.secrets.has(v.clue) ? v.lines[1] : v.lines[0]; S.heard.add(v.id); }
   else if (st === 0) {
     text = v.ask;
@@ -958,6 +1242,7 @@ function drawDoll(){
   ell(x, y - 10, 5, 5, '#f0d48f');
   ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = `rgba(255,236,150,${.5 + Math.sin(tick * 5) * .5})`; ctx.fillText('✦', x + 11, y - 13);
 }
+
 /* ---------------- Secret cellar boss ---------------- */
 const CELLAR = {x:12.5 * TS, y:21.35 * TS};
 let jack = null, cellarArm = true;
@@ -976,7 +1261,7 @@ function openCellar(){
     : 'Behind the Pumpkin Shed you find a creaky cellar door, glowing orange. Down the stairs, a giant Jack-O’-Lantern cackles at you. To beat him, hit him with 10 acorns before he touches you!';
   card.innerHTML = `<div class="who"><span class="badge">🎃</span><div class="grow"><h2>The Secret Cellar</h2><p class="sub">Behind the Pumpkin Shed</p></div></div>${first}
     <p class="say">${text}</p>
-    <p class="tip">Move with the arrow keys. Press Space to throw an acorn the way you are facing. When he shakes, get ready to dodge!</p>
+    <p class="tip">Move with the arrow keys. Press Space (or tap the screen) to throw an acorn. When he shakes, get ready to dodge!</p>
     <div class="row"><button type="button" class="btn" id="yes">Go down the stairs</button><button type="button" class="btn ghost" id="go">Not yet</button></div>`;
   if (autoRead) say(text);
   $('#go').onclick = closeModal; $('#yes').onclick = startJack; $('#yes').focus();
@@ -1062,7 +1347,7 @@ function drawJack(){
     ell(tx, 62 + fl * .3, 8, 13 + fl, '#ff7a1a'); ell(tx, 65, 4, 7, '#ffe08a');
   }
   for (const e of j.embers) { ctx.fillStyle = `rgba(255,${150 + (e.s * 15 | 0)},60,${Math.min(1, e.t)})`; ctx.fillRect(e.x - 1.5, e.y - 1.5, 3, 3); }
-  const shake = j.mode === 'wind' ? Math.sin(tick * 70) * 4 : 0, x = j.jx + shake, y = j.jy + Math.sin(tick * 3) * 4;
+  const sh = j.mode === 'wind' ? Math.sin(tick * 70) * 4 : 0, x = j.jx + sh, y = j.jy + Math.sin(tick * 3) * 4;
   ell(j.jx, j.jy + 46, 32, 9, 'rgba(0,0,0,.4)');
   if (j.mode === 'wind') ell(x, y, 54, 48, 'rgba(255,90,20,.25)');
   const skin = j.flash ? '#fff2dc' : '#e8791c';
@@ -1086,7 +1371,7 @@ function drawJack(){
   if (j.phase === 'ready') {
     ctx.fillStyle = 'rgba(20,10,30,.55)'; ctx.fillRect(0, 0, VW, VH);
     ctx.fillStyle = '#fff'; ctx.font = '700 44px ' + FONT; ctx.fillText('Beware the Jack-O’-Lantern!', VW / 2, VH / 2 - 90);
-    ctx.font = '500 24px ' + FONT; ctx.fillText('Arrow keys to move. Space to throw acorns.', VW / 2, VH / 2 - 42);
+    ctx.font = '500 24px ' + FONT; ctx.fillText('Arrow keys to move. Space or tap to throw acorns.', VW / 2, VH / 2 - 42);
     ctx.fillStyle = '#f2b632'; ctx.font = '700 96px ' + FONT; ctx.fillText(String(Math.max(1, Math.ceil(j.t))), VW / 2, VH / 2 + 50);
   }
 }
@@ -1102,18 +1387,26 @@ function drawChest(){
     ctx.fillText('✦', x + 15, y - 18); ctx.fillText('✦', x - 16, y - 7);
   }
 }
-const activeTurkeys = () => Math.min(turkeys.length, ({1:3, 2:4, 3:5}[S.grade] || 6) + Math.floor(S.solved.size / 2));
+const activeTurkeys = () => Math.min(turkeys.length, ({1:3, 2:4, 3:5}[S.grade] || 6) + Math.floor(activeSolvedCount() / 2));
 function resetWorld(){
   player.x = 24.5 * TS; player.y = 19.5 * TS; player.inv = 0; player.dir = 'down';
   turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false, drop:0}));
   drops = []; shots = []; parts = []; crows = []; pops = []; crowT = 20; S.streak = 0; for (const p of pickups) p.t = 0;
+  dustPuffs = [];
+  smokePuffs = [];
+  ambLeaves = Array.from({length:24}, () => ({
+    x:Math.random() * W * TS, y:Math.random() * H * TS,
+    vx:-14 - Math.random() * 14, vy:10 + Math.random() * 14,
+    sz:3 + Math.random() * 2, ph:Math.random() * 6.28, c:LEAF[R(0, LEAF.length - 1)]
+  }));
   S.pies = maxPies(); S.corn = 3; S.armed = true; boss = null; pet.x = player.x; pet.y = player.y + 12;
+  for (const sp of SIGNPOSTS) sp.arm = true;
   resetNPCs();
-  shy = {x:7.5 * TS, y:29.5 * TS, hw:10, hh:8, sp:70, face:1, wx:0, wy:0, wt:0, flee:0, anim:0, peck:false, alert:false, moving:false};
+  shy = {x:10.5 * TS, y:39.5 * TS, hw:10, hh:8, sp:70, face:1, wx:0, wy:0, wt:0, flee:0, anim:0, peck:false, alert:false, moving:false};
 }
 
-const KEY = 'violet-feast-v1';
-function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], mis:S.mis, misN:S.misN, heard:[...S.heard], jackDone:S.jackDone, got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
+const KEY = 'violet-feast-v2';
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, gender:S.gender, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], mis:S.mis, misN:S.misN, heard:[...S.heard], jackDone:S.jackDone, gateNoticed:[...S.gateNoticed], got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
 function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
 
 /* ---------------- Sound ---------------- */
@@ -1150,14 +1443,15 @@ function keySVG(newIdx, pre){
     defs += `<clipPath id="${pre}c${i}"><rect x="${(i * sw + .6).toFixed(2)}" y="0" width="${(sw - 1.2).toFixed(2)}" height="56"/></clipPath>`;
     g += `<g clip-path="url(#${pre}c${i})" class="kp${S.solved.has(STATIONS[i].id) ? ' got' : ''}${i === newIdx ? ' new' : ''}">${shape}</g>`;
   }
-  return `<svg class="key ${pre}" viewBox="0 0 160 56" role="img" aria-label="Feast Key: ${S.solved.size} of ${N} pieces"><defs>${defs}</defs>${g}</svg>`;
+  return `<svg class="key ${pre}" viewBox="0 0 160 56" role="img" aria-label="Feast Key: ${activeSolvedCount()} of ${N} pieces"><defs>${defs}</defs>${g}</svg>`;
 }
 function updateHud(){
   $('#keywrap').innerHTML = keySVG(-1, 'hk');
-  $('#pieces').textContent = `${S.solved.size} of ${N}`;
+  $('#pieces').textContent = `${activeSolvedCount()} of ${N}`;
   $('#pies').innerHTML = Array.from({length:maxPies()}, (_, i) => i).map(i => `<span class="${i < S.pies ? '' : 'lost'}">🥧</span>`).join('');
   $('#corn').textContent = `🌽 ${S.corn}`;
   $('#feath').textContent = `🪶 ${S.feathers}`;
+  const sh = $('#secHud'); if (sh) sh.textContent = `Secrets: ${S.secrets.size}/4`;
 }
 let toastT = 0;
 function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 3600); }
@@ -1196,8 +1490,10 @@ function gobble(t){
   else toast(`${t.name} bumped you and you dropped a pie! Throw acorns with the Space bar to shoo turkeys away.`);
   updateHud(); save();
 }
+let gateHintT = 0;
 function update(dt){
   S.elapsed += dt;
+  gateHintT = Math.max(0, gateHintT - dt);
   let dx = 0, dy = 0;
   if (keys.left) dx--; if (keys.right) dx++; if (keys.up) dy--; if (keys.down) dy++;
   player.moving = false;
@@ -1206,7 +1502,38 @@ function update(dt){
     player.moving = move(player, dx / l * sp, dy / l * sp, solidP);
     player.walk += dt * 11;
     player.dir = dx ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+    const curT = tile(Math.floor(player.x / TS), Math.floor(player.y / TS));
+    if (player.moving && curT === T.P && Math.random() < dt * 12) {
+      dustPuffs.push({x:player.x + (Math.random() - .5) * 8, y:player.y + 6, r:2.5 + Math.random() * 2, t:.38, max:.38});
+    }
+    if (!player.moving && gateHintT <= 0) {
+      const gx = Math.floor((player.x + (dx ? Math.sign(dx) * 16 : 0)) / TS);
+      const gy = Math.floor((player.y + (dy ? Math.sign(dy) * 16 : 0)) / TS);
+      const gt = tile(gx, gy);
+      if (gt === T.EGATE && !eastOpen()) {
+        gateHintT = 2.5;
+        toast(`East Gate locked! Collect ${Math.min(3, N)} key pieces to enter the Whispering Woods.`);
+      } else if (gt === T.SGATE && !southOpen()) {
+        gateHintT = 2.5;
+        toast(`South Gate locked! Collect ${Math.min(5, N)} key pieces to enter the Cranberry Bog.`);
+      }
+    }
   }
+  for (const lf of ambLeaves) {
+    lf.x += (lf.vx + Math.sin(tick * 1.4 + lf.ph) * 9) * dt;
+    lf.y += lf.vy * dt;
+    if (lf.x < 0) lf.x += W * TS;
+    if (lf.y > H * TS) { lf.y = 0; lf.x = Math.random() * W * TS; }
+  }
+  if (Math.random() < dt * 3.5) {
+    const ch = pick([HALL, SHOP, ALL_STATIONS[7], ALL_STATIONS[1]]);
+    smokePuffs.push({x:(ch.x + ch.w * .72) * TS, y:ch.y * TS - 14, vy:14 + Math.random() * 8, r:3.5, t:2.2, max:2.2});
+  }
+  for (const sm of smokePuffs) { sm.t -= dt; sm.y -= sm.vy * dt; sm.x += Math.sin(tick * 2 + sm.y * .05) * 6 * dt; sm.r += dt * 2.5; }
+  smokePuffs = smokePuffs.filter(sm => sm.t > 0);
+  for (const dp of dustPuffs) { dp.t -= dt; dp.r += dt * 4; }
+  dustPuffs = dustPuffs.filter(dp => dp.t > 0);
+
   player.inv = Math.max(0, player.inv - dt);
   shake = Math.max(0, shake - dt);
   for (const p of pickups) {
@@ -1243,8 +1570,8 @@ function update(dt){
       }
     }
     for (const c of crows) if (s.t > 0 && !c.out && Math.hypot(c.x - s.x, c.y - 14 - s.y) < 24) {
-      const n = c.gold ? 6 : 2;
-      s.t = 0; c.out = true; c.t = 0; S.shooed++; sfx.bonk(); addFeathers(n); pops.push({x:c.x, y:c.y - 34, t:1, txt:`+${n}`});
+      const g = c.gold ? 6 : 2;
+      s.t = 0; c.out = true; c.t = 0; S.shooed++; sfx.bonk(); addFeathers(g); pops.push({x:c.x, y:c.y - 34, t:1, txt:`+${g}`});
       misTick('caleb');
       for (let k = 0; k < 8; k++) parts.push({x:c.x, y:c.y - 24, vx:(Math.random() - .5) * 180, vy:-Math.random() * 130, t:.6, c:c.gold ? '#f2b632' : '#26222e'});
     }
@@ -1282,7 +1609,7 @@ function update(dt){
   crows = crows.filter(c => !(c.out && c.t <= 0));
   for (let i = 0; i < n; i++) {
     const t = turkeys[i]; t.anim += dt * 9; t.drop = Math.max(0, t.drop - dt);
-    let sp = t.sp * (1 + .05 * S.solved.size) * ({1:.7, 2:.8, 3:.9}[S.grade] || 1), vx = 0, vy = 0, tg = null, bd = 7 * TS;
+    let sp = t.sp * (1 + .05 * activeSolvedCount()) * ({1:.7, 2:.8, 3:.9}[S.grade] || 1), vx = 0, vy = 0, tg = null, bd = 7 * TS;
     for (const c of drops) { const d = Math.hypot(c.x - t.x, c.y - t.y); if (d < bd) { bd = d; tg = c; } }
     const pd = Math.hypot(player.x - t.x, player.y - t.y) || 1;
     t.peck = false; t.alert = false; t.busy = !!tg || t.flee > 0;
@@ -1309,7 +1636,12 @@ function update(dt){
     t.moving = false;
     if (vx || vy) { t.moving = move(t, vx * sp * dt, vy * sp * dt, solidT); if (!t.moving) t.wt = 0; if (Math.abs(vx) > .15) t.face = vx < 0 ? -1 : 1; }
   }
-  if (!S.secrets.has('chest') && Math.hypot(CHEST.x - player.x, CHEST.y - player.y) < 24) foundSecret('chest', 15, 'The treasure chest behind the pond held 15 golden feathers.');
+  if (!S.secrets.has('chest') && Math.hypot(CHEST.x - player.x, CHEST.y - player.y) < 24) foundSecret('chest', 15, 'Old Ezra’s treasure chest in the Whispering Woods held 15 golden feathers.');
+  for (const sp of SIGNPOSTS) {
+    const sd = Math.hypot(sp.x - player.x, sp.y - player.y);
+    if (sd > 46) sp.arm = true;
+    else if (sd < 20 && sp.arm && S.state === 'play') { sp.arm = false; openSignpost(sp); return; }
+  }
   updateNPCs(dt); if (S.state !== 'play') return;
   const cd = Math.hypot(CELLAR.x - player.x, CELLAR.y + 5 - player.y);
   if (cd > 40) cellarArm = true; else if (cd < 14 && cellarArm) { cellarArm = false; openCellar(); return; }
@@ -1329,7 +1661,10 @@ function update(dt){
   }
   const tx = Math.floor(player.x / TS), ty = Math.floor(player.y / TS);
   let on = null;
-  for (const s of ALL) if (s.step.x === tx && s.step.y === ty) on = s;
+  for (const s of ALL) {
+    if (s !== HALL && s !== SHOP && !STATIONS.includes(s)) continue;
+    if (s.step.x === tx && s.step.y === ty) on = s;
+  }
   if (!on) S.armed = true;
   else if (S.armed) {
     S.armed = false;
@@ -1359,7 +1694,33 @@ function ground(x, y, t){
     ctx.fillStyle = '#58a6cf'; ctx.fillRect(px, py, TS + .6, TS + .6);
     ctx.fillStyle = '#9fd0ea'; const o = Math.sin(tick * 1.5 + x * 1.7 + y) * 4;
     ctx.fillRect(px + 6 + o, py + 9, 9, 2); ctx.fillRect(px + 17 - o, py + 21, 8, 2);
-    if (tile(x, y - 1) !== T.WATER) { ctx.fillStyle = '#3c7fa3'; ctx.fillRect(px, py, TS + .6, 4); }
+    if (tile(x, y - 1) !== T.WATER && tile(x, y - 1) !== T.BRIDGE) { ctx.fillStyle = '#3c7fa3'; ctx.fillRect(px, py, TS + .6, 4); }
+  } else if (t === T.BOG) {
+    ctx.fillStyle = '#5e3b4d'; ctx.fillRect(px, py, TS + .6, TS + .6);
+    ctx.fillStyle = '#7c4e64'; const o = Math.sin(tick * 1.2 + x + y) * 3;
+    ctx.fillRect(px + 5 + o, py + 10, 8, 2);
+    if (h < .45) { ell(px + 10 + h * 16, py + 18, 3.5, 3, '#c82333'); ell(px + 19 - h * 8, py + 12, 3, 2.5, '#a71d2a'); }
+  } else if (t === T.BRIDGE) {
+    ctx.fillStyle = '#58a6cf'; ctx.fillRect(px, py, TS + .6, TS + .6);
+    ctx.fillStyle = '#8d5b34'; ctx.fillRect(px, py + 2, TS + .6, TS - 4);
+    ctx.fillStyle = '#6b4222';
+    for (let i = 2; i < TS; i += 8) ctx.fillRect(px + i, py + 2, 2, TS - 4);
+    ctx.fillStyle = '#b68356'; ctx.fillRect(px, py + 2, TS + .6, 3); ctx.fillRect(px, py + TS - 5, TS + .6, 3);
+  } else if (t === T.EGATE || t === T.SGATE) {
+    const open = t === T.EGATE ? eastOpen() : southOpen();
+    ctx.fillStyle = '#dcb97c'; ctx.fillRect(px, py, TS + .6, TS + .6);
+    if (!open) {
+      ctx.fillStyle = '#6b4423';
+      ctx.fillRect(px + 3, py + 6, TS - 6, 5);
+      ctx.fillRect(px + 3, py + 19, TS - 6, 5);
+      ctx.fillRect(px + 6, py + 2, 5, TS - 4);
+      ctx.fillRect(px + 21, py + 2, 5, TS - 4);
+      ell(px + 16, py + 15, 5, 5, '#e3a008');
+    } else {
+      ctx.fillStyle = '#6b4423';
+      ctx.fillRect(px + 1, py + 1, 5, 6);
+      ctx.fillRect(px + TS - 6, py + TS - 7, 5, 6);
+    }
   } else if (t === T.CORN || t === T.SCORN) {
     ctx.fillStyle = '#a9824a'; ctx.fillRect(px, py, TS + .6, TS + .6);
   } else {
@@ -1398,6 +1759,7 @@ function drawTall(o){
   }
 }
 function drawBuilding(b){
+  if (b !== HALL && b !== SHOP && !STATIONS.includes(b)) return;
   const px = b.x * TS, py = b.y * TS, pw = b.w * TS, ph = b.h * TS, wt = py + ph * .42, bot = py + ph, hall = b === HALL;
   ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(px + 2, bot - 3, pw, 7);
   ctx.fillStyle = b.wall; ctx.fillRect(px + 3, wt, pw - 6, bot - wt);
@@ -1412,19 +1774,42 @@ function drawBuilding(b){
   for (const wx of hall ? [px + 18, px + 52, px + pw - 66, px + pw - 32] : [px + 14, px + pw - 28]) {
     ctx.fillStyle = '#ffe9a8'; ctx.fillRect(wx, wt + 12, 14, 14); ctx.fillStyle = '#4a2f1b'; ctx.fillRect(wx + 6, wt + 12, 2, 14); ctx.fillRect(wx, wt + 18, 14, 2);
   }
-  const done = hall ? S.solved.size >= N : S.solved.has(b.id);
+  const done = hall ? activeSolvedCount() >= N : S.solved.has(b.id);
   ell(dx + 16, wt - 8, 14, 14, '#4a2f1b'); ell(dx + 16, wt - 8, 12, 12, done ? '#ffe08a' : '#fff7e6');
   ctx.font = '15px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000';
   ctx.fillText(hall && !done ? '🔒' : b.icon, dx + 16, wt - 7);
 }
 function drawPlayer(){
   if (player.inv > 0 && Math.floor(tick * 12) % 2) return;
-  const x = player.x, y = player.y, b = player.moving ? Math.sin(player.walk) * 1.5 : 0, sw = player.moving ? Math.sin(player.walk) : 0;
+  const x = player.x, y = player.y, b = player.moving ? Math.sin(player.walk) * 1.5 : 0, sw = player.moving ? Math.sin(player.walk) : 0, girl = S.gender === 'girl';
   ell(x, y + 7, 10, 4, 'rgba(0,0,0,.22)');
-  ctx.fillStyle = S.owned.has('boots') ? '#c62020' : '#3a2a1e'; ctx.fillRect(x - 6, y - 2 - (sw > .3 ? 2 : 0), 5, 9); ctx.fillRect(x + 1, y - 2 - (sw < -.3 ? 2 : 0), 5, 9);
-  ctx.fillStyle = '#2b3350'; rr(x - 9, y - 17 + b, 18, 17, 4); ctx.fill();
+  if (girl) {
+    ctx.fillStyle = S.owned.has('boots') ? '#c62020' : '#3a2a1e';
+    ctx.fillRect(x - 5, y + 3 - (sw > .3 ? 1.5 : 0), 4, 5);
+    ctx.fillRect(x + 1, y + 3 - (sw < -.3 ? 1.5 : 0), 4, 5);
+    ctx.fillStyle = '#3d2e56';
+    ctx.beginPath(); ctx.moveTo(x - 7, y - 10 + b); ctx.lineTo(x + 7, y - 10 + b); ctx.lineTo(x + 11, y + 6); ctx.lineTo(x - 11, y + 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f3ecdc';
+    ctx.fillRect(x - 5, y - 9 + b, 10, 14);
+    ctx.fillStyle = '#3d2e56';
+    rr(x - 9, y - 17 + b, 18, 9, 4); ctx.fill();
+  } else {
+    ctx.fillStyle = S.owned.has('boots') ? '#c62020' : '#3a2a1e';
+    ctx.fillRect(x - 6, y - 2 - (sw > .3 ? 2 : 0), 5, 9);
+    ctx.fillRect(x + 1, y - 2 - (sw < -.3 ? 2 : 0), 5, 9);
+    ctx.fillStyle = '#2b3350';
+    rr(x - 9, y - 17 + b, 18, 17, 4); ctx.fill();
+    ctx.fillStyle = '#15151b';
+    ctx.fillRect(x - 9, y - 8 + b, 18, 3);
+    ctx.fillStyle = '#e3a008';
+    ctx.fillRect(x - 2, y - 9 + b, 4, 5);
+  }
   ctx.fillStyle = '#fff'; ctx.fillRect(x - 6, y - 17 + b, 12, 4);
-  ctx.fillStyle = '#15151b'; ctx.fillRect(x - 9, y - 8 + b, 18, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 9 + b, 4, 5);
+  if (girl && S.hat) {
+    ctx.fillStyle = '#5a3821';
+    ctx.fillRect(x - 9, y - 24 + b, 3, 9);
+    ctx.fillRect(x + 6, y - 24 + b, 3, 9);
+  }
   ell(x, y - 23 + b, 8, 8, SKINS[S.skin]);
   ctx.fillStyle = '#1c1c22';
   if (player.dir === 'down') { ctx.fillRect(x - 4, y - 24 + b, 2, 3); ctx.fillRect(x + 2, y - 24 + b, 2, 3); }
@@ -1444,6 +1829,12 @@ function drawHat(x, y){
   }
   else if (h === 'chef') { ctx.fillStyle = '#fff'; ctx.fillRect(x - 7, y - 37, 14, 8); ell(x - 5, y - 40, 5, 5, '#fff'); ell(x + 5, y - 40, 5, 5, '#fff'); ell(x, y - 43, 6, 6, '#fff'); ctx.fillStyle = '#cfc8ba'; ctx.fillRect(x - 7, y - 31, 14, 1.5); }
   else if (h === 'crown') { crownPath(x, y - 29, 9, 11); ell(x, y - 32, 1.8, 1.8, '#c62020'); ell(x - 5.5, y - 32, 1.5, 1.5, '#5b3a8c'); ell(x + 5.5, y - 32, 1.5, 1.5, '#5b3a8c'); }
+  else if (S.gender === 'girl') {
+    ell(x, y - 27, 10, 7, '#f7f2e6');
+    ctx.fillStyle = '#f7f2e6';
+    ctx.fillRect(x - 10, y - 27, 3, 8);
+    ctx.fillRect(x + 7, y - 27, 3, 8);
+  }
   else { ctx.fillStyle = '#1c1c22'; rr(x - 12, y - 32, 24, 4, 2); ctx.fill(); ctx.fillRect(x - 7, y - 42, 14, 11); ctx.fillStyle = '#7d55b8'; ctx.fillRect(x - 7, y - 35, 14, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 36, 4, 5); }
 }
 function drawPet(){
@@ -1516,12 +1907,14 @@ function render(){
     if (t === T.TREE || t === T.CORN || t === T.SCORN || t === T.HAY || t === T.PUMP || t === T.WELL) list.push({k:t, x, y, sy:(y + 1) * TS - 4});
   }
   for (const c of drops) { ctx.fillStyle = '#f2c744'; for (let i = 0; i < 6; i++) ctx.fillRect(c.x - 8 + (i * 7) % 16, c.y - 4 + (i * 5) % 9, 3, 3); }
+  for (const dp of dustPuffs) ell(dp.x, dp.y, dp.r, dp.r * .65, `rgba(210,180,130,${(dp.t / dp.max) * .45})`);
   for (const p of pickups) if (p.t <= 0) list.push({k:'pick', p, sy:p.y});
   for (const s of shots) list.push({k:'shot', s, sy:s.y});
   for (const b of ALL) list.push({k:'bld', b, sy:(b.y + b.h) * TS - 2});
   const n = activeTurkeys(); for (let i = 0; i < n; i++) list.push({k:'tk', t:turkeys[i], sy:turkeys[i].y});
   list.push({k:'me', sy:player.y});
   for (const f of FEATH) if (!f.got) list.push({k:'fe', f, sy:f.y});
+  for (const sp of SIGNPOSTS) list.push({k:'sign', sp, sy:sp.y});
   if (S.pet) list.push({k:'pet', sy:pet.y});
   list.push({k:'chest', sy:CHEST.y});
   list.push({k:'cellar', sy:CELLAR.y - 16});
@@ -1537,6 +1930,7 @@ function render(){
     else if (o.k === 'tk') drawTurkey(o.t);
     else if (o.k === 'me') drawPlayer();
     else if (o.k === 'fe') drawFeather(o.f);
+    else if (o.k === 'sign') drawSignpost(o.sp);
     else if (o.k === 'pet') drawPet();
     else if (o.k === 'boss') drawBoss(boss);
     else if (o.k === 'shy') drawTurkey(shy, 5, !S.secrets.has('hat'));
@@ -1551,19 +1945,36 @@ function render(){
     else drawTall(o);
   }
   for (const p of parts) { ctx.fillStyle = p.c; ctx.fillRect(p.x - 2, p.y - 2, 5, 4); }
+  for (const sm of smokePuffs) ell(sm.x, sm.y, sm.r, sm.r * .8, `rgba(245,240,235,${(sm.t / sm.max) * .42})`);
+  for (const lf of ambLeaves) {
+    if (lf.x < camX - 20 || lf.x > camX + VW + 20 || lf.y < camY - 20 || lf.y > camY + VH + 20) continue;
+    ell(lf.x, lf.y, lf.sz, lf.sz * .6, lf.c, tick * 2 + lf.ph);
+  }
   for (const p of pops) { ctx.font = '700 16px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3; ctx.strokeStyle = '#2a1c33'; ctx.strokeText(p.txt, p.x, p.y); ctx.fillStyle = '#ffe45c'; ctx.fillText(p.txt, p.x, p.y); }
   ctx.font = '600 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const b of ALL) {
+    if (b !== HALL && b !== SHOP && !STATIONS.includes(b)) continue;
     const done = b !== HALL && S.solved.has(b.id), txt = (done ? '★ ' : '') + b.name, cx = (b.x + b.w / 2) * TS, cy = b.y * TS - 24, w = ctx.measureText(txt).width + 14;
     ctx.fillStyle = done ? 'rgba(255,224,138,.95)' : 'rgba(255,250,240,.92)'; rr(cx - w / 2, cy - 9, w, 18, 9); ctx.fill();
     ctx.fillStyle = '#2a1c33'; ctx.fillText(txt, cx, cy + 1);
+  }
+  // Gate badges & labels when near
+  for (const g of [
+    {x:47.5 * TS, y:15.3 * TS, txt:eastOpen() ? '🌲 Whispering Woods →' : `🔒 ${Math.min(3, N)} 🔑 Woods`},
+    {x:24.5 * TS, y:32.3 * TS, txt:southOpen() ? '🫐 Cranberry Bog ↓' : `🔒 ${Math.min(5, N)} 🔑 Bog`}
+  ]) {
+    if (Math.hypot(player.x - g.x, player.y - g.y) < 170) {
+      const w = ctx.measureText(g.txt).width + 14;
+      ctx.fillStyle = 'rgba(255,250,240,.94)'; rr(g.x - w / 2, g.y - 9, w, 18, 9); ctx.fill();
+      ctx.fillStyle = '#5b3a8c'; ctx.fillText(g.txt, g.x, g.y + 1);
+    }
   }
   ctx.restore();
   if (S.state === 'play') drawGuide(camX, camY);
 }
 function drawGuide(camX, camY){
   let tg = null, bd = 1e9;
-  if (S.solved.size >= N) tg = HALL;
+  if (activeSolvedCount() >= N) tg = HALL;
   else for (const s of STATIONS) { if (S.solved.has(s.id)) continue; const d = Math.hypot(s.step.x * TS + 16 - player.x, s.step.y * TS + 16 - player.y); if (d < bd) { bd = d; tg = s; } }
   const sx = tg.step.x * TS + 16 - camX, sy = tg.y * TS - 44 - camY;
   if (sx > 24 && sx < VW - 24 && sy > 4 && sy < VH - 60) {
@@ -1620,7 +2031,7 @@ function readQ(){
 /* ---------------- Puzzles ---------------- */
 const modal = $('#modal'), card = $('#card');
 function closeModal(){ hush(); modal.hidden = true; ses = null; setState('play'); player.inv = Math.max(player.inv, 2); }
-function openStation(s){ setState('modal'); ses = {s, qs:shuffle(poolFor(s)).slice(0, S.grade === 1 ? 2 : 3), i:0}; modal.hidden = false; renderQ(); }
+function openStation(s){ setState('modal'); const qLim = TCFG.qCount > 0 ? TCFG.qCount : (S.grade === 1 ? 2 : 3); ses = {s, qs:shuffle(poolFor(s)).slice(0, qLim), i:0}; modal.hidden = false; renderQ(); }
 function renderQ(){
   const {s, qs, i} = ses, q = qs[i]; ses.missed = false; ses.done = false;
   let body = '';
@@ -1679,12 +2090,20 @@ function right(){
 function wrong(msg){ ses.missed = true; sfx.bad(); const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Not quite. ' + msg; }
 function award(){
   hush(); const s = ses.s; S.solved.add(s.id); ses = null; addFeathers(3); sfx.piece();
-  const n = S.solved.size;
+  const n = activeSolvedCount();
+  let unlockNote = '';
+  if (eastOpen() && !S.gateNoticed.has('east_open')) {
+    S.gateNoticed.add('east_open');
+    unlockNote = ' 🌲 <b>The East Gate to the Whispering Woods is now open!</b>';
+  } else if (southOpen() && !S.gateNoticed.has('south_open')) {
+    S.gateNoticed.add('south_open');
+    unlockNote = ' 🫐 <b>The South Gate to the Cranberry Bog is now open!</b>';
+  }
   if (n >= N && !S.bossDone) spawnBoss();
   save();
   card.innerHTML = `<div class="center"><h2>You earned piece ${n} of ${N}!</h2>${keySVG(STATIONS.indexOf(s), 'big')}
     <p class="say">“${s.thanks}”</p>
-    <p>You also earned 3 golden feathers. ${n < N ? `${N - n} more ${N - n === 1 ? 'piece' : 'pieces'} to find. Careful: the turkeys are getting bolder!` : 'The key is whole again! But King Gobble, the biggest turkey in Violet, is guarding the Feast Hall. Bonk him with acorns and answer his riddles to pluck his tail feathers!'}</p>
+    <p>You also earned 3 golden feathers.${unlockNote} ${n < N ? `${N - n} more ${N - n === 1 ? 'piece' : 'pieces'} to find.` : 'The key is whole again! King Gobble is guarding the Feast Hall—bonk him with acorns to pluck his tail feathers!'}</p>
     <div class="row" style="justify-content:center"><button type="button" class="btn" id="go">Play a bonus game</button><button type="button" class="leave" id="skip">Skip the game</button></div></div>`;
   $('#go').onclick = startMini; $('#skip').onclick = closeModal; $('#go').focus();
 }
@@ -1693,7 +2112,7 @@ function award(){
 let mini = null;
 function startMini(){
   hush(); modal.hidden = true; setState('mini');
-  mini = {kind:S.solved.size % 2 ? 'pie' : 'roll', phase:'ready', t:2.6, x:VW / 2, items:[], sp:0, score:0, stun:0};
+  mini = {kind:activeSolvedCount() % 2 ? 'pie' : 'roll', phase:'ready', t:2.6, x:VW / 2, items:[], sp:0, score:0, stun:0};
 }
 function updateMini(dt){
   const m = mini; m.t -= dt;
@@ -1763,7 +2182,7 @@ function drawMini(){
   if (m.phase === 'ready') {
     ctx.fillStyle = 'rgba(28,16,40,.5)'; ctx.fillRect(0, 0, VW, VH);
     ctx.fillStyle = '#fff'; ctx.font = '700 46px ' + FONT; ctx.fillText('Bonus game!', VW / 2, VH / 2 - 90);
-    ctx.font = '500 26px ' + FONT; ctx.fillText('Move with the left and right arrow keys', VW / 2, VH / 2 - 40);
+    ctx.font = '500 26px ' + FONT; ctx.fillText('Slide your finger or use left/right arrows', VW / 2, VH / 2 - 40);
     ctx.fillStyle = '#f2b632'; ctx.font = '700 96px ' + FONT; ctx.fillText(String(Math.max(1, Math.ceil(m.t))), VW / 2, VH / 2 + 50);
   }
 }
@@ -1814,11 +2233,11 @@ function renderShop(msg){
   };
 }
 function openHall(){
-  if (S.solved.size >= N && !S.bossDone) { toast('King Gobble is guarding the door! Bonk him with acorns.'); return; }
+  if (activeSolvedCount() >= N && !S.bossDone) { toast('King Gobble is guarding the door! Bonk him with acorns.'); return; }
   setState('modal'); ses = null; modal.hidden = false;
-  if (S.solved.size < N) {
+  if (activeSolvedCount() < N) {
     const left = STATIONS.filter(s => !S.solved.has(s.id));
-    card.innerHTML = `<div class="who"><span class="badge">🔒</span><div class="grow"><h2>The Feast Hall is locked</h2><p class="sub">You have ${S.solved.size} of ${N} key pieces.</p></div></div>
+    card.innerHTML = `<div class="who"><span class="badge">🔒</span><div class="grow"><h2>The Feast Hall is locked</h2><p class="sub">You have ${activeSolvedCount()} of ${N} key pieces.</p></div></div>
       <p>You can smell the pumpkin pie through the door! These villagers still need your help:</p>
       <ul class="todo">${left.map(s => `<li>${s.icon} ${s.who} at the ${s.name}</li>`).join('')}</ul>
       <button type="button" class="btn" id="go">Keep searching</button>`;
@@ -1872,6 +2291,7 @@ function win(thx){
     <p>The doors swing open and all of Violet sits down together. Even the turkeys are here, as <b>guests</b>! It turns out they only wanted an invitation (and the corn).</p></div>
     <div id="certbox"></div>
     <div class="row noprint" style="justify-content:center"><button type="button" class="btn" id="print">Print my certificate</button>
+    <button type="button" class="btn ghost" id="copysum">Copy summary for teacher</button>
     <button type="button" class="btn ghost" id="savecert" ${dl ? '' : 'hidden'}>Save it as a picture</button>
     <button type="button" class="btn ghost" id="again">Play again</button></div>
     <p class="tip noprint" id="ptip">If the print window does not open, press Ctrl + P.</p>`;
@@ -1879,32 +2299,258 @@ function win(thx){
   paint(); if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('96px Caprasimo'), document.fonts.load('34px Fredoka')]).then(paint).catch(() => {});
   $('#win').hidden = false; $('#win').scrollTop = 0;
   $('#print').onclick = () => { try { window.print(); } catch (e) {} };
+  $('#copysum').onclick = () => copyText(buildSummary(), 'Summary copied! Paste it into your teacher’s assignment.');
   $('#savecert').onclick = () => { const cv2 = $('#certbox canvas'); if (!dl || !cv2) return;
     cv2.toBlob(blob => { if (blob) dl.save({filename:`violet-certificate-${S.name.replace(/[^A-Za-z0-9]+/g, '-') || 'pilgrim'}.png`, data:blob}).then(() => { $('#ptip').textContent = 'Saved! You can print the picture or add it to a slide.'; }).catch(() => {}); }, 'image/png'); };
   $('#again').onclick = () => { try { localStorage.removeItem(KEY); } catch (e) {} $('#win').hidden = true; $('#cont').hidden = true; $('#title').hidden = false; setState('title'); };
 }
+
+/* ---------------- Help, Interactive Click-to-Warp Map, & Teacher Panel ---------------- */
 function showHelp(){
   if (S.state !== 'play') return;
   setState('modal'); ses = null; modal.hidden = false;
   card.innerHTML = `<h2>How to play</h2>
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
-    <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
-    <div><b>Talk to villagers</b><span>Walk into anyone strolling around town. A red ! means they have a clue or a secret mission for you.</span></div><div><b>Golden feathers</b><span>Earn them with right answers (3 in a row on the first try is a bonus), bonus games, bonking crows, and bonking turkeys that show a bright golden tail feather. Spend them at the General Store by the town square.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
-    <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all 9, then go to the Feast Hall at the north end of town. Violet also hides 4 secrets. Can you find them all?</p>
-    ${(() => { const a = NPCS.filter(v => (S.mis[v.id] | 0) === 1); return a.length ? `<p><b>Your missions:</b></p><ul class="todo">${a.map(v => `<li>${v.name}: ${v.kind === 'doll' ? (S.misN.mercy ? 'You found the doll! Bring it back.' : 'Find the lost doll in the orchard at the bottom of town.') : v.kind === 'corn' ? `Bring ${v.need} corn (you have ${S.corn}).` : `Bonk ${v.need} ${v.kind === 'crow' ? 'crows' : 'turkeys'} (${Math.min(S.misN[v.id] | 0, v.need)} done).`}</li>`).join('')}</ul>` : ''; })()}
+    <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Town Map &amp; Fast Travel</b><span>Press M or click Town Map to see the whole valley and click any visited place to warp!</span></div><div><b>Outer Gates</b><span>East Gate (Whispering Woods) opens at ${Math.min(3, N)} key pieces; South Gate (Cranberry Bog) opens at ${Math.min(5, N)}.</span></div>
+    <div><b>Talk to villagers</b><span>Walk into anyone strolling around town. A red ! means they have a clue or a secret mission for you.</span></div><div><b>Golden feathers</b><span>Earn them with right answers (3 in a row on the first try is a bonus), bonus games, bonking crows, and bonking turkeys. Spend them at the General Store.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
+    <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all ${N}, then go to the Feast Hall at the north end of town. Violet and its outer regions also hide 4 secrets!</p>
+    ${(() => { const a = NPCS.filter(v => (S.mis[v.id] | 0) === 1); return a.length ? `<p><b>Your missions:</b></p><ul class="todo">${a.map(v => `<li>${v.name}: ${v.kind === 'doll' ? (S.misN.mercy ? 'You found the doll! Bring it back.' : 'Find the lost doll in the Southern Orchard beyond the Cranberry Bog.') : v.kind === 'corn' ? `Bring ${v.need} corn (you have ${S.corn}).` : `Bonk ${v.need} ${v.kind === 'crow' ? 'crows' : 'turkeys'} (${Math.min(S.misN[v.id] | 0, v.need)} done).`}</li>`).join('')}</ul>` : ''; })()}
     <button type="button" class="btn" id="go">Back to Violet</button>`;
   $('#go').onclick = closeModal; $('#go').focus();
+}
+
+function openMap(){
+  if (S.state !== 'play') return;
+  setState('modal'); ses = {isMap:true}; modal.hidden = false;
+  const targets = [
+    {id:'plaza', icon:'⛲', title:'Town Square', sub:'Center of Violet • Click to warp', x:24.5 * TS, y:19.2 * TS, canWarp:true, done:false},
+    ...STATIONS.map(s => {
+      const done = S.solved.has(s.id);
+      return {id:s.id, icon:done ? '★' : s.icon, title:s.name, sub:`${s.who} • ${done ? 'Click to warp' : skillOf(s)}`, x:(s.step.x + .5) * TS, y:(s.step.y + .7) * TS, canWarp:done, done};
+    }),
+    {id:'shop', icon:'🪶', title:'General Store', sub:'Spend golden feathers • Click to warp', x:(SHOP.step.x + .5) * TS, y:(SHOP.step.y + .7) * TS, canWarp:true, done:false},
+    {id:'hall', icon:'🍽️', title:'Feast Hall', sub:activeSolvedCount() >= N ? 'Unlocked • Click to warp' : `North end • ${activeSolvedCount()}/${N} key pieces`, x:(HALL.step.x + .5) * TS, y:(HALL.step.y + .7) * TS, canWarp:activeSolvedCount() >= N, done:activeSolvedCount() >= N},
+    {id:'woods', icon:'🌲', title:'Whispering Woods', sub:eastOpen() ? 'East expansion • Click to warp' : `Locked (Opens at ${Math.min(3, N)} key pieces)`, x:51.5 * TS, y:17.5 * TS, canWarp:eastOpen(), done:false},
+    {id:'bog', icon:'🫐', title:'Cranberry Bog & Orchard', sub:southOpen() ? 'South expansion • Click to warp' : `Locked (Opens at ${Math.min(5, N)} key pieces)`, x:24.5 * TS, y:37.5 * TS, canWarp:southOpen(), done:false}
+  ];
+
+  const dirRows = targets.map((t, idx) => `<button type="button" class="diritem${t.done ? ' done' : ''}${t.canWarp ? ' warp' : ' locked'}" data-w="${idx}" ${t.canWarp ? '' : 'disabled'}><span>${t.icon}</span><div><b>${t.title}</b><span>${t.sub}</span></div></button>`).join('');
+  card.innerHTML = `<div class="who"><span class="badge">🗺️</span><div class="grow"><h2>Map of Violet &amp; Outer Valley</h2><p class="sub">Click Town Square, any ★ visited building, or an unlocked outer region to warp!</p></div><button type="button" class="leave" id="leave">Close</button></div>
+    <canvas class="mapcv" id="minimap" width="640" height="460" aria-label="Overview map of the town of Violet and outer regions"></canvas>
+    <div class="dirgrid" id="dirgrid">${dirRows}</div>`;
+  $('#leave').onclick = closeModal;
+
+  const mc2 = $('#minimap'), mg = mc2.getContext('2d'), S2 = 10;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const t = tile(x, y);
+    mg.fillStyle = t === T.WATER ? '#58a6cf' : t === T.BOG ? '#5e3b4d' : t === T.BRIDGE ? '#8d5b34'
+      : (t === T.P || t === T.STEP) ? '#dcb97c' : t === T.PLAZA ? '#cfc6b5'
+      : (t === T.CORN || t === T.SCORN) ? '#d6a83a' : t === T.TREE ? '#5f7d32'
+      : (t === T.EGATE || t === T.SGATE) ? '#e3a008' : '#93b657';
+    mg.fillRect(x * S2, y * S2, S2, S2);
+  }
+  for (const b of ALL) {
+    if (b !== HALL && b !== SHOP && !STATIONS.includes(b)) continue;
+    const done = b !== HALL && S.solved.has(b.id);
+    mg.fillStyle = done ? '#f2b632' : b.roof;
+    mg.fillRect(b.x * S2, b.y * S2, b.w * S2, b.h * S2);
+    mg.strokeStyle = '#2a1c33'; mg.lineWidth = 1.2; mg.strokeRect(b.x * S2, b.y * S2, b.w * S2, b.h * S2);
+    mg.font = '11px ' + FONT; mg.textAlign = 'center'; mg.textBaseline = 'middle'; mg.fillStyle = '#000';
+    mg.fillText(done ? '★' : b.icon, (b.x + b.w / 2) * S2, (b.y + b.h / 2) * S2 + 1);
+  }
+  for (const sp of SIGNPOSTS) {
+    const sx = (sp.x / TS) * S2, sy = (sp.y / TS) * S2;
+    mg.fillStyle = '#5a3a22'; mg.fillRect(sx - 2, sy - 4, 4, 8);
+    mg.fillStyle = '#f2b632'; mg.fillRect(sx - 5, sy - 4, 10, 4);
+  }
+  mg.font = '700 11px ' + FONT; mg.textAlign = 'center'; mg.fillStyle = '#fffdf6';
+  mg.fillText(eastOpen() ? '🌲 Whispering Woods' : '🔒 Woods', 55.5 * S2, 3.2 * S2);
+  mg.fillText(southOpen() ? '🫐 Cranberry Bog' : '🔒 Bog', 24.5 * S2, 43.5 * S2);
+
+  for (const v of NPCS) {
+    const st = S.mis[v.id] | 0, mark = misNeed(v) ? '!' : (st === 1 && misReady(v) ? '★' : '');
+    if (!mark) continue;
+    const vx = (v.x / TS) * S2, vy = (v.y / TS) * S2;
+    mg.fillStyle = '#fffdf6'; mg.beginPath(); mg.arc(vx, vy, 6, 0, 6.2832); mg.fill();
+    mg.strokeStyle = '#5b3a8c'; mg.lineWidth = 1.5; mg.stroke();
+    mg.font = '700 9px ' + FONT; mg.fillStyle = mark === '!' ? '#b3261e' : '#e3a008'; mg.fillText(mark, vx, vy + .5);
+  }
+  const px = (player.x / TS) * S2, py = (player.y / TS) * S2;
+  mg.fillStyle = '#5b3a8c'; mg.beginPath(); mg.arc(px, py, 6.5, 0, 6.2832); mg.fill();
+  mg.strokeStyle = '#fff'; mg.lineWidth = 2; mg.stroke();
+
+  $('#dirgrid').onclick = e => {
+    const btn = e.target.closest('button[data-w]');
+    if (!btn || btn.disabled) return;
+    const tg = targets[+btn.dataset.w];
+    if (!tg || !tg.canWarp) return;
+    closeModal();
+    warpTo(tg.x, tg.y, tg.title);
+  };
+  mc2.onclick = e => {
+    const r = mc2.getBoundingClientRect();
+    const wx = ((e.clientX - r.left) / r.width) * W * TS;
+    const wy = ((e.clientY - r.top) / r.height) * H * TS;
+    let best = null, bd = 4.5 * TS;
+    for (const tg of targets) {
+      if (!tg.canWarp) continue;
+      const d = Math.hypot(tg.x - wx, tg.y - wy);
+      if (d < bd) { bd = d; best = tg; }
+    }
+    if (best) { closeModal(); warpTo(best.x, best.y, best.title); }
+    else toast('Click Town Square, a ★ visited building, or an unlocked outer zone to warp.');
+  };
+}
+
+function openTeacher(){
+  const prev = S.state;
+  setState('modal'); ses = {isTeacher:true, prev}; modal.hidden = false;
+  const finish = () => {
+    hush(); modal.hidden = true; ses = null;
+    if (prev === 'title') { $('#title').hidden = false; setState('title'); }
+    else setState('play');
+  };
+  if (!teacherUnlocked) {
+    card.innerHTML = `<div class="who"><span class="badge">🔒</span><div class="grow"><h2>Teacher Developer Access</h2><p class="sub">Enter the teacher passcode to unlock station &amp; CSV settings</p></div><button type="button" class="leave" id="leave">Cancel</button></div>
+      <p class="tip">Default teacher passcode is <b>1621</b> (you can change it once unlocked).</p>
+      <div class="numrow" style="margin-top:.7rem">
+        <input type="password" id="tpin" maxlength="20" autocomplete="off" placeholder="Enter passcode" aria-label="Teacher passcode" style="max-width:200px;margin:0">
+        <button type="button" class="btn" id="tunlock">Unlock</button>
+      </div>
+      <p class="fb no" id="tpinfb" role="status"></p>`;
+    $('#leave').onclick = finish;
+    const tryPin = () => {
+      const val = ($('#tpin').value || '').trim();
+      if (val === TCFG.pin) {
+        teacherUnlocked = true;
+        sfx.ok();
+        openTeacher();
+      } else {
+        sfx.bad();
+        $('#tpinfb').textContent = 'Incorrect passcode. Try again (default is 1621).';
+        $('#tpin').select();
+      }
+    };
+    $('#tunlock').onclick = tryPin;
+    $('#tpin').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); tryPin(); } };
+    $('#tpin').focus();
+    return;
+  }
+
+  const totalCustom = customQuestionCount();
+  const checks = ALL_STATIONS.map(s => {
+    const cnt = (TCFG.customQ[s.id] || []).length;
+    return `<label class="tchk"><input type="checkbox" value="${s.id}" ${TCFG.enabled.includes(s.id) ? 'checked' : ''}><span>${s.icon} <b>${s.name}</b> (${skillOf(s)})${cnt ? ` <span class="tbadge">${cnt} CSV</span>` : ''}</span></label>`;
+  }).join('');
+  card.innerHTML = `<div class="who"><span class="badge">🍎</span><div class="grow"><h2>Teacher Developer Settings</h2><p class="sub">Import CSV questions, toggle stations, or copy student progress</p></div><button type="button" class="leave" id="leave">Done</button></div>
+    <div class="tbox">
+      <h3>1. Custom Questions via CSV</h3>
+      <p class="sub">Upload a <code>.csv</code> file with columns: <code>station, type, question, correct_answer, wrong1, wrong2, wrong3, hint</code> (<code>type</code> is <code>mc</code> or <code>num</code>).</p>
+      <div class="trow">
+        <input type="file" id="tcsv" accept=".csv,text/csv" style="max-width:250px">
+        <button type="button" class="btn ghost" id="tdl">Download CSV template</button>
+        <button type="button" class="btn ghost" id="tclearcsv" ${totalCustom ? '' : 'disabled'}>Clear custom (${totalCustom})</button>
+      </div>
+      <div class="trow">
+        <label style="font-weight:600;font-size:.92rem">When a station has CSV questions:
+          <select id="tcmode" style="margin-left:.35rem;padding:.25rem .5rem;border-radius:8px;border:2px solid var(--line);background:var(--paper)">
+            <option value="replace" ${TCFG.customMode === 'replace' ? 'selected' : ''}>Use ONLY my CSV questions</option>
+            <option value="mix" ${TCFG.customMode === 'mix' ? 'selected' : ''}>Mix CSV with built-in questions</option>
+          </select>
+        </label>
+      </div>
+      <p class="fb" id="tcsvfb" role="status" style="margin:.3rem 0 0"></p>
+    </div>
+    <div class="tbox">
+      <h3>2. Stations &amp; Questions Per Piece</h3>
+      <div class="field" style="margin:.3rem 0">Questions per station:
+        <select id="tqcnt" style="margin-left:.4rem;padding:.3rem .6rem;border-radius:8px;border:2px solid var(--line);background:var(--paper)">
+          <option value="0" ${TCFG.qCount === 0 ? 'selected' : ''}>Auto (2 for 1st grade, 3 for 2nd–4th)</option>
+          <option value="1" ${TCFG.qCount === 1 ? 'selected' : ''}>1 question per piece (Quick demo)</option>
+          <option value="2" ${TCFG.qCount === 2 ? 'selected' : ''}>2 questions per piece</option>
+          <option value="3" ${TCFG.qCount === 3 ? 'selected' : ''}>3 questions per piece</option>
+          <option value="4" ${TCFG.qCount === 4 ? 'selected' : ''}>4 questions per piece</option>
+        </select>
+      </div>
+      <div class="tgrid" id="tgrid">${checks}</div>
+    </div>
+    <div class="tbox">
+      <h3>3. Teacher Passcode &amp; Student Progress</h3>
+      <div class="trow" style="margin-bottom:.5rem">
+        <label style="font-weight:600;font-size:.92rem">Teacher passcode:
+          <input type="text" id="tnewpin" maxlength="20" value="${esc(TCFG.pin)}" style="display:inline-block;width:130px;margin:0 0 0 .4rem;padding:.25rem .5rem">
+        </label>
+      </div>
+      <textarea class="sumbox" id="tsum" rows="2" readonly>${esc(buildSummary())}</textarea>
+    </div>
+    <div class="row">
+      <button type="button" class="btn" id="tsave">Save settings</button>
+      <button type="button" class="btn ghost" id="tcopy">Copy summary</button>
+      <button type="button" class="leave" id="tlock" style="margin-left:auto">Lock panel</button>
+    </div>`;
+  $('#leave').onclick = finish;
+  $('#tlock').onclick = () => { teacherUnlocked = false; openTeacher(); };
+  $('#tdl').onclick = () => { downloadTextFile('violet-questions-template.csv', sampleCSV()); toast('Template CSV downloaded!'); };
+  $('#tclearcsv').onclick = () => {
+    TCFG.customQ = {};
+    try { localStorage.setItem(TCFG_KEY, JSON.stringify(TCFG)); } catch (e) {}
+    sfx.ok();
+    openTeacher();
+    toast('Custom CSV questions cleared.');
+  };
+  $('#tcsv').onchange = e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const res = importQuestionsCSV(String(reader.result || ''));
+      const fb = $('#tcsvfb');
+      if (!res.ok) {
+        sfx.bad();
+        fb.className = 'fb no';
+        fb.textContent = res.msg;
+        return;
+      }
+      TCFG.customQ = res.imported;
+      try { localStorage.setItem(TCFG_KEY, JSON.stringify(TCFG)); } catch (err) {}
+      sfx.piece();
+      openTeacher();
+      const fb2 = $('#tcsvfb');
+      if (fb2) {
+        fb2.className = 'fb ok';
+        fb2.textContent = `Imported ${res.added} custom question${res.added === 1 ? '' : 's'}!${res.skipped ? ` (${res.skipped} row${res.skipped === 1 ? '' : 's'} skipped)` : ''}`;
+      }
+    };
+    reader.readAsText(file);
+  };
+  $('#tcopy').onclick = () => copyText($('#tsum').value, 'Student summary copied!');
+  $('#tsave').onclick = () => {
+    const picked = [...card.querySelectorAll('#tgrid input:checked')].map(el => el.value);
+    if (!picked.length) { toast('Keep at least 1 station checked.'); return; }
+    const newPin = ($('#tnewpin').value || '').trim();
+    if (!newPin) { toast('Teacher passcode cannot be blank.'); return; }
+    TCFG.enabled = picked;
+    TCFG.qCount = +$('#tqcnt').value || 0;
+    TCFG.customMode = $('#tcmode').value === 'mix' ? 'mix' : 'replace';
+    TCFG.pin = newPin;
+    try { localStorage.setItem(TCFG_KEY, JSON.stringify(TCFG)); } catch (e) {}
+    applyTeacherCfg(); save();
+    toast(`Saved! ${N} active stations, ${customQuestionCount()} custom CSV questions.`);
+    finish();
+  };
 }
 
 /* ---------------- Input ---------------- */
 const KM = {ArrowUp:'up', KeyW:'up', ArrowDown:'down', KeyS:'down', ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right'};
 addEventListener('keydown', e => {
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyT') { e.preventDefault(); if (S.state === 'play' || S.state === 'title') openTeacher(); return; }
   if (S.state === 'play') {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const k = KM[e.code];
     if (k) { keys[k] = true; e.preventDefault(); }
     else if (e.code === 'Space') { e.preventDefault(); throwAcorn(); }
     else if (e.code === 'KeyC' && !e.repeat) dropCorn();
+    else if (e.code === 'KeyM' && !e.repeat) openMap();
   } else if (S.state === 'mini' || S.state === 'jack') {
     const k = KM[e.code];
     if (k) { keys[k] = true; e.preventDefault(); } else if (e.code === 'Space') { e.preventDefault(); if (S.state === 'jack') jackThrow(); }
@@ -1913,7 +2559,13 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { const k = KM[e.code]; if (k) keys[k] = false; });
 addEventListener('blur', () => { keys.up = keys.down = keys.left = keys.right = false; });
 function modalKey(e){
-  if (!ses) { if (e.key === 'Escape') closeModal(); return; }
+  if (!ses || ses.isMap || ses.isTeacher) {
+    if (e.key === 'Escape' || (ses && ses.isMap && e.code === 'KeyM')) {
+      if (ses && ses.isTeacher && ses.prev === 'title') { modal.hidden = true; ses = null; $('#title').hidden = false; setState('title'); }
+      else closeModal();
+    }
+    return;
+  }
   const q = ses.qs[ses.i];
   if (e.target && e.target.tagName === 'INPUT') { if (e.key === 'Enter') { e.preventDefault(); checkNum(); } return; }
   if (ses.done) return;
@@ -1943,14 +2595,41 @@ document.querySelectorAll('#dpad button').forEach(b => {
 });
 $('#bCorn').addEventListener('pointerdown', e => { e.preventDefault(); dropCorn(); });
 $('#bThrow').addEventListener('pointerdown', e => { e.preventDefault(); throwAcorn(); });
+
+let miniDrag = false;
+function pointerToCanvasX(e){
+  const r = cv.getBoundingClientRect();
+  return clamp(((e.clientX - r.left) / r.width) * VW, 44, VW - 44);
+}
+cv.addEventListener('pointerdown', e => {
+  if (S.state === 'mini' && mini) { miniDrag = true; mini.x = pointerToCanvasX(e); }
+  else if (S.state === 'jack' && jack) {
+    const r = cv.getBoundingClientRect(), cx = ((e.clientX - r.left) / r.width) * VW, cy = ((e.clientY - r.top) / r.height) * VH;
+    const dx = cx - jack.px, dy = cy - (jack.py - 20);
+    jack.dir = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+    jackThrow();
+  }
+});
+cv.addEventListener('pointermove', e => {
+  if (miniDrag && S.state === 'mini' && mini && !mini.stun) mini.x = pointerToCanvasX(e);
+});
+addEventListener('pointerup', () => { miniDrag = false; });
+addEventListener('pointercancel', () => { miniDrag = false; });
+
 if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dl = d; const b = $('#savecert'); if (b && d) b.hidden = false; }).catch(() => {});
+$('#bMap').onclick = e => { e.currentTarget.blur(); openMap(); };
 $('#bHelp').onclick = e => { e.currentTarget.blur(); showHelp(); };
+$('#openTeach').onclick = () => openTeacher();
+if (location.hash === '#teacher') setTimeout(openTeacher, 50);
 $('#bMute').onclick = e => { muted = !muted; e.currentTarget.textContent = muted ? 'Sound off' : 'Sound on'; e.currentTarget.blur(); };
 const bRead = $('#bRead'), readChk = $('#readchk');
 function setRead(v, tell){ autoRead = v; bRead.textContent = v ? 'Read aloud on' : 'Read aloud off'; readChk.checked = v; if (!v) hush(); else if (tell) say('Reading out loud is on.'); try { localStorage.setItem('violet-read', v ? '1' : '0'); } catch (e) {} }
 if (!canSpeak) { bRead.hidden = true; $('#readopt').hidden = true; } else { setRead(autoRead); bRead.onclick = () => { setRead(!autoRead, true); bRead.blur(); }; readChk.onchange = () => setRead(readChk.checked, true); }
 
 /* ---------------- Title ---------------- */
+const genderBox = $('#genders');
+function setGender(gen){ S.gender = gen === 'girl' ? 'girl' : 'boy'; genderBox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.gen === S.gender)); }
+genderBox.onclick = e => { const b = e.target.closest('button'); if (!b) return; setGender(b.dataset.gen); };
 const skinBox = $('#skins');
 skinBox.innerHTML = SKINS.map((c, i) => `<button type="button" style="background:${c}" data-i="${i}" aria-label="Pilgrim ${i + 1}" aria-pressed="${i === 0}"></button>`).join('');
 skinBox.onclick = e => { const b = e.target.closest('button'); if (!b) return; S.skin = +b.dataset.i; skinBox.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
@@ -1961,19 +2640,19 @@ function begin(saved){
   if (!saved && !S.grade) { $('#gradeMsg').textContent = 'Pick your grade first.'; return; }
   resetWorld();
   if (saved) {
-    S.name = saved.name || 'Pilgrim'; setGrade(saved.grade >= 1 && saved.grade <= 4 ? saved.grade : 4); S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
+    S.name = saved.name || 'Pilgrim'; setGrade(saved.grade >= 1 && saved.grade <= 4 ? saved.grade : 4); setGender(saved.gender || 'boy'); S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
     S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
     S.feathers = saved.feathers | 0; S.earned = saved.earned | 0; S.owned = new Set(saved.owned || []); S.hat = saved.hat || ''; S.pet = saved.pet || ''; S.bossDone = !!saved.bossDone; S.secrets = new Set(saved.secrets || []);
-    S.mis = saved.mis || {}; S.misN = saved.misN || {}; S.heard = new Set(saved.heard || []); S.jackDone = !!saved.jackDone;
+    S.mis = saved.mis || {}; S.misN = saved.misN || {}; S.heard = new Set(saved.heard || []); S.jackDone = !!saved.jackDone; S.gateNoticed = new Set(saved.gateNoticed || []);
     FEATH.forEach((f, i) => { f.got = (saved.got || []).includes(i); });
   } else {
     S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
-    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); S.mis = {}; S.misN = {}; S.heard = new Set(); S.jackDone = false; FEATH.forEach(f => { f.got = false; });
+    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); S.mis = {}; S.misN = {}; S.heard = new Set(); S.jackDone = false; S.gateNoticed = new Set(); FEATH.forEach(f => { f.got = false; });
   }
   S.pies = maxPies(); pet.x = player.x; pet.y = player.y + 12;
-  if (S.solved.size >= N && !S.bossDone) spawnBoss();
+  if (activeSolvedCount() >= N && !S.bossDone) spawnBoss();
   $('#title').hidden = true; setState('play'); updateHud(); save();
-  toast(S.solved.size ? `Welcome back, ${S.name}! Follow the gold arrow.` : `Welcome to Violet, ${S.name}! Follow the gold arrow to a villager.`);
+  toast(activeSolvedCount() ? `Welcome back, ${S.name}! Follow the gold arrow.` : `Welcome to Violet, ${S.name}! Follow the gold arrow to a villager.`);
 }
 $('#start').onclick = () => begin(null);
 $('#name').onkeydown = e => { if (e.key === 'Enter') begin(null); };
@@ -1985,7 +2664,7 @@ if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else ad
 let last = performance.now();
 function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); else if (S.state === 'jack') updateJack(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, getJack:() => jack, startJack, CELLAR, NPCS, DOLL, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, CHEST, W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, getJack:() => jack, startJack, CELLAR, NPCS, DOLL, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, CHEST, SIGNPOSTS, warpTo, W, H};
 })();
 </script>
 </body>
