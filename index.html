@@ -1165,6 +1165,7 @@ function drawTurkey(t, nf){
 }
 function render(){
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  if (S.state === 'mini' && mini) { drawMini(); return; }
   ctx.fillStyle = '#93b657'; ctx.fillRect(0, 0, VW, VH);
   const camX = Math.round(clamp(player.x - VW / 2, 0, W * TS - VW)), camY = Math.round(clamp(player.y - VH / 2 - 12, 0, H * TS - VH));
   ctx.save();
@@ -1331,8 +1332,87 @@ function award(){
   card.innerHTML = `<div class="center"><h2>You earned piece ${n} of ${N}!</h2>${keySVG(STATIONS.indexOf(s), 'big')}
     <p class="say">“${s.thanks}”</p>
     <p>You also earned 3 golden feathers. ${n < N ? `${N - n} more ${N - n === 1 ? 'piece' : 'pieces'} to find. Careful: the turkeys are getting bolder!` : 'The key is whole again! But King Gobble, the biggest turkey in Violet, is guarding the Feast Hall. Bonk him with acorns and answer his riddles to pluck his tail feathers!'}</p>
+    <div class="row" style="justify-content:center"><button type="button" class="btn" id="go">Play a bonus game</button><button type="button" class="leave" id="skip">Skip the game</button></div></div>`;
+  $('#go').onclick = startMini; $('#skip').onclick = closeModal; $('#go').focus();
+}
+
+/* ---------------- Bonus mini-games ---------------- */
+let mini = null;
+function startMini(){
+  hush(); modal.hidden = true; setState('mini');
+  mini = {kind:S.solved.size % 2 ? 'pie' : 'roll', phase:'ready', t:2.6, x:VW / 2, items:[], sp:0, score:0, stun:0};
+}
+function updateMini(dt){
+  const m = mini; m.t -= dt;
+  if (m.phase === 'ready') { if (m.t <= 0) { m.phase = 'run'; m.t = 10; } return; }
+  const pie = m.kind === 'pie';
+  m.stun = Math.max(0, m.stun - dt);
+  if (!m.stun) { if (keys.left) m.x -= 380 * dt; if (keys.right) m.x += 380 * dt; m.x = clamp(m.x, 44, VW - 44); }
+  m.sp -= dt;
+  if (m.sp <= 0) {
+    const r = Math.random();
+    m.sp = pie ? .3 + m.t * .025 : .36;
+    m.items.push({x:R(50, VW - 50), y:-24, vy:pie ? 200 + Math.random() * 110 + (10 - m.t) * 14 : 270, k:pie ? (r < .14 ? 'gold' : 'pie') : (r < .6 ? 'corn' : 'hay')});
+  }
+  const cy = pie ? VH - 152 : VH - 110;
+  for (const it of m.items) {
+    it.y += it.vy * dt;
+    if (it.hit || it.bump || Math.abs(it.y - cy) > 22 || Math.abs(it.x - m.x) > (it.k === 'hay' ? 46 : 38)) continue;
+    if (it.k === 'hay') { it.bump = true; m.stun = .4; sfx.bad(); }
+    else { it.hit = true; m.score += it.k === 'gold' ? 3 : 1; sfx.corn(); }
+  }
+  m.items = m.items.filter(it => !it.hit && it.y < VH + 40);
+  if (m.t <= 0) endMini();
+}
+function endMini(){
+  const m = mini, pie = m.kind === 'pie', f = clamp(Math.ceil(m.score / (pie ? 4 : 3)), 1, 5);
+  mini = null; addFeathers(f); save(); sfx.piece(); setState('modal'); modal.hidden = false;
+  card.innerHTML = `<div class="center"><h2>Time’s up!</h2>
+    <p class="q">${pie ? `You scored ${m.score} ${m.score === 1 ? 'point' : 'points'} catching pies.` : `Your pumpkin scooped up ${m.score} ${m.score === 1 ? 'ear' : 'ears'} of corn.`}</p>
+    <p>That earns you ${f} golden ${f === 1 ? 'feather' : 'feathers'}. 🪶</p>
     <button type="button" class="btn" id="go">Back to Violet</button></div>`;
   $('#go').onclick = closeModal; $('#go').focus();
+}
+function drawMini(){
+  const m = mini, pie = m.kind === 'pie';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (pie) {
+    ctx.fillStyle = '#f7dfb0'; ctx.fillRect(0, 0, VW, VH);
+    ell(VW * .25, VH - 40, 330, 120, '#b9cf7a'); ell(VW * .8, VH - 30, 380, 140, '#a8c468');
+    ctx.fillStyle = '#93b657'; ctx.fillRect(0, VH - 62, VW, 62);
+  } else {
+    ctx.fillStyle = '#93b657'; ctx.fillRect(0, 0, VW, VH);
+    ctx.fillStyle = '#8baf51'; const o = (tick * 270) % 96; for (let y = -96 + o; y < VH; y += 96) ctx.fillRect(0, y, VW, 48);
+  }
+  for (const it of m.items) {
+    if (it.k === 'hay') { ctx.fillStyle = '#e3b94f'; rr(it.x - 24, it.y - 18, 48, 36, 6); ctx.fill(); ctx.fillStyle = '#c2972f'; ctx.fillRect(it.x - 24, it.y - 7, 48, 3); ctx.fillRect(it.x - 24, it.y + 6, 48, 3); }
+    else { if (it.k === 'gold') ell(it.x, it.y, 25, 25, 'rgba(242,182,50,.8)'); ctx.font = '34px ' + FONT; ctx.fillStyle = '#000'; ctx.fillText(it.k === 'corn' ? '🌽' : '🥧', it.x, it.y); }
+  }
+  if (pie) {
+    const keep = {x:player.x, y:player.y, dir:player.dir, moving:player.moving, inv:player.inv, walk:player.walk};
+    Object.assign(player, {x:0, y:0, dir:'down', moving:keys.left !== keys.right, inv:0, walk:tick * 11});
+    ell(m.x, VH - 38, 22, 7, 'rgba(0,0,0,.2)');
+    ctx.save(); ctx.translate(m.x, VH - 50); ctx.scale(2, 2); drawPlayer();
+    ctx.fillStyle = '#a06a32'; rr(-16, -56, 32, 10, 4); ctx.fill(); ctx.fillStyle = '#7a4a2b'; ctx.fillRect(-16, -56, 32, 3);
+    ctx.restore(); Object.assign(player, keep);
+  } else {
+    const wob = m.stun ? Math.sin(tick * 50) * 5 : 0;
+    ell(m.x, VH - 82, 28, 8, 'rgba(0,0,0,.2)');
+    ctx.save(); ctx.translate(m.x + wob, VH - 110); ctx.rotate(tick * 7);
+    ell(0, 0, 28, 24, '#e8791c'); ell(0, 0, 12, 24, '#d5681a'); ell(0, 0, 4, 24, '#e8791c'); ctx.fillStyle = '#5c7a2a'; ctx.fillRect(-3, -31, 6, 9);
+    ctx.restore();
+  }
+  ctx.fillStyle = 'rgba(255,253,246,.93)'; rr(VW / 2 - 240, 12, 480, 60, 14); ctx.fill(); rr(14, 14, 110, 44, 14); ctx.fill();
+  ctx.fillStyle = '#5b3a8c'; ctx.font = '700 22px ' + FONT; ctx.fillText(pie ? 'Catch the pies!' : 'Roll the pumpkin! Grab corn, dodge hay.', VW / 2, 33);
+  ctx.fillStyle = '#d8cde3'; ctx.fillRect(VW / 2 - 200, 52, 400, 9);
+  ctx.fillStyle = '#e3a008'; ctx.fillRect(VW / 2 - 200, 52, 400 * (m.phase === 'run' ? clamp(m.t / 10, 0, 1) : 1), 9);
+  ctx.fillStyle = '#2a1c33'; ctx.font = '700 24px ' + FONT; ctx.fillText(`${pie ? '🥧' : '🌽'} ${m.score}`, 69, 37);
+  if (m.phase === 'ready') {
+    ctx.fillStyle = 'rgba(28,16,40,.5)'; ctx.fillRect(0, 0, VW, VH);
+    ctx.fillStyle = '#fff'; ctx.font = '700 46px ' + FONT; ctx.fillText('Bonus game!', VW / 2, VH / 2 - 90);
+    ctx.font = '500 26px ' + FONT; ctx.fillText('Move with the left and right arrow keys', VW / 2, VH / 2 - 40);
+    ctx.fillStyle = '#f2b632'; ctx.font = '700 96px ' + FONT; ctx.fillText(String(Math.max(1, Math.ceil(m.t))), VW / 2, VH / 2 + 50);
+  }
 }
 function openBossQ(){
   setState('modal'); boss.inv = 2; modal.hidden = false;
@@ -1456,7 +1536,7 @@ function showHelp(){
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
     <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
     <div><b>Golden feathers</b><span>Earn them with right answers and find them around the farm. Spend them at the General Store by the town square.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
-    <p>Answer each villager’s questions to earn a piece of the Feast Key. Collect all 9, then go to the Feast Hall at the north end of town.</p>
+    <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all 9, then go to the Feast Hall at the north end of town.</p>
     <button type="button" class="btn" id="go">Back to Violet</button>`;
   $('#go').onclick = closeModal; $('#go').focus();
 }
@@ -1470,6 +1550,9 @@ addEventListener('keydown', e => {
     if (k) { keys[k] = true; e.preventDefault(); }
     else if (e.code === 'Space') { e.preventDefault(); throwAcorn(); }
     else if (e.code === 'KeyC' && !e.repeat) dropCorn();
+  } else if (S.state === 'mini') {
+    const k = KM[e.code];
+    if (k) { keys[k] = true; e.preventDefault(); } else if (e.code === 'Space') e.preventDefault();
   } else if (S.state === 'modal') modalKey(e);
 });
 addEventListener('keyup', e => { const k = KM[e.code]; if (k) keys[k] = false; });
@@ -1500,7 +1583,7 @@ function modalKey(e){
   }
 }
 document.querySelectorAll('#dpad button').forEach(b => {
-  const k = b.dataset.k, on = e => { e.preventDefault(); if (S.state === 'play') keys[k] = true; }, off = () => { keys[k] = false; };
+  const k = b.dataset.k, on = e => { e.preventDefault(); if (S.state === 'play' || S.state === 'mini') keys[k] = true; }, off = () => { keys[k] = false; };
   b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
 });
 $('#bCorn').addEventListener('pointerdown', e => { e.preventDefault(); dropCorn(); });
@@ -1544,9 +1627,9 @@ if (old && old.solved.length) { const c = $('#cont'); c.hidden = false; c.textCo
 resetWorld(); updateHud(); fit();
 if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else addEventListener('resize', fit);
 let last = performance.now();
-function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); render(); requestAnimationFrame(frame); }
+function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, W, H};
 })();
 </script>
 </body>
