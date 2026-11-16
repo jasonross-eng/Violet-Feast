@@ -750,7 +750,7 @@ const STATIONS = [
  {id:'mill', name:'Grist Mill', who:'Miller Thomas', icon:'🌾', x:37, y:4, w:5, h:4, wall:'#cdbb96', roof:'#5a4632', skill:'Measurement and place value',
   intro:'I must measure the fields and count the flour before the feast. Lend me your sharp mind!', thanks:'Measured to perfection. I found this piece in a flour sack.', pool:millPool},
  {id:'patch', name:'Pumpkin Shed', who:'Goody Prudence', icon:'🎃', x:8, y:22, w:5, h:3, wall:'#cf8f3e', roof:'#5d7a2c', skill:'Fractions',
-  intro:'I am cutting pies and pumpkins into fair shares. Help me get them just right, dear.', thanks:'Fair shares for everyone! A turkey dropped this piece in my patch.', pool:patchPool},
+  intro:'I am cutting pies and pumpkins into fair shares. Help me get them just right, dear.', thanks:'Fair shares for everyone! A turkey dropped this piece in my patch. Just don’t go poking around behind my shed. Something back there laughs at night!', pool:patchPool},
  {id:'smith', name:'Blacksmith', who:'Blacksmith Hope', icon:'⚒️', x:17, y:22, w:5, h:3, wall:'#73757f', roof:'#2f3138', skill:'Keyboard shortcuts',
   intro:'I forge keyboard skills here! Press the real keys on your keyboard to hammer each one into shape.', thanks:'Those fingers are quick as sparks! Here, I forged this piece back together.', pool:smithPool},
  {id:'meet', name:'Meeting House', who:'Elder Samuel', icon:'🖥️', x:27, y:22, w:5, h:3, wall:'#f1ead8', roof:'#5b3a8c', skill:'Google Slides',
@@ -803,7 +803,7 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
 
 /* ---------------- State ---------------- */
 const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
-const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set(), mis:{}, misN:{}, heard:new Set()};
+const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set(), mis:{}, misN:{}, heard:new Set(), jackDone:false};
 const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
 const keys = {up:false, down:false, left:false, right:false};
 const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
@@ -823,7 +823,8 @@ const SHOPITEMS = [
   {id:'boots', kind:'gear', icon:'🥾', name:'Speedy boots', cost:15, about:'Run faster than any turkey.'},
   {id:'sling', kind:'gear', icon:'🌰', name:'Super acorns', cost:12, about:'Acorns fly farther and scare turkeys longer.'},
   {id:'pie', kind:'gear', icon:'🥧', name:'Extra pie', cost:10, about:'Carry 4 pies instead of 3.'},
-  {id:'corn', kind:'use', icon:'🌽', name:'Bag of corn', cost:2, about:'3 more corn to drop.'}
+  {id:'corn', kind:'use', icon:'🌽', name:'Bag of corn', cost:2, about:'3 more corn to drop.'},
+  {id:'jack', kind:'hat', icon:'🎃', name:'Jack-o’-lantern hat', cost:0, prize:true, about:'Won in the secret cellar.'}
 ];
 const KING = {id:'king', icon:'👑', name:'King Gobble', who:'King Gobble', skill:'', sub:'Answer his riddle to pluck a tail feather', intro:'GOBBLE! Nobody gets past me without answering my royal riddle!'};
 const pet = {x:0, y:0, face:1, anim:0, moving:false};
@@ -842,7 +843,7 @@ let shy = null;
 function foundSecret(id, n, msg){
   if (S.secrets.has(id)) return;
   S.secrets.add(id); addFeathers(n); sfx.piece(); save();
-  toast(`Secret ${S.secrets.size} of 3 found! ${msg}`);
+  toast(`Secret ${S.secrets.size} of 4 found! ${msg}`);
 }
 /* ---------------- Villagers ---------------- */
 const NPCS = [
@@ -957,6 +958,138 @@ function drawDoll(){
   ell(x, y - 10, 5, 5, '#f0d48f');
   ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = `rgba(255,236,150,${.5 + Math.sin(tick * 5) * .5})`; ctx.fillText('✦', x + 11, y - 13);
 }
+/* ---------------- Secret cellar boss ---------------- */
+const CELLAR = {x:12.5 * TS, y:21.35 * TS};
+let jack = null, cellarArm = true;
+function drawCellar(){
+  const x = CELLAR.x, y = CELLAR.y, gl = .35 + Math.sin(tick * 3) * .2;
+  ell(x, y, 17, 11, `rgba(255,140,30,${gl})`);
+  ctx.fillStyle = '#5a3a22'; rr(x - 11, y - 7, 22, 14, 2); ctx.fill();
+  ctx.fillStyle = '#3e2716'; ctx.fillRect(x - 11, y - 1, 22, 1.5); ctx.fillRect(x - .75, y - 7, 1.5, 14);
+  ctx.fillStyle = '#e3a008'; ctx.fillRect(x + 4, y - 1, 3, 3);
+}
+function openCellar(){
+  setState('modal'); ses = null; modal.hidden = false;
+  let first = '';
+  if (!S.secrets.has('cellar')) { S.secrets.add('cellar'); addFeathers(5); sfx.piece(); save(); first = `<p class="fb ok">Secret ${S.secrets.size} of 4 found! +5 🪶</p>`; }
+  const text = S.jackDone ? 'The Jack-O’-Lantern is back and wants a rematch! Hit him with 10 acorns before he touches you.'
+    : 'Behind the Pumpkin Shed you find a creaky cellar door, glowing orange. Down the stairs, a giant Jack-O’-Lantern cackles at you. To beat him, hit him with 10 acorns before he touches you!';
+  card.innerHTML = `<div class="who"><span class="badge">🎃</span><div class="grow"><h2>The Secret Cellar</h2><p class="sub">Behind the Pumpkin Shed</p></div></div>${first}
+    <p class="say">${text}</p>
+    <p class="tip">Move with the arrow keys. Press Space to throw an acorn the way you are facing. When he shakes, get ready to dodge!</p>
+    <div class="row"><button type="button" class="btn" id="yes">Go down the stairs</button><button type="button" class="btn ghost" id="go">Not yet</button></div>`;
+  if (autoRead) say(text);
+  $('#go').onclick = closeModal; $('#yes').onclick = startJack; $('#yes').focus();
+}
+function startJack(){
+  hush(); modal.hidden = true; setState('jack');
+  jack = {phase:'ready', t:2.6, px:VW / 2, py:VH - 70, dir:'up', walk:0, moving:false, cool:0,
+    jx:VW / 2, jy:170, hits:0, flash:0, mode:'chase', mt:3, lx:0, ly:0, shots:[], embers:[]};
+}
+function jackThrow(){
+  const j = jack; if (!j || j.phase !== 'run' || j.cool > 0) return;
+  const d = DIRS[j.dir], v = S.owned.has('sling') ? 520 : 440;
+  j.shots.push({x:j.px + d[0] * 14, y:j.py - 22 + d[1] * 14, vx:d[0] * v, vy:d[1] * v}); j.cool = .28; sfx.toss();
+}
+function updateJack(dt){
+  const j = jack; j.t -= dt;
+  for (const e of j.embers) { e.t -= dt; e.y -= e.vy * dt; e.x += (e.vx || Math.sin(e.t * 6 + e.s) * 12) * dt; }
+  j.embers = j.embers.filter(e => e.t > 0);
+  if (Math.random() < dt * 14) j.embers.push({x:R(20, VW - 20), y:VH + 5, vy:30 + Math.random() * 50, t:6 + Math.random() * 4, s:Math.random() * 6});
+  if (j.phase === 'ready') { if (j.t <= 0) j.phase = 'run'; return; }
+  j.cool = Math.max(0, j.cool - dt); j.flash = Math.max(0, j.flash - dt);
+  let dx = 0, dy = 0;
+  if (keys.left) dx--; if (keys.right) dx++; if (keys.up) dy--; if (keys.down) dy++;
+  j.moving = !!(dx || dy);
+  if (j.moving) {
+    const l = Math.hypot(dx, dy), sp = (S.owned.has('boots') ? 215 : 175) * dt;
+    j.px = clamp(j.px + dx / l * sp, 30, VW - 30); j.py = clamp(j.py + dy / l * sp, 130, VH - 16); j.walk += dt * 11;
+    j.dir = dx ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+  }
+  const g = {1:.6, 2:.72, 3:.86}[S.grade] || 1, ex = j.px - j.jx, ey = (j.py - 22) - j.jy, d = Math.hypot(ex, ey) || 1;
+  let sp = (62 + j.hits * 7) * g;
+  j.mt -= dt;
+  if (j.mode === 'chase') { if (j.mt <= 0 && j.hits >= 3) { j.mode = 'wind'; j.mt = .8; } }
+  else if (j.mode === 'wind') { sp = 0; if (j.mt <= 0) { j.mode = 'lunge'; j.mt = .45; j.lx = ex / d; j.ly = ey / d; } }
+  else { sp = 0; j.jx += j.lx * 300 * g * dt; j.jy += j.ly * 300 * g * dt; if (j.mt <= 0) { j.mode = 'chase'; j.mt = 2.5 + Math.random() * 2; } }
+  if (sp) { j.jx += ex / d * sp * dt; j.jy += ey / d * sp * dt; }
+  j.jx = clamp(j.jx, 50, VW - 50); j.jy = clamp(j.jy, 130, VH - 50);
+  for (const s of j.shots) {
+    s.x += s.vx * dt; s.y += s.vy * dt;
+    if (!s.hit && Math.hypot(s.x - j.jx, s.y - j.jy) < 42) {
+      s.hit = true; j.hits++; j.flash = .18; sfx.bonk();
+      for (let k = 0; k < 10; k++) j.embers.push({x:j.jx, y:j.jy, vx:(Math.random() - .5) * 220, vy:(Math.random() - .3) * 160, t:.5, s:0});
+      j.jx = clamp(j.jx - ex / d * 55, 50, VW - 50); j.jy = clamp(j.jy - ey / d * 55, 130, VH - 50);
+      if (j.hits >= 10) { endJack(true); return; }
+    }
+  }
+  j.shots = j.shots.filter(s => !s.hit && s.x > -20 && s.x < VW + 20 && s.y > 90 && s.y < VH + 20);
+  if (Math.hypot(j.px - j.jx, j.py - 22 - j.jy) < 48) endJack(false);
+}
+function endJack(win){
+  const hits = jack.hits; jack = null; setState('modal'); modal.hidden = false;
+  let text, prize = '', btns;
+  if (win) {
+    sfx.win();
+    if (!S.jackDone) { S.jackDone = true; S.owned.add('jack'); S.hat = 'jack'; addFeathers(20); prize = 'You won 20 golden feathers and the Jack-o’-lantern hat! You are wearing it now, and you can switch hats at the General Store.'; }
+    else { addFeathers(3); prize = 'Rematch won! Here are 3 golden feathers.'; }
+    save();
+    text = 'Ten hits! The Jack-O’-Lantern flickers out with a puff of smoke.';
+    btns = '<button type="button" class="btn" id="go">Back to Violet</button>';
+  } else {
+    sfx.bad();
+    text = `The Jack-O’-Lantern caught you after ${hits} ${hits === 1 ? 'hit' : 'hits'}! You needed ${10 - hits} more.`;
+    prize = 'Keep moving, and throw from far away. When he shakes, he is about to lunge, so step to the side!';
+    btns = '<button type="button" class="btn" id="yes">Try again</button><button type="button" class="btn ghost" id="go">Leave the cellar</button>';
+  }
+  card.innerHTML = `<div class="center"><h2>${win ? 'You beat the Jack-O’-Lantern!' : 'Gotcha!'}</h2><p class="q">${text}</p><p>${prize}</p><div class="row" style="justify-content:center">${btns}</div></div>`;
+  $('#go').onclick = closeModal; const y = $('#yes'); if (y) { y.onclick = startJack; y.focus(); } else $('#go').focus();
+}
+function drawJack(){
+  const j = jack;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#1e1426'; ctx.fillRect(0, 0, VW, VH);
+  ctx.fillStyle = '#2d2138';
+  for (let y = 0; y < 110; y += 22) for (let x = (y / 22 % 2) ? -30 : 0; x < VW; x += 60) { rr(x + 2, y + 2, 56, 18, 3); ctx.fill(); }
+  ctx.fillStyle = '#34273f'; ctx.fillRect(0, 110, VW, VH - 110);
+  ctx.strokeStyle = '#2a1f33'; ctx.lineWidth = 2;
+  for (let x = 0; x < VW; x += 64) { ctx.beginPath(); ctx.moveTo(x, 110); ctx.lineTo(x, VH); ctx.stroke(); }
+  for (let y = 110; y < VH; y += 64) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(VW, y); ctx.stroke(); }
+  for (const tx of [90, VW - 90]) {
+    const fl = Math.sin(tick * 18 + tx) * 2;
+    ell(tx, 72, 46, 46, 'rgba(255,150,40,.12)');
+    ctx.fillStyle = '#6b4423'; ctx.fillRect(tx - 4, 70, 8, 30);
+    ell(tx, 62 + fl * .3, 8, 13 + fl, '#ff7a1a'); ell(tx, 65, 4, 7, '#ffe08a');
+  }
+  for (const e of j.embers) { ctx.fillStyle = `rgba(255,${150 + (e.s * 15 | 0)},60,${Math.min(1, e.t)})`; ctx.fillRect(e.x - 1.5, e.y - 1.5, 3, 3); }
+  const shake = j.mode === 'wind' ? Math.sin(tick * 70) * 4 : 0, x = j.jx + shake, y = j.jy + Math.sin(tick * 3) * 4;
+  ell(j.jx, j.jy + 46, 32, 9, 'rgba(0,0,0,.4)');
+  if (j.mode === 'wind') ell(x, y, 54, 48, 'rgba(255,90,20,.25)');
+  const skin = j.flash ? '#fff2dc' : '#e8791c';
+  ell(x, y, 42, 36, skin); ell(x - 16, y, 16, 35, j.flash ? '#fff2dc' : '#d5681a'); ell(x + 16, y, 16, 35, j.flash ? '#fff2dc' : '#d5681a'); ell(x, y, 13, 36, skin);
+  ctx.fillStyle = '#5c7a2a'; ctx.fillRect(x - 4, y - 46, 8, 12);
+  const fc = `rgb(255,${200 + Math.sin(tick * 20) * 30 | 0},60)`;
+  ctx.fillStyle = fc;
+  for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + s * 22, y - 4); ctx.lineTo(x + s * 14, y - 18); ctx.lineTo(x + s * 6, y - 4); ctx.closePath(); ctx.fill(); }
+  ctx.beginPath(); ctx.moveTo(x - 4, y + 2); ctx.lineTo(x, y - 5); ctx.lineTo(x + 4, y + 2); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x - 26, y + 8);
+  for (let i = 0; i <= 8; i++) ctx.lineTo(x - 26 + i * 6.5, y + (i % 2 ? 14 : 8));
+  ctx.lineTo(x + 26, y + 8); ctx.lineTo(x + 18, y + 22); ctx.lineTo(x - 18, y + 22); ctx.closePath(); ctx.fill();
+  for (const s of j.shots) { ell(s.x, s.y, 5, 6, '#a06a32'); ell(s.x, s.y - 4, 5.5, 3, '#5a3a1c'); }
+  const keep = {x:player.x, y:player.y, dir:player.dir, moving:player.moving, inv:player.inv, walk:player.walk};
+  Object.assign(player, {x:0, y:0, dir:j.dir, moving:j.moving, inv:0, walk:j.walk});
+  ell(j.px, j.py + 9, 14, 5, 'rgba(0,0,0,.3)');
+  ctx.save(); ctx.translate(j.px, j.py); ctx.scale(1.4, 1.4); drawPlayer(); ctx.restore(); Object.assign(player, keep);
+  ctx.fillStyle = 'rgba(255,253,246,.93)'; rr(VW / 2 - 240, 10, 480, 64, 14); ctx.fill();
+  ctx.fillStyle = '#5b3a8c'; ctx.font = '700 21px ' + FONT; ctx.fillText('Hit the Jack-O’-Lantern 10 times!', VW / 2, 31);
+  for (let i = 0; i < 10; i++) { const px = VW / 2 - 189 + i * 42; ell(px, 56, 9, 8, i < j.hits ? '#e8791c' : '#d8cde3'); if (i < j.hits) { ctx.fillStyle = '#5c7a2a'; ctx.fillRect(px - 1.5, 46, 3, 4); } }
+  if (j.phase === 'ready') {
+    ctx.fillStyle = 'rgba(20,10,30,.55)'; ctx.fillRect(0, 0, VW, VH);
+    ctx.fillStyle = '#fff'; ctx.font = '700 44px ' + FONT; ctx.fillText('Beware the Jack-O’-Lantern!', VW / 2, VH / 2 - 90);
+    ctx.font = '500 24px ' + FONT; ctx.fillText('Arrow keys to move. Space to throw acorns.', VW / 2, VH / 2 - 42);
+    ctx.fillStyle = '#f2b632'; ctx.font = '700 96px ' + FONT; ctx.fillText(String(Math.max(1, Math.ceil(j.t))), VW / 2, VH / 2 + 50);
+  }
+}
 function drawChest(){
   const x = CHEST.x, y = CHEST.y;
   ell(x, y + 10, 15, 4, 'rgba(0,0,0,.2)');
@@ -980,7 +1113,7 @@ function resetWorld(){
 }
 
 const KEY = 'violet-feast-v1';
-function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], mis:S.mis, misN:S.misN, heard:[...S.heard], got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], mis:S.mis, misN:S.misN, heard:[...S.heard], jackDone:S.jackDone, got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
 function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
 
 /* ---------------- Sound ---------------- */
@@ -1051,6 +1184,7 @@ function dropCorn(){
   drops.push({x, y, t:6}); S.corn--; sfx.corn(); updateHud();
 }
 function throwAcorn(){
+  if (S.state === 'jack') { jackThrow(); return; }
   if (S.state !== 'play' || cool > 0) return;
   const d = DIRS[player.dir];
   const sl = S.owned.has('sling'), v = sl ? 540 : 430;
@@ -1177,6 +1311,8 @@ function update(dt){
   }
   if (!S.secrets.has('chest') && Math.hypot(CHEST.x - player.x, CHEST.y - player.y) < 24) foundSecret('chest', 15, 'The treasure chest behind the pond held 15 golden feathers.');
   updateNPCs(dt); if (S.state !== 'play') return;
+  const cd = Math.hypot(CELLAR.x - player.x, CELLAR.y + 5 - player.y);
+  if (cd > 40) cellarArm = true; else if (cd < 14 && cellarArm) { cellarArm = false; openCellar(); return; }
   if (boss && S.state === 'play') {
     const b = boss, dx = player.x - b.x, dy = player.y - b.y, d = Math.hypot(dx, dy) || 1, gs = {1:.7, 2:.8, 3:.9}[S.grade] || 1, rage = 1 + (b.max - b.hp) * .12;
     let vx = 0, vy = 0, sp = 0;
@@ -1301,6 +1437,11 @@ function drawHat(x, y){
   const h = S.hat;
   if (h === 'straw') { ell(x, y - 30, 14, 4, '#e3c26a'); ctx.fillStyle = '#ecd58e'; rr(x - 7, y - 39, 14, 9, 4); ctx.fill(); ctx.fillStyle = '#b63a25'; ctx.fillRect(x - 7, y - 33, 14, 2.5); }
   else if (h === 'pumpkin') { ell(x, y - 35, 11, 8, '#e8791c'); ell(x, y - 35, 5, 8, '#d5681a'); ctx.fillStyle = '#5c7a2a'; ctx.fillRect(x - 1.5, y - 46, 3, 5); }
+  else if (h === 'jack') {
+    ell(x, y - 35, 12, 9, '#e8791c'); ell(x, y - 35, 5, 9, '#d5681a'); ctx.fillStyle = '#5c7a2a'; ctx.fillRect(x - 1.5, y - 47, 3, 5);
+    ctx.fillStyle = '#ffd23f'; for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(x + s * 7, y - 35); ctx.lineTo(x + s * 4.5, y - 39); ctx.lineTo(x + s * 2, y - 35); ctx.closePath(); ctx.fill(); }
+    ctx.fillRect(x - 5, y - 32, 10, 2.5);
+  }
   else if (h === 'chef') { ctx.fillStyle = '#fff'; ctx.fillRect(x - 7, y - 37, 14, 8); ell(x - 5, y - 40, 5, 5, '#fff'); ell(x + 5, y - 40, 5, 5, '#fff'); ell(x, y - 43, 6, 6, '#fff'); ctx.fillStyle = '#cfc8ba'; ctx.fillRect(x - 7, y - 31, 14, 1.5); }
   else if (h === 'crown') { crownPath(x, y - 29, 9, 11); ell(x, y - 32, 1.8, 1.8, '#c62020'); ell(x - 5.5, y - 32, 1.5, 1.5, '#5b3a8c'); ell(x + 5.5, y - 32, 1.5, 1.5, '#5b3a8c'); }
   else { ctx.fillStyle = '#1c1c22'; rr(x - 12, y - 32, 24, 4, 2); ctx.fill(); ctx.fillRect(x - 7, y - 42, 14, 11); ctx.fillStyle = '#7d55b8'; ctx.fillRect(x - 7, y - 35, 14, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 36, 4, 5); }
@@ -1362,6 +1503,7 @@ function drawTurkey(t, nf, hat){
 function render(){
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   if (S.state === 'mini' && mini) { drawMini(); return; }
+  if (S.state === 'jack' && jack) { drawJack(); return; }
   ctx.fillStyle = '#93b657'; ctx.fillRect(0, 0, VW, VH);
   const camX = Math.round(clamp(player.x - VW / 2, 0, W * TS - VW)), camY = Math.round(clamp(player.y - VH / 2 - 12, 0, H * TS - VH));
   ctx.save();
@@ -1382,6 +1524,7 @@ function render(){
   for (const f of FEATH) if (!f.got) list.push({k:'fe', f, sy:f.y});
   if (S.pet) list.push({k:'pet', sy:pet.y});
   list.push({k:'chest', sy:CHEST.y});
+  list.push({k:'cellar', sy:CELLAR.y - 16});
   for (const c of crows) list.push({k:'crow', c, sy:c.y + 40});
   for (const v of NPCS) list.push({k:'npc', v, sy:v.y});
   if ((S.mis.mercy | 0) === 1 && !S.misN.mercy) list.push({k:'doll', sy:DOLL.y});
@@ -1398,6 +1541,7 @@ function render(){
     else if (o.k === 'boss') drawBoss(boss);
     else if (o.k === 'shy') drawTurkey(shy, 5, !S.secrets.has('hat'));
     else if (o.k === 'chest') drawChest();
+    else if (o.k === 'cellar') drawCellar();
     else if (o.k === 'crow') drawCrow(o.c);
     else if (o.k === 'npc') drawVillager(o.v);
     else if (o.k === 'doll') drawDoll();
@@ -1652,7 +1796,7 @@ function renderShop(msg){
   };
   card.innerHTML = `<div class="who"><span class="badge">🪶</span><div class="grow"><h2>General Store</h2><p class="sub">You have ${S.feathers} golden ${S.feathers === 1 ? 'feather' : 'feathers'} to spend.</p></div><button type="button" class="leave" id="leave">Leave</button></div>
     <p class="say">“${msg || 'Welcome, traveler! I trade fine goods for golden feathers. Earn them by helping the villagers.'}”</p>
-    <div class="shop" id="shop">${SHOPITEMS.map(row).join('')}</div>`;
+    <div class="shop" id="shop">${SHOPITEMS.filter(it => !it.prize || S.owned.has(it.id)).map(row).join('')}</div>`;
   $('#leave').onclick = closeModal;
   $('#shop').onclick = e => {
     const b = e.target.closest('button[data-id]'); if (!b || b.disabled) return;
@@ -1713,7 +1857,7 @@ function drawCert(){
   [[`${N} of ${N}`, 'key pieces found'], [`${S.first} of ${S.total}`, 'right on the first try'], [`${S.shooed}`, 'turkeys shooed away'], [`${S.earned}`, 'golden feathers earned'], [`${m}:${sec}`, 'time in Violet']].forEach(([v, l], i) => {
     const x = 225 + i * 300; text(v, x, 945, '700 54px ' + B, '#5b3a8c'); text(l, x, 985, '26px ' + B, '#66566e'); });
   text(`${S.name} is thankful for ${S.thx}.`, CX, 1065, 'italic 34px ' + B, '#2a1c33', 1380);
-  text(`Secrets of Violet discovered: ${S.secrets.size} of 3`, CX, 1108, '26px ' + B, '#66566e');
+  text(`Secrets of Violet discovered: ${S.secrets.size} of 4`, CX, 1108, '26px ' + B, '#66566e');
   g.fillStyle = '#2a1c33'; g.fillRect(260, 1150, 380, 3); g.fillRect(1010, 1150, 380, 3);
   text(new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}), 450, 1138, '30px ' + B, '#2a1c33');
   text('Date', 450, 1185, '24px ' + B, '#66566e'); text('Teacher', 1200, 1185, '24px ' + B, '#66566e');
@@ -1746,7 +1890,7 @@ function showHelp(){
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
     <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
     <div><b>Talk to villagers</b><span>Walk into anyone strolling around town. A red ! means they have a clue or a secret mission for you.</span></div><div><b>Golden feathers</b><span>Earn them with right answers (3 in a row on the first try is a bonus), bonus games, bonking crows, and bonking turkeys that show a bright golden tail feather. Spend them at the General Store by the town square.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
-    <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all 9, then go to the Feast Hall at the north end of town. Violet also hides 3 secrets. Can you find them all?</p>
+    <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all 9, then go to the Feast Hall at the north end of town. Violet also hides 4 secrets. Can you find them all?</p>
     ${(() => { const a = NPCS.filter(v => (S.mis[v.id] | 0) === 1); return a.length ? `<p><b>Your missions:</b></p><ul class="todo">${a.map(v => `<li>${v.name}: ${v.kind === 'doll' ? (S.misN.mercy ? 'You found the doll! Bring it back.' : 'Find the lost doll in the orchard at the bottom of town.') : v.kind === 'corn' ? `Bring ${v.need} corn (you have ${S.corn}).` : `Bonk ${v.need} ${v.kind === 'crow' ? 'crows' : 'turkeys'} (${Math.min(S.misN[v.id] | 0, v.need)} done).`}</li>`).join('')}</ul>` : ''; })()}
     <button type="button" class="btn" id="go">Back to Violet</button>`;
   $('#go').onclick = closeModal; $('#go').focus();
@@ -1761,9 +1905,9 @@ addEventListener('keydown', e => {
     if (k) { keys[k] = true; e.preventDefault(); }
     else if (e.code === 'Space') { e.preventDefault(); throwAcorn(); }
     else if (e.code === 'KeyC' && !e.repeat) dropCorn();
-  } else if (S.state === 'mini') {
+  } else if (S.state === 'mini' || S.state === 'jack') {
     const k = KM[e.code];
-    if (k) { keys[k] = true; e.preventDefault(); } else if (e.code === 'Space') e.preventDefault();
+    if (k) { keys[k] = true; e.preventDefault(); } else if (e.code === 'Space') { e.preventDefault(); if (S.state === 'jack') jackThrow(); }
   } else if (S.state === 'modal') modalKey(e);
 });
 addEventListener('keyup', e => { const k = KM[e.code]; if (k) keys[k] = false; });
@@ -1794,7 +1938,7 @@ function modalKey(e){
   }
 }
 document.querySelectorAll('#dpad button').forEach(b => {
-  const k = b.dataset.k, on = e => { e.preventDefault(); if (S.state === 'play' || S.state === 'mini') keys[k] = true; }, off = () => { keys[k] = false; };
+  const k = b.dataset.k, on = e => { e.preventDefault(); if (S.state === 'play' || S.state === 'mini' || S.state === 'jack') keys[k] = true; }, off = () => { keys[k] = false; };
   b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
 });
 $('#bCorn').addEventListener('pointerdown', e => { e.preventDefault(); dropCorn(); });
@@ -1820,11 +1964,11 @@ function begin(saved){
     S.name = saved.name || 'Pilgrim'; setGrade(saved.grade >= 1 && saved.grade <= 4 ? saved.grade : 4); S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
     S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
     S.feathers = saved.feathers | 0; S.earned = saved.earned | 0; S.owned = new Set(saved.owned || []); S.hat = saved.hat || ''; S.pet = saved.pet || ''; S.bossDone = !!saved.bossDone; S.secrets = new Set(saved.secrets || []);
-    S.mis = saved.mis || {}; S.misN = saved.misN || {}; S.heard = new Set(saved.heard || []);
+    S.mis = saved.mis || {}; S.misN = saved.misN || {}; S.heard = new Set(saved.heard || []); S.jackDone = !!saved.jackDone;
     FEATH.forEach((f, i) => { f.got = (saved.got || []).includes(i); });
   } else {
     S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
-    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); S.mis = {}; S.misN = {}; S.heard = new Set(); FEATH.forEach(f => { f.got = false; });
+    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); S.mis = {}; S.misN = {}; S.heard = new Set(); S.jackDone = false; FEATH.forEach(f => { f.got = false; });
   }
   S.pies = maxPies(); pet.x = player.x; pet.y = player.y + 12;
   if (S.solved.size >= N && !S.bossDone) spawnBoss();
@@ -1839,9 +1983,9 @@ if (old && (old.solved.length || old.earned)) { const c = $('#cont'); c.hidden =
 resetWorld(); updateHud(); fit();
 if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else addEventListener('resize', fit);
 let last = performance.now();
-function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); render(); requestAnimationFrame(frame); }
+function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); else if (S.state === 'jack') updateJack(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, NPCS, DOLL, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, CHEST, W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, getJack:() => jack, startJack, CELLAR, NPCS, DOLL, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, CHEST, W, H};
 })();
 </script>
 </body>
