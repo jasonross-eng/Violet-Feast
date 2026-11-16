@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The Feast Key of Violet</title>
+<title>A Pickerington Thanksgiving Game</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Fredoka:wght@400;500;600;700&display=swap">
 <style>
 :root{
@@ -148,6 +148,12 @@ body.touch #toast{bottom:150px}
 @media (prefers-reduced-motion:reduce){ .leaves{display:none} .kp.new{animation:none} }
 @media (max-width:680px){ #hud .brand{display:none} }
 #wincard{max-width:780px;position:relative}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.45rem;margin-top:.7rem;max-height:52vh;overflow:auto;padding-right:.2rem}
+.bitem{display:flex;align-items:center;gap:.6rem;padding:.45rem .6rem;border-radius:12px;border:2px solid var(--line);opacity:.62}
+.bitem.got{opacity:1;border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--paper))}
+.bitem .bic{font-size:1.7rem;flex:none}
+.bitem b{display:block;line-height:1.2}
+.bitem div span{display:block;color:var(--muted);font-size:.85rem}
 .shop{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:.5rem}
 .item{display:flex;align-items:center;gap:.6rem;border:2px solid var(--line);border-radius:12px;padding:.45rem .6rem}
 .item.on{border-color:var(--gold)}
@@ -170,7 +176,7 @@ body.touch #toast{bottom:150px}
 </head>
 <body>
 <header id="hud">
-  <div class="brand">The Feast Key of Violet</div>
+  <div class="brand">A Pickerington Thanksgiving Game</div>
   <div id="keywrap"></div>
   <div class="stat" id="pieces">0 of 9</div>
   <div class="stat" id="pies" aria-label="Pies left"></div>
@@ -178,6 +184,7 @@ body.touch #toast{bottom:150px}
   <div class="stat" id="feath" aria-label="Golden feathers">🪶 0</div>
   <div class="stat" id="secHud" aria-label="Secrets found">Secrets: 0/4</div>
   <div class="spacer"></div>
+  <button id="bJournal" type="button">Journal (J)</button>
   <button id="bMap" type="button">Town Map (M)</button>
   <button id="bHelp" type="button">How to play</button>
   <button id="bRead" type="button">Read aloud off</button>
@@ -195,7 +202,7 @@ body.touch #toast{bottom:150px}
 
   <div class="overlay" id="title">
     <div class="card">
-      <h1>The Feast Key of Violet</h1>
+      <h1>A Pickerington Thanksgiving Game</h1>
       <p class="sub">A Thanksgiving adventure for grades 1 to 4</p>
       <p>Dinner is ready in the Pilgrim town of Violet, but the troublemaking turkeys pecked the golden Feast Key into <b>9 pieces</b> and scattered them across the village. Visit each villager, solve their puzzles, and explore the outer <b>Whispering Woods</b> and <b>Cranberry Bog</b> as gates unlock!</p>
       <div class="how">
@@ -930,7 +937,7 @@ function southOpen(){ const k = activeSolvedCount(); return k >= Math.min(5, N) 
 function buildSummary(){
   const m = Math.floor(S.elapsed / 60), sec = String(Math.floor(S.elapsed % 60)).padStart(2, '0');
   const pct = S.total ? Math.round((S.first / S.total) * 100) : 100;
-  return `VIOLET-FEAST | Name: ${S.name} | Grade: ${S.grade || 4} | Key: ${activeSolvedCount()}/${N} | First-Try: ${S.first}/${S.total} (${pct}%) | Feathers: ${S.earned} | Turkeys Shooed: ${S.shooed} | Secrets: ${S.secrets.size}/4 | Time: ${m}:${sec}${S.thx ? ` | Thankful: "${S.thx}"` : ''}`;
+  return `VIOLET-FEAST | Name: ${S.name} | Grade: ${S.grade || 4} | Key: ${activeSolvedCount()}/${N} | First-Try: ${S.first}/${S.total} (${pct}%) | Feathers: ${S.earned} | Turkeys Shooed: ${S.shooed} | Secrets: ${S.secrets.size}/4 | Badges: ${S.badges.size}/${BADGES.length} | Time: ${m}:${sec}${S.thx ? ` | Thankful: "${S.thx}"` : ''}`;
 }
 function copyText(txt, okMsg){
   const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
@@ -1035,7 +1042,7 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
 
 /* ---------------- State ---------------- */
 const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
-const S = {state:'title', name:'Pilgrim', grade:0, gender:'boy', skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set(), mis:{}, misN:{}, heard:new Set(), jackDone:false, gateNoticed:new Set()};
+const S = {state:'title', name:'Pilgrim', grade:0, gender:'boy', skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set(), mis:{}, misN:{}, heard:new Set(), jackDone:false, gateNoticed:new Set(), badges:new Set(), perfects:0, fish:0, bestBerry:0, percyBonks:0, bestStreak:0, visited:new Set()};
 const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
 const keys = {up:false, down:false, left:false, right:false};
 const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
@@ -1156,7 +1163,7 @@ const NPCS = [
 const DOLL = {x:40.5 * TS, y:38.5 * TS};
 const solidN = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.STEP || t === T.SCORN || t === T.EGATE || t === T.SGATE; };
 function resetNPCs(){ for (const v of NPCS) Object.assign(v, {x:(v.hx + .5) * TS, y:(v.hy + .5) * TS, hw:8, hh:6, dir:'down', wx:0, wy:0, wt:0, walk:0, moving:false, arm:true}); }
-function misNeed(v){ return v.kind === 'clue' ? !S.heard.has(v.id) : (S.mis[v.id] | 0) === 0; }
+function misNeed(v){ if (v.kind === 'prank') return false; return v.kind === 'clue' ? !S.heard.has(v.id) : (S.mis[v.id] | 0) === 0; }
 function misReady(v){ return v.kind === 'corn' ? S.corn >= v.need : (S.misN[v.id] | 0) >= v.need; }
 function misTick(id){
   const v = NPCS.find(x => x.id === id); if ((S.mis[id] | 0) !== 1) return;
@@ -1392,7 +1399,8 @@ function drawChest(){
 const activeTurkeys = () => Math.min(turkeys.length, ({1:3, 2:4, 3:5}[S.grade] || 6) + Math.floor(activeSolvedCount() / 2));
 function resetWorld(){
   player.x = 24.5 * TS; player.y = 19.5 * TS; player.inv = 0; player.dir = 'down';
-  turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false, drop:0}));
+  turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false, drop:0,
+    q:(QUIRKS[i] || [])[0] || '', title:(QUIRKS[i] || [])[1] || '', nap:0, dance:0, carry:0, scared:false, love:false}));
   drops = []; shots = []; parts = []; crows = []; pops = []; crowT = 20; S.streak = 0; for (const p of pickups) p.t = 0;
   dustPuffs = [];
   smokePuffs = [];
@@ -1404,11 +1412,12 @@ function resetWorld(){
   S.pies = maxPies(); S.corn = 3; S.armed = true; boss = null; pet.x = player.x; pet.y = player.y + 12;
   for (const sp of SIGNPOSTS) sp.arm = true;
   resetNPCs();
+  resetPercy(); tailT = 0;
   shy = {x:10.5 * TS, y:39.5 * TS, hw:10, hh:8, sp:70, face:1, wx:0, wy:0, wt:0, flee:0, anim:0, peck:false, alert:false, moving:false};
 }
 
 const KEY = 'violet-feast-v2';
-function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, gender:S.gender, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], mis:S.mis, misN:S.misN, heard:[...S.heard], jackDone:S.jackDone, gateNoticed:[...S.gateNoticed], got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, gender:S.gender, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], mis:S.mis, misN:S.misN, heard:[...S.heard], jackDone:S.jackDone, gateNoticed:[...S.gateNoticed], badges:[...S.badges], perfects:S.perfects | 0, fish:S.fish | 0, bestBerry:S.bestBerry | 0, percyBonks:S.percyBonks | 0, bestStreak:S.bestStreak | 0, visited:[...S.visited], got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
 function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
 
 /* ---------------- Sound ---------------- */
@@ -1481,15 +1490,75 @@ function dropCorn(){
 }
 function throwAcorn(){
   if (S.state === 'jack') { jackThrow(); return; }
+  if (S.state === 'fish') { fishPress(); return; }
   if (S.state !== 'play' || cool > 0) return;
   const d = DIRS[player.dir];
   const sl = S.owned.has('sling'), v = sl ? 540 : 430;
   shots.push({x:player.x + d[0] * 10, y:player.y + d[1] * 10, vx:d[0] * v, vy:d[1] * v, t:sl ? .8 : .6}); cool = .4; sfx.toss();
 }
+const QUIRKS = [['sleepy', 'the Sleepy'], ['bandit', 'the Corn Bandit'], ['dancer', 'the Dancer'], ['petfan', 'the Pet Lover'], ['scaredy', 'the Scaredy-Turkey']];
+const QSAY = {
+  sleepy:t => `${t.name} the Sleepy woke up just long enough to bump you! You dropped a pie.`,
+  bandit:t => `${t.name} the Corn Bandit bumped you while looking for corn! You dropped a pie.`,
+  dancer:t => `${t.name} the Dancer boogied right into you! You dropped a pie.`,
+  petfan:t => `${t.name} the Pet Lover wishes you had a pet! You dropped a pie.`,
+  scaredy:t => `${t.name} the Scaredy-Turkey snuck up behind you! Face him and he freezes. You dropped a pie.`
+};
+/* ---------------- Prankster Percy ---------------- */
+const PERCY_HOME = {x:36.5 * TS, y:17.5 * TS};
+const percy = {name:'Prankster Percy', kind:'prank', id:'percy', hx:36, hy:17, body:'#b63a25', hat:'tall', skin:1};
+const PERCY_LINES = ['Gobble gobble, you TURKEY!', 'Hey, turkey! Nice feathers!', 'You walk like a turkey!', 'Ha ha! Turkey on the loose!', 'Is that a turkey or a pilgrim?', 'Gobble, gobble, gobble!'];
+let tailT = 0;
+const solidPr = (x, y) => solidN(x, y) || tile(x, y) === T.PLAZA;
+function resetPercy(){ Object.assign(percy, {x:PERCY_HOME.x, y:PERCY_HOME.y, hw:8, hh:6, dir:'down', walk:0, moving:false, mode:'away', t:25, wx:0, wy:0, wt:0, line:'', lineT:0, cd:0}); }
+function shooPercy(){
+  percy.mode = 'flee'; percy.t = 2.2; percy.line = 'OW! Okay, okay, I’m going!'; percy.lineT = 2; sfx.bonk(); addFeathers(2);
+  pops.push({x:percy.x, y:percy.y - 46, t:1, txt:'+2'}); S.shooed++;
+  for (let k = 0; k < 8; k++) parts.push({x:percy.x, y:percy.y - 20, vx:(Math.random() - .5) * 170, vy:-Math.random() * 130, t:.6, c:k % 2 ? '#b63a25' : '#f2b632'});
+  S.percyBonks = (S.percyBonks | 0) + 1; toast('Bonk! Prankster Percy runs off. +2 golden feathers.'); save();
+}
+function updatePercy(dt, safe){
+  const p = percy; p.t -= dt; p.lineT = Math.max(0, p.lineT - dt); p.cd = Math.max(0, p.cd - dt); p.moving = false;
+  if (p.mode === 'away') { if (p.t <= 0) { p.mode = 'roam'; p.x = PERCY_HOME.x; p.y = PERCY_HOME.y; p.line = 'Gobble gobble! Any turkeys around here?'; p.lineT = 2.5; } return; }
+  const dx = player.x - p.x, dy = player.y - p.y, d = Math.hypot(dx, dy) || 1, g = {1:.75, 2:.85, 3:.92}[S.grade] || 1;
+  let vx = 0, vy = 0, sp = 0;
+  if (p.mode === 'flee') {
+    vx = -dx / d; vy = -dy / d; sp = 210;
+    if (p.t <= 0) { p.mode = 'away'; p.t = 45; return; }
+  } else {
+    const hd = Math.hypot(PERCY_HOME.x - p.x, PERCY_HOME.y - p.y);
+    if (d < 6 * TS && !safe && p.cd <= 0 && hd < 12 * TS) {
+      vx = dx / d; vy = dy / d; sp = 110 * g;
+      if (p.lineT <= 0) { p.line = pick(PERCY_LINES); p.lineT = 2.4; beep(300, .07, 'sawtooth', .03); beep(420, .07, 'sawtooth', .03, .08); }
+      if (d < 22 && player.inv <= 0) {
+        tailT = 8; player.inv = 2; p.cd = 5; p.line = 'Ha! Now you’re a real turkey!'; p.lineT = 2.5; sfx.gobble();
+        toast('Prankster Percy stuck a paper turkey tail on you! You waddle slower for a bit. Bonk him with acorns to chase him off.');
+      }
+    } else if (hd > 3 * TS) { vx = (PERCY_HOME.x - p.x) / hd; vy = (PERCY_HOME.y - p.y) / hd; sp = 60; }
+    else { p.wt -= dt; if (p.wt <= 0) { const a = pick([[1,0],[-1,0],[0,1],[0,-1],[0,0]]); p.wx = a[0]; p.wy = a[1]; p.wt = 1 + Math.random() * 2; } vx = p.wx; vy = p.wy; sp = 40; }
+  }
+  if (sp) {
+    p.moving = move(p, vx * sp * dt, vy * sp * dt, p.mode === 'flee' ? solidN : solidPr); p.walk += dt * 11;
+    if (!p.moving) p.wt = 0;
+    p.dir = Math.abs(vx) > Math.abs(vy) ? (vx < 0 ? 'left' : 'right') : (vy < 0 ? 'up' : 'down');
+  }
+}
+function drawPercy(){
+  if (percy.mode === 'away') return;
+  drawVillager(percy);
+  if (percy.lineT > 0 && percy.line) {
+    ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const w = ctx.measureText(percy.line).width + 16, bx = percy.x, by = percy.y - 62;
+    ctx.fillStyle = '#fffdf6'; rr(bx - w / 2, by - 11, w, 22, 10); ctx.fill();
+    ctx.strokeStyle = '#b63a25'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#fffdf6'; ctx.beginPath(); ctx.moveTo(bx - 5, by + 10); ctx.lineTo(bx + 5, by + 10); ctx.lineTo(bx, by + 17); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#b63a25'; ctx.fillText(percy.line, bx, by + 1);
+  }
+}
 function gobble(t){
   S.pies--; S.gobbles++; player.inv = 2.5; t.flee = 2; shake = .3; sfx.gobble();
   if (S.pies <= 0) { S.pies = maxPies(); player.x = 24.5 * TS; player.y = 19.5 * TS; toast(`Gobble gobble! ${t.name} chased you back to the well. Your pies are refilled.`); }
-  else toast(`${t.name} bumped you and you dropped a pie! Throw acorns with the Space bar to shoo turkeys away.`);
+  else toast(QSAY[t.q] ? QSAY[t.q](t) : `${t.name} bumped you and you dropped a pie! Throw acorns with the Space bar to shoo turkeys away.`);
   updateHud(); save();
 }
 let gateHintT = 0;
@@ -1500,7 +1569,7 @@ function update(dt){
   if (keys.left) dx--; if (keys.right) dx++; if (keys.up) dy--; if (keys.down) dy++;
   player.moving = false;
   if (dx || dy) {
-    const l = Math.hypot(dx, dy), sp = (S.owned.has('boots') ? 195 : 150) * dt;
+    const l = Math.hypot(dx, dy), sp = (S.owned.has('boots') ? 195 : 150) * (tailT > 0 ? .7 : 1) * dt;
     player.moving = move(player, dx / l * sp, dy / l * sp, solidP);
     player.walk += dt * 11;
     player.dir = dx ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
@@ -1536,7 +1605,10 @@ function update(dt){
   for (const dp of dustPuffs) { dp.t -= dt; dp.r += dt * 4; }
   dustPuffs = dustPuffs.filter(dp => dp.t > 0);
 
-  player.inv = Math.max(0, player.inv - dt);
+  player.inv = Math.max(0, player.inv - dt); tailT = Math.max(0, tailT - dt);
+  if (player.x > 48 * TS) S.visited.add('woods'); if (player.y > 34 * TS) S.visited.add('bog');
+  for (const k in spotCD) spotCD[k] = Math.max(0, spotCD[k] - dt);
+  badgeT -= dt; if (badgeT <= 0) { badgeT = .5; checkBadges(); }
   shake = Math.max(0, shake - dt);
   for (const p of pickups) {
     if (p.t > 0) { p.t -= dt; continue; }
@@ -1578,6 +1650,7 @@ function update(dt){
       for (let k = 0; k < 8; k++) parts.push({x:c.x, y:c.y - 24, vx:(Math.random() - .5) * 180, vy:-Math.random() * 130, t:.6, c:c.gold ? '#f2b632' : '#26222e'});
     }
     if (boss && s.t > 0 && boss.inv <= 0 && Math.hypot(boss.x - s.x, boss.y - 12 - s.y) < 30) { s.t = 0; sfx.bonk(); openBossQ(); }
+    if (s.t > 0 && percy.mode !== 'away' && percy.mode !== 'flee' && Math.hypot(percy.x - s.x, percy.y - 16 - s.y) < 22) { s.t = 0; shooPercy(); }
     if (shy && s.t > 0 && Math.hypot(shy.x - s.x, shy.y - s.y) < 19) {
       s.t = 0; shy.flee = 4; sfx.bonk();
       for (let k = 0; k < 7; k++) parts.push({x:shy.x, y:shy.y - 10, vx:(Math.random() - .5) * 160, vy:-Math.random() * 120, t:.6, c:FAN[k % 5]});
@@ -1614,14 +1687,35 @@ function update(dt){
     let sp = t.sp * (1 + .05 * activeSolvedCount()) * ({1:.7, 2:.8, 3:.9}[S.grade] || 1), vx = 0, vy = 0, tg = null, bd = 7 * TS;
     for (const c of drops) { const d = Math.hypot(c.x - t.x, c.y - t.y); if (d < bd) { bd = d; tg = c; } }
     const pd = Math.hypot(player.x - t.x, player.y - t.y) || 1;
-    t.peck = false; t.alert = false; t.busy = !!tg || t.flee > 0;
-    if (t.flee > 0) { t.flee -= dt; vx = (t.x - player.x) / pd; vy = (t.y - player.y) / pd; sp *= 2; }
-    else if (tg) { if (bd < 14) t.peck = true; else { vx = (tg.x - t.x) / bd; vy = (tg.y - t.y) / bd; sp *= 1.3; } }
-    else if (pd < 5.2 * TS && !safe && player.inv <= 0) { vx = (player.x - t.x) / pd; vy = (player.y - t.y) / pd; t.alert = true; sp *= 1.1; }
+    t.peck = false; t.alert = false; t.busy = !!tg || t.flee > 0; t.scared = false; t.love = false;
+    t.nap = Math.max(0, t.nap - dt); t.dance = Math.max(0, t.dance - dt); t.carry = Math.max(0, t.carry - dt);
+    const fd = DIRS[player.dir], inFront = (t.x - player.x) * fd[0] + (t.y - player.y) * fd[1] > 0;
+    if (t.q === 'bandit' && tg && bd < 16 && t.carry <= 0) {
+      drops.splice(drops.indexOf(tg), 1); tg = null; t.carry = 6; t.flee = 3; sfx.gobble();
+      pops.push({x:t.x, y:t.y - 34, t:1, txt:'Mine!'});
+      if (pd < 9 * TS) toast(`${t.name} the Corn Bandit swiped your corn and ran off with it!`);
+    }
+    if (t.nap > 0) t.busy = true;
+    else if (t.flee > 0) { t.flee -= dt; vx = (t.x - player.x) / pd; vy = (t.y - player.y) / pd; sp *= 2; }
+    else if (tg) { if (bd < 14) t.peck = true; else { vx = (tg.x - t.x) / bd; vy = (tg.y - t.y) / bd; sp *= t.q === 'bandit' ? 1.9 : 1.3; } }
+    else if (t.q === 'petfan' && S.pet) {
+      const qd = Math.hypot(pet.x - t.x, pet.y - t.y) || 1; t.busy = true; t.love = true;
+      if (qd > 34) { vx = (pet.x - t.x) / qd; vy = (pet.y - t.y) / qd; sp *= 1.2; }
+    }
+    else if (t.dance > 0) { t.busy = true; t.face = Math.sin(tick * 10) > 0 ? 1 : -1; }
+    else if (pd < 5.2 * TS && !safe && player.inv <= 0) {
+      if (t.q === 'scaredy' && inFront) { t.scared = true; t.busy = true; }
+      else {
+        vx = (player.x - t.x) / pd; vy = (player.y - t.y) / pd; t.alert = true; sp *= 1.1;
+        if (t.q === 'sleepy' && Math.random() < dt * .3) { t.nap = 3; vx = vy = 0; t.busy = true; t.alert = false; }
+      }
+    }
     else {
       t.wt -= dt;
       if (t.wt <= 0) {
-        if (Math.random() < .25) { t.wx = 0; t.wy = 0; t.wt = .5 + Math.random(); }
+        if (t.q === 'dancer' && Math.random() < .35) { t.dance = 2.5; t.wx = 0; t.wy = 0; t.wt = 2.5; }
+        else if (t.q === 'sleepy' && Math.random() < .3) { t.nap = 3.5; t.wx = 0; t.wy = 0; t.wt = 3.5; }
+        else if (Math.random() < .25) { t.wx = 0; t.wy = 0; t.wt = .5 + Math.random(); }
         else { const a = pick([[1,0],[-1,0],[0,1],[0,-1]]); t.wx = a[0]; t.wy = a[1]; t.wt = 1 + Math.random() * 2.5; }
       }
       vx = t.wx; vy = t.wy; sp *= .6;
@@ -1630,6 +1724,7 @@ function update(dt){
     if (vx || vy) { t.moving = move(t, vx * sp * dt, vy * sp * dt, solidT); if (!t.moving) t.wt = 0; if (Math.abs(vx) > .15) t.face = vx < 0 ? -1 : 1; }
     if (!t.busy && player.inv <= 0 && !safe && pd < 20) gobble(t);
   }
+  updatePercy(dt, safe);
   if (shy) {
     const t = shy, pd = Math.hypot(player.x - t.x, player.y - t.y) || 1; let vx, vy, sp = t.sp;
     t.anim += dt * 9; t.flee = Math.max(0, t.flee - dt);
@@ -1645,6 +1740,7 @@ function update(dt){
     else if (sd < 20 && sp.arm && S.state === 'play') { sp.arm = false; openSignpost(sp); return; }
   }
   updateNPCs(dt); if (S.state !== 'play') return;
+  for (const sp of SPOTS) { const sd = Math.hypot(sp.x - player.x, sp.y - player.y); if (sd > 40) sp.arm = true; else if (sd < 16 && sp.arm) { sp.arm = false; openSpot(sp); return; } }
   const cd = Math.hypot(CELLAR.x - player.x, CELLAR.y + 5 - player.y);
   if (cd > 40) cellarArm = true; else if (cd < 14 && cellarArm) { cellarArm = false; openCellar(); return; }
   if (boss && S.state === 'play') {
@@ -1785,6 +1881,7 @@ function drawPlayer(){
   if (player.inv > 0 && Math.floor(tick * 12) % 2) return;
   const x = player.x, y = player.y, b = player.moving ? Math.sin(player.walk) * 1.5 : 0, sw = player.moving ? Math.sin(player.walk) : 0, girl = S.gender === 'girl';
   ell(x, y + 7, 10, 4, 'rgba(0,0,0,.22)');
+  if (tailT > 0 && S.state === 'play') for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * .42; ell(x + Math.cos(a) * 13, y - 8 + Math.sin(a) * 13 + b, 8, 4, i % 2 ? '#e6c27a' : '#c98b4a', a); }
   if (girl) {
     ctx.fillStyle = S.owned.has('boots') ? '#c62020' : '#3a2a1e';
     ctx.fillRect(x - 5, y + 3 - (sw > .3 ? 1.5 : 0), 4, 5);
@@ -1879,7 +1976,7 @@ function drawCrow(c){
   ell(x + f * 8, y - 4, 1.2, 1.2, '#fff');
 }
 function drawTurkey(t, nf, hat){
-  const x = t.x, y = t.y, f = t.face, b = t.moving ? Math.sin(t.anim) * 1.5 : 0;
+  const x = t.x + (t.scared ? Math.sin(tick * 60) * 1.5 : 0), y = t.y - (t.dance > 0 ? Math.abs(Math.sin(tick * 10)) * 5 : 0), f = t.face, b = t.moving ? Math.sin(t.anim) * 1.5 : 0;
   ell(x, y + 8, 12, 4, 'rgba(0,0,0,.2)');
   for (let i = 0; i < (nf === undefined ? 5 : nf); i++) { const a = -Math.PI / 2 - f * .55 + (i - 2) * .36; ell(x + Math.cos(a) * 14, y - 8 + Math.sin(a) * 14 + b, 9, 5, FAN[i], a); }
   ctx.fillStyle = '#e08a1e'; ctx.fillRect(x - 5, y + 2, 2, 6); ctx.fillRect(x + 3, y + 2, 2, 6);
@@ -1892,11 +1989,24 @@ function drawTurkey(t, nf, hat){
   if (t.drop === 0) { ell(x - f * 7, y - 25 + b, 2.6, 8, '#ffe45c', -f * .45); ell(x - f * 7, y - 25 + b, .8, 6, '#fff8d6', -f * .45); }
   if (t.flee > 0) { ctx.font = '700 13px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#f2c744'; ctx.fillText('★ ★', x, y - 34 + Math.sin(tick * 16) * 2); }
   if (t.alert) { ctx.font = '700 16px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#c62020'; ctx.fillText('!', x, y - 36); }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (t.carry > 0) { ctx.fillStyle = '#f2c744'; ctx.fillRect(hx + f * 7, hy - 1, 5, 9); ctx.fillStyle = '#7b9a35'; ctx.fillRect(hx + f * 7, hy + 7, 5, 3); }
+  if (t.nap > 0) { ctx.font = '700 13px ' + FONT; ctx.fillStyle = '#5b3a8c'; const zz = (tick * 1.2) % 1; ctx.fillText('z', x + 10 + zz * 6, y - 30 - zz * 10); ctx.font = '700 17px ' + FONT; ctx.fillText('Z', x + 18 + zz * 6, y - 42 - zz * 10); }
+  if (t.dance > 0) { ctx.font = '700 15px ' + FONT; ctx.fillStyle = '#5b3a8c'; ctx.fillText('♪', x - 16, y - 34 + Math.sin(tick * 8) * 4); ctx.fillText('♫', x + 16, y - 38 - Math.sin(tick * 8) * 4); }
+  if (t.scared) { ctx.font = '700 15px ' + FONT; ctx.fillStyle = '#2f6fb0'; ctx.fillText('?!', x, y - 36); ell(x - f * 9, y - 22, 2, 3, '#7fc4f0'); }
+  if (t.love) { ctx.font = '700 14px ' + FONT; ctx.fillStyle = '#e0457b'; ctx.fillText('♥', x, y - 34 + Math.sin(tick * 5) * 3); }
+  if (t.title && Math.hypot(player.x - t.x, player.y - t.y) < 130) {
+    ctx.font = '600 11px ' + FONT; const lab = `${t.name} ${t.title}`, w = ctx.measureText(lab).width + 12;
+    ctx.fillStyle = 'rgba(255,250,240,.92)'; rr(x - w / 2, y + 12, w, 16, 8); ctx.fill(); ctx.fillStyle = '#2a1c33'; ctx.fillText(lab, x, y + 21);
+  }
 }
 function render(){
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   if (S.state === 'mini' && mini) { drawMini(); return; }
   if (S.state === 'jack' && jack) { drawJack(); return; }
+  if (S.state === 'fish' && fish) { drawFish(); return; }
+  if (S.state === 'berry' && berry) { drawBerry(); return; }
+  if (S.state === 'parade' && parade) { drawParade(); return; }
   ctx.fillStyle = '#93b657'; ctx.fillRect(0, 0, VW, VH);
   const camX = Math.round(clamp(player.x - VW / 2, 0, W * TS - VW)), camY = Math.round(clamp(player.y - VH / 2 - 12, 0, H * TS - VH));
   ctx.save();
@@ -1923,7 +2033,10 @@ function render(){
   for (const c of crows) list.push({k:'crow', c, sy:c.y + 40});
   for (const v of NPCS) list.push({k:'npc', v, sy:v.y});
   if ((S.mis.mercy | 0) === 1 && !S.misN.mercy) list.push({k:'doll', sy:DOLL.y});
+  for (const L of LANTERNS) if (L.x > camX - 40 && L.x < camX + VW + 40 && L.y > camY - 20 && L.y < camY + VH + 60) list.push({k:'lantern', L, sy:L.y});
+  for (const sp of SPOTS) list.push({k:'spot', sp, sy:sp.y - 10});
   if (shy) list.push({k:'shy', sy:shy.y});
+  if (percy.mode !== 'away') list.push({k:'percy', sy:percy.y});
   if (boss) list.push({k:'boss', sy:boss.y});
   else if (S.bossDone) list.push({k:'king', sy:5.9 * TS});
   list.sort((a, b) => a.sy - b.sy);
@@ -1936,6 +2049,9 @@ function render(){
     else if (o.k === 'pet') drawPet();
     else if (o.k === 'boss') drawBoss(boss);
     else if (o.k === 'shy') drawTurkey(shy, 5, !S.secrets.has('hat'));
+    else if (o.k === 'percy') drawPercy();
+    else if (o.k === 'lantern') drawLantern(o.L);
+    else if (o.k === 'spot') drawSpot(o.sp);
     else if (o.k === 'chest') drawChest();
     else if (o.k === 'cellar') drawCellar();
     else if (o.k === 'crow') drawCrow(o.c);
@@ -1972,6 +2088,7 @@ function render(){
     }
   }
   ctx.restore();
+  drawDusk(camX, camY);
   if (S.state === 'play') drawGuide(camX, camY);
 }
 function drawGuide(camX, camY){
@@ -2085,13 +2202,14 @@ function right(){
   ses.done = true; S.total++; if (!ses.missed) S.first++; sfx.ok();
   let gain = ses.missed ? 1 : 2, extra = '';
   if (ses.missed) S.streak = 0; else if (++S.streak % 3 === 0) { gain += 3; extra = ` ${S.streak} in a row on the first try! That is 3 bonus feathers.`; }
+  S.bestStreak = Math.max(S.bestStreak | 0, S.streak | 0);
   addFeathers(gain);
   const fb = $('#fb'), nx = $('#next'); fb.className = 'fb ok'; fb.textContent = `${pick(['Correct!', 'Nicely done!', 'You got it!', 'Sharp thinking!'])} +${gain} 🪶${extra}`;
   nx.hidden = false; nx.textContent = ses.i < ses.qs.length - 1 ? 'Next question' : ses.boss ? 'Pluck a tail feather' : 'Claim the key piece'; nx.focus();
 }
-function wrong(msg){ ses.missed = true; sfx.bad(); const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Not quite. ' + msg; }
+function wrong(msg){ ses.missed = true; ses.anyMiss = true; sfx.bad(); const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Not quite. ' + msg; }
 function award(){
-  hush(); const s = ses.s; S.solved.add(s.id); ses = null; addFeathers(3); sfx.piece();
+  hush(); const s = ses.s; if (!ses.anyMiss) S.perfects = (S.perfects | 0) + 1; S.solved.add(s.id); ses = null; addFeathers(3); sfx.piece();
   const n = activeSolvedCount();
   let unlockNote = '';
   if (eastOpen() && !S.gateNoticed.has('east_open')) {
@@ -2265,7 +2383,7 @@ function drawCert(){
   g.font = '64px ' + B; g.fillStyle = '#000';
   for (const [x, y, e] of [[140, 165, '🍁'], [1510, 165, '🍂'], [140, 1160, '🌽'], [1510, 1160, '🥧']]) g.fillText(e, x, y);
   text('Certificate of Achievement', CX, 230, '96px ' + D, '#5b3a8c', 1250);
-  text(`The Thanksgiving Feast in the Town of Violet, Grade ${S.grade || 4}`, CX, 300, '500 38px ' + B, '#66566e');
+  text(`A Pickerington Thanksgiving Game · Grade ${S.grade || 4}`, CX, 300, '500 38px ' + B, '#66566e');
   text('This certifies that', CX, 400, '34px ' + B, '#2a1c33');
   text(S.name, CX, 520, '112px ' + D, '#2a1c33', 1200);
   g.fillStyle = '#e3a008'; g.fillRect(CX - 380, 548, 760, 5);
@@ -2277,16 +2395,21 @@ function drawCert(){
   const m = Math.floor(S.elapsed / 60), sec = String(Math.floor(S.elapsed % 60)).padStart(2, '0');
   [[`${N} of ${N}`, 'key pieces found'], [`${S.first} of ${S.total}`, 'right on the first try'], [`${S.shooed}`, 'turkeys shooed away'], [`${S.earned}`, 'golden feathers earned'], [`${m}:${sec}`, 'time in Violet']].forEach(([v, l], i) => {
     const x = 225 + i * 300; text(v, x, 945, '700 54px ' + B, '#5b3a8c'); text(l, x, 985, '26px ' + B, '#66566e'); });
-  text(`${S.name} is thankful for ${S.thx}.`, CX, 1065, 'italic 34px ' + B, '#2a1c33', 1380);
-  text(`Secrets of Violet discovered: ${S.secrets.size} of 4`, CX, 1108, '26px ' + B, '#66566e');
-  g.fillStyle = '#2a1c33'; g.fillRect(260, 1150, 380, 3); g.fillRect(1010, 1150, 380, 3);
-  text(new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}), 450, 1138, '30px ' + B, '#2a1c33');
-  text('Date', 450, 1185, '24px ' + B, '#66566e'); text('Teacher', 1200, 1185, '24px ' + B, '#66566e');
+  text(`${S.name} is thankful for ${S.thx}.`, CX, 1040, 'italic 34px ' + B, '#2a1c33', 1380);
+  const bl = BADGES.filter(b => S.badges.has(b.id));
+  text(`Pilgrim Journal: ${bl.length} of ${BADGES.length} badges   ·   Secrets of Violet: ${S.secrets.size} of 4`, CX, 1082, '26px ' + B, '#66566e', 1380);
+  if (bl.length) { g.font = '34px ' + B; g.fillStyle = '#000'; const step = Math.min(64, 1100 / bl.length); bl.forEach((b, i) => g.fillText(b.icon, CX - (bl.length - 1) * step / 2 + i * step, 1124)); }
+  g.fillStyle = '#2a1c33'; g.fillRect(260, 1170, 380, 3); g.fillRect(1010, 1170, 380, 3);
+  text(new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}), 450, 1160, '30px ' + B, '#2a1c33');
+  text('Date', 450, 1198, '24px ' + B, '#66566e'); text('Teacher', 1200, 1198, '24px ' + B, '#66566e');
   return c;
 }
 function win(thx){
   S.thx = thx || 'good friends and good food';
-  modal.hidden = true; setState('win'); save(); sfx.win();
+  modal.hidden = true; save(); startParade();
+}
+function finishWin(){
+  parade = null; modal.hidden = true; setState('win'); checkBadges(true); save(); sfx.win();
   $('#leaves').innerHTML = Array.from({length:20}, (_, i) => `<span style="left:${(i * 5.1 + 2) % 100}%;animation-duration:${6 + (i * 7) % 6}s;animation-delay:-${(i * 1.3) % 8}s">${i % 2 ? '🍂' : '🍁'}</span>`).join('');
   $('#wincard').innerHTML = `<div class="noprint"><h1>Happy Thanksgiving, ${esc(S.name)}!</h1>
     <div class="table">🦃 🥧 🌽 🍞 🥔 🍎 🧀 🍇 🦃</div>
@@ -2307,6 +2430,311 @@ function win(thx){
   $('#again').onclick = () => { try { localStorage.removeItem(KEY); } catch (e) {} $('#win').hidden = true; $('#cont').hidden = true; $('#title').hidden = false; setState('title'); };
 }
 
+/* ---------------- Pilgrim Journal badges ---------------- */
+const BADGES = [
+  {id:'key', icon:'🗝️', name:'Key Keeper', desc:'Rebuild the whole Feast Key', ok:() => activeSolvedCount() >= N},
+  {id:'perfect', icon:'💯', name:'Perfect Pilgrim', desc:'Finish a building with no misses', ok:() => (S.perfects | 0) >= 1},
+  {id:'streak', icon:'🔥', name:'On a Roll', desc:'Get 6 answers in a row right on the first try', ok:() => (S.bestStreak | 0) >= 6},
+  {id:'shoo', icon:'🌰', name:'Turkey Shooer', desc:'Shoo away 25 turkeys, crows, or pranksters', ok:() => S.shooed >= 25},
+  {id:'king', icon:'👑', name:'King Toppler', desc:'Beat King Gobble', ok:() => S.bossDone},
+  {id:'jack', icon:'🎃', name:'Pumpkin Hero', desc:'Beat the Jack-O’-Lantern in the secret cellar', ok:() => S.jackDone},
+  {id:'secrets', icon:'✨', name:'Secret Keeper', desc:'Find all 4 secrets', ok:() => S.secrets.size >= 4},
+  {id:'pet', icon:'🐾', name:'Best Friends', desc:'Buy a pet at the General Store', ok:() => ['puppy', 'kitten', 'chick'].some(p => S.owned.has(p))},
+  {id:'helper', icon:'🤝', name:'Helping Hand', desc:'Finish all 4 villager missions', ok:() => NPCS.filter(v => v.kind !== 'clue' && (S.mis[v.id] | 0) === 2).length >= 4},
+  {id:'explore', icon:'🧭', name:'Explorer', desc:'Visit the Whispering Woods and the Cranberry Bog', ok:() => S.visited.has('woods') && S.visited.has('bog')},
+  {id:'fish', icon:'🎣', name:'Gone Fishin’', desc:'Catch 5 fish at the woodland brook', ok:() => (S.fish | 0) >= 5},
+  {id:'berry', icon:'🫐', name:'Cranberry Champ', desc:'Score 15 points in one cranberry harvest', ok:() => (S.bestBerry | 0) >= 15},
+  {id:'percy', icon:'🎯', name:'Prank Stopper', desc:'Bonk Prankster Percy 3 times', ok:() => (S.percyBonks | 0) >= 3},
+  {id:'rich', icon:'🪶', name:'Feather Collector', desc:'Earn 100 golden feathers', ok:() => S.earned >= 100}
+];
+let badgeT = 0;
+function checkBadges(quiet){
+  const fresh = BADGES.filter(b => !S.badges.has(b.id) && b.ok());
+  if (!fresh.length) return;
+  fresh.forEach(b => S.badges.add(b.id)); save();
+  if (!quiet) { sfx.feather(); beep(1568, .15, 'triangle', .05, .16); toast(`🏅 New badge: ${fresh[0].icon} ${fresh[0].name}! Press J to open your Pilgrim Journal.`); }
+}
+function openJournal(){
+  if (S.state !== 'play') return;
+  checkBadges(true);
+  setState('modal'); ses = null; modal.hidden = false;
+  card.innerHTML = `<div class="who"><span class="badge">📔</span><div class="grow"><h2>${esc(S.name)}’s Pilgrim Journal</h2><p class="sub">${S.badges.size} of ${BADGES.length} badges earned</p></div><button type="button" class="leave" id="leave">Close</button></div>
+    <div class="bgrid">${BADGES.map(b => { const got = S.badges.has(b.id); return `<div class="bitem${got ? ' got' : ''}"><span class="bic">${got ? b.icon : '🔒'}</span><div><b>${b.name}</b><span>${b.desc}</span></div></div>`; }).join('')}</div>
+    <p class="tip">Your badges print on your certificate when you finish the game.</p>`;
+  $('#leave').onclick = closeModal; $('#leave').focus();
+}
+
+/* ---------------- Town lights up with progress ---------------- */
+const LANTERNS = [];
+(() => {
+  const cand = [];
+  for (let x = 4; x <= 45; x += 4) cand.push([x, 16], [x, 18]);
+  for (let x = 8; x <= 41; x += 5) cand.push([x, 10], [x, 25], [x, 27]);
+  for (let y = 11; y <= 25; y += 5) for (const x of [5, 7, 14, 16, 32, 34, 41, 43]) cand.push([x, y]);
+  for (const [x, y] of cand) {
+    const t = tile(x, y);
+    if ((t === T.G || t === T.FLOWER) && !LANTERNS.some(L => Math.abs(L.tx - x) + Math.abs(L.ty - y) < 3)) LANTERNS.push({tx:x, ty:y, x:(x + .5) * TS, y:(y + .75) * TS});
+  }
+  LANTERNS.sort((a, b) => hash(a.tx, a.ty) - hash(b.tx, b.ty)).forEach((L, i) => { L.rank = i + 1; });
+})();
+const progress = () => N ? Math.min(1, activeSolvedCount() / N) : 0;
+function drawLantern(L){
+  const lit = L.rank <= Math.round(LANTERNS.length * progress()), x = L.x, y = L.y;
+  ell(x, y + 3, 6, 2.5, 'rgba(0,0,0,.2)');
+  ctx.fillStyle = '#3a2a1e'; ctx.fillRect(x - 1.5, y - 22, 3, 25);
+  ctx.fillStyle = '#2a1c33'; ctx.fillRect(x - 6, y - 34, 12, 3); rr(x - 5, y - 31, 10, 11, 2); ctx.fill();
+  ctx.fillStyle = lit ? (Math.sin(tick * 9 + L.rank) > -.7 ? '#ffd95c' : '#ffc23a') : '#5d5566'; ctx.fillRect(x - 3.5, y - 29.5, 7, 8);
+}
+function drawDusk(camX, camY){
+  const p = progress();
+  if (p <= 0) return;
+  ctx.fillStyle = `rgba(255,120,40,${.13 * p})`; ctx.fillRect(0, 0, VW, VH);
+  if (p > .45) { ctx.fillStyle = `rgba(55,22,85,${.26 * (p - .45) / .55})`; ctx.fillRect(0, 0, VW, VH); }
+  const sg = ctx.createLinearGradient(0, 0, 0, VH * .5); sg.addColorStop(0, `rgba(255,110,60,${.22 * p})`); sg.addColorStop(1, 'rgba(255,110,60,0)');
+  ctx.fillStyle = sg; ctx.fillRect(0, 0, VW, VH * .5);
+  ctx.save(); ctx.translate(-camX, -camY); ctx.globalCompositeOperation = 'lighter';
+  const glow = (x, y, r, a) => {
+    if (x < camX - r || x > camX + VW + r || y < camY - r || y > camY + VH + r) return;
+    const rg = ctx.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, `rgba(255,190,90,${a})`); rg.addColorStop(1, 'rgba(255,190,90,0)');
+    ctx.fillStyle = rg; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  };
+  const lit = Math.round(LANTERNS.length * p);
+  for (const L of LANTERNS) if (L.rank <= lit) glow(L.x, L.y - 26, 44, .22 + .28 * p);
+  for (const b of ALL) {
+    if (b !== HALL && b !== SHOP && !STATIONS.includes(b)) continue;
+    const hall = b === HALL, px = b.x * TS, pw = b.w * TS, wt = b.y * TS + b.h * TS * .42, a = hall ? .15 + .55 * p : (S.solved.has(b.id) ? .35 * p : 0);
+    if (a <= 0) continue;
+    for (const wx of hall ? [px + 18, px + 52, px + pw - 66, px + pw - 32] : [px + 14, px + pw - 28]) glow(wx + 7, wt + 19, hall ? 30 + 14 * p : 20, a);
+    if (hall && p >= 1) glow(b.door.x * TS + 16, (b.y + b.h) * TS - 18, 42, .6);
+  }
+  ctx.restore();
+}
+
+/* ---------------- Woods & Bog activities ---------------- */
+for (const [x, y] of [[54, 12], [55, 12]]) map[y * W + x] = T.P;
+const SPOTS = [
+  {id:'fish', name:'Fishing Spot', icon:'🎣', x:55.5 * TS, y:12.5 * TS, arm:true},
+  {id:'berry', name:'Cranberry Harvest', icon:'🫐', x:26.5 * TS, y:36.5 * TS, arm:true}
+];
+const spotCD = {fish:0, berry:0};
+function drawSpot(sp){
+  const x = sp.x, y = sp.y;
+  if (sp.id === 'fish') { ctx.fillStyle = '#8d5b34'; ctx.fillRect(x + 8, y - 6, 34, 14); ctx.fillStyle = '#6b4222'; for (let i = 12; i < 42; i += 7) ctx.fillRect(x + i, y - 6, 2, 14); }
+  else { ctx.fillStyle = '#8d5b34'; rr(x + 8, y - 6, 24, 14, 2); ctx.fill(); for (let i = 0; i < 6; i++) ell(x + 13 + (i % 3) * 7, y - 6 - (i > 2 ? 4 : 0), 3.2, 3.2, i === 4 ? '#e03535' : '#b81d1d'); }
+  ell(x, y + 8, 9, 3, 'rgba(0,0,0,.22)');
+  ctx.fillStyle = '#5a3a22'; ctx.fillRect(x - 2.5, y - 18, 5, 26);
+  ctx.fillStyle = '#e6c88a'; rr(x - 14, y - 27, 28, 15, 3); ctx.fill(); ctx.strokeStyle = '#5a3a22'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.font = '12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText(sp.icon, x, y - 19);
+  if (Math.hypot(player.x - x, player.y - y) < 110) {
+    ctx.font = '600 11px ' + FONT; const txt = `${sp.icon} ${sp.name}`, w = ctx.measureText(txt).width + 12;
+    ctx.fillStyle = 'rgba(255,250,240,.94)'; rr(x - w / 2, y - 48, w, 16, 8); ctx.fill(); ctx.fillStyle = '#5b3a8c'; ctx.fillText(txt, x, y - 39);
+  }
+}
+function openSpot(sp){
+  setState('modal'); ses = null; modal.hidden = false;
+  const fishy = sp.id === 'fish', wait = Math.ceil(spotCD[sp.id]);
+  const text = wait > 0 ? (fishy ? `The fish are hiding after all that splashing. Come back in about ${wait} seconds!` : `The bog needs time to float up more berries. Come back in about ${wait} seconds!`)
+    : fishy ? 'Cast your line into the Whispering Brook! Watch the bobber. When it dips and a ! pops up, press Space (or tap the screen) fast to hook the fish. Press too early and you will scare it away.'
+    : 'Cranberries are floating up in the bog! Steer your scoop with the arrow keys, or drag your finger, and scoop the berries before they sink. Golden berries are worth 3 points.';
+  card.innerHTML = `<div class="who"><span class="badge">${sp.icon}</span><div class="grow"><h2>${sp.name}</h2><p class="sub">${fishy ? 'Whispering Woods brook' : 'Cranberry Bog'}</p></div></div>
+    <p class="say">${text}</p>
+    <div class="row">${wait > 0 ? '<button type="button" class="btn" id="go">OK</button>' : `<button type="button" class="btn" id="yes">${fishy ? 'Start fishing' : 'Start harvesting'}</button><button type="button" class="btn ghost" id="go">Not now</button>`}</div>`;
+  if (autoRead) say(text);
+  $('#go').onclick = closeModal;
+  const y = $('#yes'); if (y) { y.onclick = fishy ? startFish : startBerry; y.focus(); } else $('#go').focus();
+}
+function gameHud(title, frac, count){
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(255,253,246,.93)'; rr(VW / 2 - 250, 12, 500, 60, 14); ctx.fill(); rr(14, 14, 110, 44, 14); ctx.fill();
+  ctx.fillStyle = '#5b3a8c'; ctx.font = '700 21px ' + FONT; ctx.fillText(title, VW / 2, 33);
+  ctx.fillStyle = '#d8cde3'; ctx.fillRect(VW / 2 - 200, 52, 400, 9);
+  ctx.fillStyle = '#e3a008'; ctx.fillRect(VW / 2 - 200, 52, 400 * clamp(frac, 0, 1), 9);
+  ctx.fillStyle = '#2a1c33'; ctx.font = '700 24px ' + FONT; ctx.fillText(count, 69, 37);
+}
+function readyOverlay(t, title, how){
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(28,16,40,.5)'; ctx.fillRect(0, 0, VW, VH);
+  ctx.fillStyle = '#fff'; ctx.font = '700 46px ' + FONT; ctx.fillText(title, VW / 2, VH / 2 - 90);
+  ctx.font = '500 24px ' + FONT; ctx.fillText(how, VW / 2, VH / 2 - 40);
+  ctx.fillStyle = '#f2b632'; ctx.font = '700 96px ' + FONT; ctx.fillText(String(Math.max(1, Math.ceil(t))), VW / 2, VH / 2 + 50);
+}
+
+const FISHES = [{n:'Sunfish', c:'#e3a008', p:1, w:40}, {n:'Perch', c:'#8aa83e', p:1, w:30}, {n:'Trout', c:'#c98b4a', p:2, w:20}, {n:'Bass', c:'#4f7a46', p:2, w:14}, {n:'Golden Carp', c:'#f2b632', p:5, w:5}];
+let fish = null;
+function startFish(){ hush(); modal.hidden = true; setState('fish'); fish = {phase:'ready', t:2.6, left:25, st:'wait', wt:1.5 + Math.random() * 2, bt:0, score:0, caught:[], last:null, show:0, msg:'', msgT:0}; }
+function fishPress(){
+  const f = fish; if (!f || f.phase !== 'run') return;
+  if (f.st === 'bite') {
+    let r = Math.random() * FISHES.reduce((a, k) => a + k.w, 0), k = FISHES[0];
+    for (const x of FISHES) { if ((r -= x.w) < 0) { k = x; break; } }
+    f.score += k.p; f.caught.push(k.n); f.last = k; f.st = 'show'; f.show = 1.1; S.fish = (S.fish | 0) + 1; sfx.ok();
+  } else if (f.st === 'wait') { f.msg = 'Too soon! You scared the fish.'; f.msgT = 1.3; f.wt = 1.6 + Math.random() * 2; sfx.bad(); }
+}
+function updateFish(dt){
+  const f = fish; f.t -= dt; f.msgT = Math.max(0, f.msgT - dt);
+  if (f.phase === 'ready') { if (f.t <= 0) f.phase = 'run'; return; }
+  f.left -= dt;
+  if (f.st === 'wait') { f.wt -= dt; if (f.wt <= 0) { f.st = 'bite'; f.bt = {1:1.4, 2:1.2, 3:1}[S.grade] || .85; beep(880, .08, 'triangle', .05); } }
+  else if (f.st === 'bite') { f.bt -= dt; if (f.bt <= 0) { f.st = 'wait'; f.wt = 1.4 + Math.random() * 2.2; f.msg = 'It got away! Be quicker next time.'; f.msgT = 1.3; } }
+  else if (f.st === 'show') { f.show -= dt; if (f.show <= 0) { f.st = 'wait'; f.wt = 1.2 + Math.random() * 2.4; } }
+  if (f.left <= 0) endFish();
+}
+function endFish(){
+  const f = fish, gain = clamp(Math.ceil(f.score / 2), 1, 6), counts = {};
+  f.caught.forEach(n => { counts[n] = (counts[n] | 0) + 1; });
+  fish = null; spotCD.fish = 60; addFeathers(gain); save(); sfx.piece(); setState('modal'); modal.hidden = false;
+  card.innerHTML = `<div class="center"><h2>Time’s up!</h2>
+    <p class="q">${f.caught.length ? `You caught ${f.caught.length} fish: ${Object.keys(counts).map(n => `${n} ×${counts[n]}`).join(', ')}.` : 'No fish this time. Watch for the ! and press fast!'}</p>
+    <p>That earns you ${gain} golden ${gain === 1 ? 'feather' : 'feathers'}. 🪶</p>
+    <button type="button" class="btn" id="go">Back to the woods</button></div>`;
+  $('#go').onclick = closeModal; $('#go').focus();
+}
+function drawFish(){
+  const f = fish, bx = 560, by = 370 + (f.st === 'bite' ? 6 + Math.sin(tick * 30) * 3 : Math.sin(tick * 2.5) * 2);
+  const sky = ctx.createLinearGradient(0, 0, 0, 230); sky.addColorStop(0, '#f7c58a'); sky.addColorStop(1, '#f7e2b6');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, VW, 240);
+  for (let i = 0; i < 15; i++) { const tx = i * 60 + 10; ctx.fillStyle = '#6b4423'; ctx.fillRect(tx - 3, 170, 6, 60); ell(tx, 160, 30, 34, LEAF[i % LEAF.length]); }
+  ctx.fillStyle = '#93b657'; ctx.fillRect(0, 222, VW, 32);
+  ctx.fillStyle = '#4f97c4'; ctx.fillRect(0, 252, VW, VH - 252);
+  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  for (let i = 0; i < 12; i++) { const rx = (i * 97 + tick * 30) % (VW + 60) - 30, ry = 280 + (i * 53) % 240; ctx.fillRect(rx, ry, 26, 2); }
+  for (let i = 0; i < 3; i++) { const sx = (tick * (30 + i * 12) + i * 300) % (VW + 200) - 100; ell(sx, 330 + i * 70, 22, 8, 'rgba(20,50,80,.3)'); }
+  ctx.fillStyle = '#8d5b34'; ctx.fillRect(0, 300, 260, 36); ctx.fillStyle = '#6b4222';
+  for (let x = 10; x < 260; x += 22) ctx.fillRect(x, 300, 3, 36);
+  ctx.fillRect(40, 336, 8, 60); ctx.fillRect(210, 336, 8, 60);
+  const keep = {x:player.x, y:player.y, dir:player.dir, moving:player.moving, inv:player.inv, walk:player.walk};
+  Object.assign(player, {x:0, y:0, dir:'right', moving:false, inv:0, walk:0});
+  ctx.save(); ctx.translate(170, 306); ctx.scale(1.8, 1.8); drawPlayer(); ctx.restore(); Object.assign(player, keep);
+  ctx.strokeStyle = '#6b4423'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(186, 280); ctx.lineTo(340, 196); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(340, 196); ctx.quadraticCurveTo(470, 240, bx, by - 8); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(bx, by + 8, 16 + Math.sin(tick * 3) * 3, 4, 0, 0, 6.2832); ctx.stroke();
+  ell(bx, by, 9, 9, '#fff'); ctx.save(); ctx.beginPath(); ctx.rect(bx - 10, by - 10, 20, 10); ctx.clip(); ell(bx, by, 9, 9, '#c62020'); ctx.restore();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (f.st === 'bite') { ctx.font = '700 58px ' + FONT; ctx.fillStyle = '#c62020'; ctx.fillText('!', bx, by - 52); }
+  if (f.st === 'show' && f.last) {
+    const k = f.last, jy = by - 40 - Math.sin((1.1 - f.show) / 1.1 * Math.PI) * 60;
+    ell(bx, jy, 26, 12, k.c); ctx.fillStyle = k.c; ctx.beginPath(); ctx.moveTo(bx - 22, jy); ctx.lineTo(bx - 40, jy - 12); ctx.lineTo(bx - 40, jy + 12); ctx.closePath(); ctx.fill(); ell(bx + 14, jy - 3, 2.5, 2.5, '#111');
+    ctx.font = '700 24px ' + FONT; ctx.fillStyle = '#2a1c33'; ctx.fillText(`${k.n}! +${k.p}`, bx, jy - 38);
+  }
+  if (f.msgT > 0) { ctx.font = '700 22px ' + FONT; ctx.fillStyle = '#fff'; ctx.fillText(f.msg, VW / 2 + 120, 480); }
+  gameHud('When you see the !, press Space or tap!', f.phase === 'run' ? f.left / 25 : 1, `🐟 ${f.caught.length}`);
+  if (f.phase === 'ready') readyOverlay(f.t, 'Gone fishin’!', 'Wait for the ! then press Space or tap fast');
+}
+
+let berry = null, berryDrag = false;
+function startBerry(){ hush(); modal.hidden = true; setState('berry'); berry = {phase:'ready', t:2.6, left:20, x:VW / 2, y:VH / 2 + 40, tx:null, ty:null, items:[], sp:0, score:0, pops:[]}; }
+function updateBerry(dt){
+  const b = berry; b.t -= dt;
+  for (const p of b.pops) { p.t -= dt; p.y -= 40 * dt; }
+  b.pops = b.pops.filter(p => p.t > 0);
+  if (b.phase === 'ready') { if (b.t <= 0) b.phase = 'run'; return; }
+  b.left -= dt;
+  let dx = 0, dy = 0; if (keys.left) dx--; if (keys.right) dx++; if (keys.up) dy--; if (keys.down) dy++;
+  if (dx || dy) { const l = Math.hypot(dx, dy); b.x += dx / l * 320 * dt; b.y += dy / l * 320 * dt; b.tx = null; }
+  else if (b.tx !== null) { const ex = b.tx - b.x, ey = b.ty - b.y, d = Math.hypot(ex, ey); if (d > 4) { const st = Math.min(d, 380 * dt); b.x += ex / d * st; b.y += ey / d * st; } }
+  b.x = clamp(b.x, 40, VW - 40); b.y = clamp(b.y, 110, VH - 30);
+  b.sp -= dt;
+  if (b.sp <= 0) { b.sp = .34; const life = {1:3.4, 2:3.1, 3:2.8}[S.grade] || 2.6; b.items.push({x:R(50, VW - 50), y:R(120, VH - 40), life, max:life, gold:Math.random() < .1}); }
+  for (const it of b.items) {
+    it.life -= dt;
+    if (!it.got && Math.hypot(it.x - b.x, it.y - b.y) < 36) { it.got = true; const pts = it.gold ? 3 : 1; b.score += pts; b.pops.push({x:it.x, y:it.y - 14, t:.7, txt:`+${pts}`}); sfx.corn(); }
+  }
+  b.items = b.items.filter(it => !it.got && it.life > 0);
+  if (b.left <= 0) endBerry();
+}
+function endBerry(){
+  const b = berry, gain = clamp(Math.ceil(b.score / 5), 1, 6), best = b.score > (S.bestBerry | 0);
+  berry = null; berryDrag = false; spotCD.berry = 60; S.bestBerry = Math.max(S.bestBerry | 0, b.score); addFeathers(gain); save(); sfx.piece(); setState('modal'); modal.hidden = false;
+  card.innerHTML = `<div class="center"><h2>Time’s up!</h2>
+    <p class="q">You scooped ${b.score} cranberry ${b.score === 1 ? 'point' : 'points'}!${best && b.score ? ' That is your best harvest yet!' : ''}</p>
+    <p>That earns you ${gain} golden ${gain === 1 ? 'feather' : 'feathers'}. 🪶</p>
+    <button type="button" class="btn" id="go">Back to the bog</button></div>`;
+  $('#go').onclick = closeModal; $('#go').focus();
+}
+function drawBerry(){
+  const b = berry;
+  ctx.fillStyle = '#5e3b4d'; ctx.fillRect(0, 0, VW, VH);
+  ctx.fillStyle = 'rgba(255,255,255,.08)';
+  for (let i = 0; i < 16; i++) { const rx = (i * 131 + tick * 18) % (VW + 60) - 30, ry = 100 + (i * 71) % (VH - 100); ctx.fillRect(rx, ry, 30, 2); }
+  for (let i = 0; i < 9; i++) { const lx = 60 + (i * 197) % (VW - 120), ly = 130 + (i * 113) % (VH - 160); ell(lx, ly, 26, 16, '#4f7a46'); ctx.fillStyle = '#5e3b4d'; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 26, ly - 6); ctx.lineTo(lx + 26, ly + 6); ctx.closePath(); ctx.fill(); }
+  for (let x = 0; x < VW; x += 18) { ctx.fillStyle = '#7b9a35'; ctx.fillRect(x, VH - 18 - (x * 7) % 14, 3, 30); }
+  for (const it of b.items) {
+    const s = it.life / it.max, grow = Math.min(1, (it.max - it.life) / .2), sc = (s > .4 ? 1 : s / .4) * grow;
+    if (s < .4) { ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(it.x, it.y + 4, 18 - 10 * sc, 5, 0, 0, 6.2832); ctx.stroke(); }
+    if (it.gold) ell(it.x, it.y, 18 * sc, 18 * sc, 'rgba(242,182,50,.45)');
+    ell(it.x, it.y, 11 * sc, 11 * sc, it.gold ? '#f2b632' : '#c62020'); ell(it.x - 3 * sc, it.y - 3 * sc, 3 * sc, 3 * sc, 'rgba(255,255,255,.55)');
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1;
+  for (let k = -24; k <= 24; k += 8) { ctx.beginPath(); ctx.moveTo(b.x + k, b.y - Math.sqrt(900 - k * k)); ctx.lineTo(b.x + k, b.y + Math.sqrt(900 - k * k)); ctx.stroke(); ctx.beginPath(); ctx.moveTo(b.x - Math.sqrt(900 - k * k), b.y + k); ctx.lineTo(b.x + Math.sqrt(900 - k * k), b.y + k); ctx.stroke(); }
+  ctx.strokeStyle = '#8d5b34'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(b.x, b.y, 30, 0, 6.2832); ctx.stroke();
+  ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(b.x + 21, b.y + 21); ctx.lineTo(b.x + 62, b.y + 62); ctx.stroke();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const p of b.pops) { ctx.font = '700 20px ' + FONT; ctx.fillStyle = '#ffe45c'; ctx.fillText(p.txt, p.x, p.y); }
+  gameHud('Scoop the cranberries before they sink!', b.phase === 'run' ? b.left / 20 : 1, `🫐 ${b.score}`);
+  if (b.phase === 'ready') readyOverlay(b.t, 'Cranberry harvest!', 'Arrow keys or drag your finger to move the scoop');
+}
+
+/* ---------------- Feast parade ending ---------------- */
+let parade = null;
+const PHATS = ['tall', 'bonnet', 'straw', 'cap'];
+function startParade(){
+  setState('parade'); sfx.win();
+  const w = [];
+  STATIONS.forEach((s, i) => { if (S.solved.has(s.id)) w.push({name:s.who, body:s.roof, hat:PHATS[i % 4], skin:i % 4}); });
+  NPCS.forEach(v => { if (v.kind === 'clue' ? S.heard.has(v.id) : (S.mis[v.id] | 0) === 2) w.push({name:v.name, body:v.body, hat:v.hat, skin:v.skin}); });
+  w.push({name:'Prankster Percy', note:'on his best behavior', body:'#b63a25', hat:'tall', skin:1});
+  if (S.bossDone) w.push({name:'King Gobble', king:true});
+  parade = {t:0, w, dur:(w.length * 135 + VW + 160) / 200 + 1, leaves:[]};
+}
+function updateParade(dt){
+  const p = parade; p.t += dt;
+  if (Math.random() < dt * 8) p.leaves.push({x:Math.random() * VW, y:-10, vx:(Math.random() - .5) * 30, vy:40 + Math.random() * 40, r:Math.random() * 6, c:pick(LEAF)});
+  for (const l of p.leaves) { l.x += l.vx * dt + Math.sin(tick * 2 + l.r) * 20 * dt; l.y += l.vy * dt; }
+  p.leaves = p.leaves.filter(l => l.y < VH + 10);
+  if (p.t >= p.dur) finishWin();
+}
+function drawParade(){
+  const p = parade, cx = VW / 2;
+  const sky = ctx.createLinearGradient(0, 0, 0, 262); sky.addColorStop(0, '#4b2a66'); sky.addColorStop(.55, '#d9641f'); sky.addColorStop(1, '#f2b632');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, VW, 262);
+  ell(cx, 258, 90, 40, 'rgba(255,220,120,.7)');
+  ell(150, 272, 260, 60, '#6f8f3f'); ell(680, 278, 300, 70, '#66863a');
+  ctx.fillStyle = '#7fa04a'; ctx.fillRect(0, 266, VW, VH - 266);
+  ctx.fillStyle = '#c9a465'; ctx.fillRect(0, 302, VW, 44);
+  ctx.strokeStyle = '#2a1c33'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 40); ctx.quadraticCurveTo(cx, 120, VW, 40); ctx.stroke();
+  for (let i = 1; i < 16; i++) { const u = i / 16, lx = u * VW, ly = (1 - u) * (1 - u) * 40 + 2 * u * (1 - u) * 120 + u * u * 40, on = (Math.floor(tick * 3) + i) % 3 !== 0; ell(lx, ly + 6, 5, 7, on ? ['#ffe08a', '#ff8a5c', '#b99cec'][i % 3] : '#7a6a80'); }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '42px Caprasimo, Georgia, serif'; ctx.fillStyle = '#fffdf6'; ctx.fillText('The Feast Parade!', cx, 150);
+  ctx.font = '600 20px ' + FONT; ctx.fillText(`Thank you for saving Thanksgiving, ${S.name}!`, cx, 192);
+  p.w.forEach((v, i) => {
+    const x = -60 + p.t * 200 - i * 135, ly = i % 2 ? 378 : 356;
+    if (x < -90 || x > VW + 90) return;
+    if (v.king) { ctx.save(); ctx.translate(x, 334); ctx.scale(2, 2); drawTurkey({x:0, y:0, face:1, moving:true, anim:p.t * 9, peck:false, alert:false, flee:0, drop:1}); crownPath(10, -22, 5, 6); ctx.restore(); }
+    else { ctx.save(); ctx.translate(x, 334); ctx.scale(1.6, 1.6); drawVillager({...v, kind:'prank', id:'parade', x:0, y:0, hx:i, dir:'right', moving:true, walk:p.t * 11 + i}); ctx.restore(); }
+    ctx.font = '600 12px ' + FONT; const lab = v.note ? `${v.name} (${v.note})` : v.name, lw = ctx.measureText(lab).width + 12;
+    ctx.fillStyle = 'rgba(255,250,240,.94)'; rr(x - lw / 2, ly - 10, lw, 18, 9); ctx.fill(); ctx.fillStyle = '#2a1c33'; ctx.fillText(lab, x, ly);
+  });
+  const keep = {x:player.x, y:player.y, dir:player.dir, moving:player.moving, inv:player.inv, walk:player.walk};
+  Object.assign(player, {x:0, y:0, dir:'down', moving:false, inv:0, walk:0});
+  ctx.save(); ctx.translate(cx, 422); ctx.scale(1.9, 1.9); drawPlayer(); ctx.restore(); Object.assign(player, keep);
+  ctx.fillStyle = '#8a5a34'; rr(120, 420, VW - 240, 52, 6); ctx.fill(); ctx.fillRect(140, 460, 12, 40); ctx.fillRect(VW - 152, 460, 12, 40);
+  ctx.fillStyle = '#fffdf6'; rr(108, 410, VW - 216, 26, 6); ctx.fill(); ctx.fillStyle = '#c62020'; ctx.fillRect(108, 430, VW - 216, 4);
+  ctx.font = '28px ' + FONT; ctx.fillStyle = '#000';
+  ['🥧', '🌽', '🍞', '🥔', '🍎', '🫐', '🧀', '🍇'].forEach((e, i) => { const fx = i < 4 ? 160 + i * 62 : VW - 160 - (7 - i) * 62; ctx.fillText(e, fx, 402); });
+  if (S.pet) {
+    const pk = {x:pet.x, y:pet.y, face:pet.face, moving:pet.moving};
+    Object.assign(pet, {x:0, y:0, face:-1, moving:false});
+    ctx.save(); ctx.translate(cx + 96, 500); ctx.scale(1.8, 1.8); drawPet(); ctx.restore(); Object.assign(pet, pk);
+  }
+  [70, 165, 260, VW - 260, VW - 165, VW - 70].forEach((tx, i) => {
+    ctx.save(); ctx.translate(tx, 510); ctx.scale(1.3, 1.3);
+    drawTurkey({x:0, y:0, face:Math.sin(tick * 6 + i) > 0 ? 1 : -1, moving:true, anim:tick * 9 + i, peck:false, alert:false, flee:0, drop:1, dance:1});
+    ctx.restore();
+  });
+  for (const l of p.leaves) ell(l.x, l.y, 5, 3, l.c, tick * 2 + l.r);
+  if (p.t > 1.2) { ctx.font = '600 14px ' + FONT; ctx.fillStyle = 'rgba(255,253,246,.9)'; ctx.fillText('Press any key or tap to skip', cx, 534); }
+}
+
 /* ---------------- Help, Interactive Click-to-Warp Map, & Teacher Panel ---------------- */
 function showHelp(){
   if (S.state !== 'play') return;
@@ -2314,6 +2742,7 @@ function showHelp(){
   card.innerHTML = `<h2>How to play</h2>
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
     <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Town Map &amp; Fast Travel</b><span>Press M or click Town Map to see the whole valley and click any visited place to warp!</span></div><div><b>Outer Gates</b><span>East Gate (Whispering Woods) opens at ${Math.min(3, N)} key pieces; South Gate (Cranberry Bog) opens at ${Math.min(5, N)}.</span></div>
+    <div><b>Pilgrim Journal</b><span>Press J (or the Journal button) to see your badges. They print on your certificate!</span></div><div><b>Fishing &amp; cranberries</b><span>Look for the 🎣 fishing spot by the brook in the Whispering Woods and the 🫐 harvest on the Cranberry Bog island.</span></div><div><b>Silly turkeys</b><span>Some turkeys have personalities! Look for the Sleepy one, the Corn Bandit, the Dancer, the Pet Lover, and the Scaredy-Turkey (face him and he freezes).</span></div><div><b>Prankster Percy</b><span>He chases you yelling “turkey!” and sticks a paper tail on you. Bonk him with acorns to chase him off.</span></div>
     <div><b>Talk to villagers</b><span>Walk into anyone strolling around town. A red ! means they have a clue or a secret mission for you.</span></div><div><b>Golden feathers</b><span>Earn them with right answers (3 in a row on the first try is a bonus), bonus games, bonking crows, and bonking turkeys. Spend them at the General Store.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
     <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all ${N}, then go to the Feast Hall at the north end of town. Violet and its outer regions also hide 4 secrets!</p>
     ${(() => { const a = NPCS.filter(v => (S.mis[v.id] | 0) === 1); return a.length ? `<p><b>Your missions:</b></p><ul class="todo">${a.map(v => `<li>${v.name}: ${v.kind === 'doll' ? (S.misN.mercy ? 'You found the doll! Bring it back.' : 'Find the lost doll in the Southern Orchard beyond the Cranberry Bog.') : v.kind === 'corn' ? `Bring ${v.need} corn (you have ${S.corn}).` : `Bonk ${v.need} ${v.kind === 'crow' ? 'crows' : 'turkeys'} (${Math.min(S.misN[v.id] | 0, v.need)} done).`}</li>`).join('')}</ul>` : ''; })()}
@@ -2553,9 +2982,12 @@ addEventListener('keydown', e => {
     else if (e.code === 'Space') { e.preventDefault(); throwAcorn(); }
     else if (e.code === 'KeyC' && !e.repeat) dropCorn();
     else if (e.code === 'KeyM' && !e.repeat) openMap();
-  } else if (S.state === 'mini' || S.state === 'jack') {
+    else if (e.code === 'KeyJ' && !e.repeat) openJournal();
+  } else if (S.state === 'parade') {
+    if (parade && parade.t > 1.2) { e.preventDefault(); finishWin(); }
+  } else if (S.state === 'mini' || S.state === 'jack' || S.state === 'fish' || S.state === 'berry') {
     const k = KM[e.code];
-    if (k) { keys[k] = true; e.preventDefault(); } else if (e.code === 'Space') { e.preventDefault(); if (S.state === 'jack') jackThrow(); }
+    if (k) { keys[k] = true; e.preventDefault(); } else if (e.code === 'Space') { e.preventDefault(); if (S.state === 'jack') jackThrow(); else if (S.state === 'fish' && !e.repeat) fishPress(); }
   } else if (S.state === 'modal') modalKey(e);
 });
 addEventListener('keyup', e => { const k = KM[e.code]; if (k) keys[k] = false; });
@@ -2596,7 +3028,7 @@ function modalKey(e){
   }
 }
 document.querySelectorAll('#dpad button').forEach(b => {
-  const k = b.dataset.k, on = e => { e.preventDefault(); if (S.state === 'play' || S.state === 'mini' || S.state === 'jack') keys[k] = true; }, off = () => { keys[k] = false; };
+  const k = b.dataset.k, on = e => { e.preventDefault(); if (S.state === 'play' || S.state === 'mini' || S.state === 'jack' || S.state === 'fish' || S.state === 'berry') keys[k] = true; }, off = () => { keys[k] = false; };
   b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointerleave', off); b.addEventListener('pointercancel', off);
 });
 $('#bCorn').addEventListener('pointerdown', e => { e.preventDefault(); dropCorn(); });
@@ -2608,6 +3040,9 @@ function pointerToCanvasX(e){
   return clamp(((e.clientX - r.left) / r.width) * VW, 44, VW - 44);
 }
 cv.addEventListener('pointerdown', e => {
+  if (S.state === 'parade' && parade) { if (parade.t > 1.2) finishWin(); return; }
+  if (S.state === 'fish' && fish) { fishPress(); return; }
+  if (S.state === 'berry' && berry) { const r = cv.getBoundingClientRect(); berry.tx = ((e.clientX - r.left) / r.width) * VW; berry.ty = ((e.clientY - r.top) / r.height) * VH; berryDrag = true; return; }
   if (S.state === 'mini' && mini) { miniDrag = true; mini.x = pointerToCanvasX(e); }
   else if (S.state === 'jack' && jack) {
     const r = cv.getBoundingClientRect(), cx = ((e.clientX - r.left) / r.width) * VW, cy = ((e.clientY - r.top) / r.height) * VH;
@@ -2617,13 +3052,15 @@ cv.addEventListener('pointerdown', e => {
   }
 });
 cv.addEventListener('pointermove', e => {
+  if (berryDrag && S.state === 'berry' && berry) { const r = cv.getBoundingClientRect(); berry.tx = ((e.clientX - r.left) / r.width) * VW; berry.ty = ((e.clientY - r.top) / r.height) * VH; }
   if (miniDrag && S.state === 'mini' && mini && !mini.stun) mini.x = pointerToCanvasX(e);
 });
-addEventListener('pointerup', () => { miniDrag = false; });
+addEventListener('pointerup', () => { miniDrag = false; berryDrag = false; });
 addEventListener('pointercancel', () => { miniDrag = false; });
 
 if (window.claude && window.claude.use) window.claude.use('downloads').then(d => { dl = d; const b = $('#savecert'); if (b && d) b.hidden = false; }).catch(() => {});
 $('#bMap').onclick = e => { e.currentTarget.blur(); openMap(); };
+$('#bJournal').onclick = e => { e.currentTarget.blur(); openJournal(); };
 $('#bHelp').onclick = e => { e.currentTarget.blur(); showHelp(); };
 $('#openTeach').onclick = () => openTeacher();
 if (location.hash === '#teacher') setTimeout(openTeacher, 50);
@@ -2650,10 +3087,11 @@ function begin(saved){
     S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
     S.feathers = saved.feathers | 0; S.earned = saved.earned | 0; S.owned = new Set(saved.owned || []); S.hat = saved.hat || ''; S.pet = saved.pet || ''; S.bossDone = !!saved.bossDone; S.secrets = new Set(saved.secrets || []);
     S.mis = saved.mis || {}; S.misN = saved.misN || {}; S.heard = new Set(saved.heard || []); S.jackDone = !!saved.jackDone; S.gateNoticed = new Set(saved.gateNoticed || []);
+    S.badges = new Set(saved.badges || []); S.perfects = saved.perfects | 0; S.fish = saved.fish | 0; S.bestBerry = saved.bestBerry | 0; S.percyBonks = saved.percyBonks | 0; S.bestStreak = saved.bestStreak | 0; S.visited = new Set(saved.visited || []);
     FEATH.forEach((f, i) => { f.got = (saved.got || []).includes(i); });
   } else {
     S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
-    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); S.mis = {}; S.misN = {}; S.heard = new Set(); S.jackDone = false; S.gateNoticed = new Set(); FEATH.forEach(f => { f.got = false; });
+    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); S.mis = {}; S.misN = {}; S.heard = new Set(); S.jackDone = false; S.gateNoticed = new Set(); S.badges = new Set(); S.perfects = 0; S.fish = 0; S.bestBerry = 0; S.percyBonks = 0; S.bestStreak = 0; S.visited = new Set(); FEATH.forEach(f => { f.got = false; });
   }
   S.pies = maxPies(); pet.x = player.x; pet.y = player.y + 12;
   if (activeSolvedCount() >= N && !S.bossDone) spawnBoss();
@@ -2668,9 +3106,9 @@ if (old && (old.solved.length || old.earned)) { const c = $('#cont'); c.hidden =
 resetWorld(); updateHud(); fit();
 if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else addEventListener('resize', fit);
 let last = performance.now();
-function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); else if (S.state === 'jack') updateJack(dt); render(); requestAnimationFrame(frame); }
+function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); else if (S.state === 'jack') updateJack(dt); else if (S.state === 'fish') updateFish(dt); else if (S.state === 'berry') updateBerry(dt); else if (S.state === 'parade') updateParade(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, getJack:() => jack, startJack, CELLAR, NPCS, DOLL, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, CHEST, SIGNPOSTS, warpTo, W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, getJack:() => jack, startJack, CELLAR, NPCS, DOLL, getCrows:() => crows, callCrow:() => { crowT = 0; }, getShy:() => shy, percy, BADGES, SPOTS, LANTERNS, startFish, startBerry, startParade, getFish:() => fish, getBerry:() => berry, getParade:() => parade, fishPress, checkBadges, openJournal, getTurkeys:() => turkeys, getTail:() => tailT, CHEST, SIGNPOSTS, warpTo, W, H};
 })();
 </script>
 </body>
