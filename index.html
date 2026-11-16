@@ -211,7 +211,7 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
 'use strict';
 const $ = s => document.querySelector(s);
 const TS = 32, VW = 832, VH = 544, W = 48, H = 34;
-const T = {G:0, P:1, TREE:2, WATER:3, CORN:5, BLD:6, HAY:7, PUMP:8, WELL:9, PLAZA:10, STEP:11, FLOWER:12};
+const T = {G:0, P:1, TREE:2, WATER:3, CORN:5, BLD:6, HAY:7, PUMP:8, WELL:9, PLAZA:10, STEP:11, FLOWER:12, SCORN:13};
 const SOLID = new Set([T.TREE, T.WATER, T.CORN, T.BLD, T.HAY, T.PUMP, T.WELL]);
 const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = a => a[R(0, a.length - 1)];
@@ -795,20 +795,23 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
     for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) if (open(tile(x + i, y + j))) near = true;
     if (!near && a < 0.09) set(x, y, T.TREE); else if (b < 0.12) set(x, y, T.FLOWER);
   }
+  ['C.CCCCCCCCC.C', 'C....C....C.C', 'CCCC.C.CCsC.C', 'C......CXs..C', 'CCCCCCCCCCCCC'].forEach((row, j) => { for (let i = 0; i < row.length; i++) set(29 + i, 28 + j, row[i] === 'C' ? T.CORN : row[i] === 's' ? T.SCORN : T.P); });
+  for (let y = 2; y <= 8; y++) if (tile(43, y) !== T.WATER) set(43, y, T.G);
+  for (const [x, y] of [[44, 1], [45, 1], [46, 1], [44, 2]]) set(x, y, T.G);
   for (const y of [28, 30, 32]) for (let x = 8; x <= 40; x += 3) if (tile(x, y) === T.G) set(x, y, T.TREE);
 })();
 
 /* ---------------- State ---------------- */
 const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
-const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false};
+const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false, secrets:new Set()};
 const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
 const keys = {up:false, down:false, left:false, right:false};
 const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
 const TSPAWN = [[10,9],[38,9],[6,20],[42,20],[12,26],[36,26],[33,12],[15,22],[28,9],[20,26]];
 let turkeys = [];
 const pickups = [[11,13],[38,13],[3,17],[44,17],[24,11],[6,22],[42,22],[19,29],[31,29],[24,23]].map(([x, y]) => ({x:(x + .5) * TS, y:(y + .5) * TS, t:0}));
-const FEATH = [[8,9,1],[20,9,1],[27,9,1],[40,9,1],[6,12,1],[6,24,1],[42,12,1],[42,24,1],[15,13,1],[15,20,1],[33,15,1],[33,22,1],[9,13,2],[36,13,2],[22,26,1],[30,26,1],[12,17,1],[37,17,1],[24,25,1],[27,27,1],[14,29,3],[26,29,3],[37,31,3]]
-  .filter(([x, y]) => !SOLID.has(tile(x, y))).map(([x, y, v]) => ({x:(x + .5) * TS, y:(y + .5) * TS, v, got:false}));
+const FEATH = [[8,9,1],[20,9,1],[27,9,1],[40,9,1],[6,12,1],[6,24,1],[42,12,1],[42,24,1],[15,13,1],[15,20,1],[33,15,1],[33,22,1],[9,13,2],[36,13,2],[22,26,1],[30,26,1],[12,17,1],[37,17,1],[24,25,1],[27,27,1],[14,29,3],[26,29,3],[37,31,8,'maze'],[31,31,1],[37,29,1]]
+  .filter(([x, y]) => !SOLID.has(tile(x, y))).map(([x, y, v, sec]) => ({x:(x + .5) * TS, y:(y + .5) * TS, v, sec, got:false}));
 const SHOPITEMS = [
   {id:'straw', kind:'hat', icon:'👒', name:'Straw hat', cost:6, about:'A farmer’s favorite.'},
   {id:'pumpkin', kind:'hat', icon:'🎃', name:'Pumpkin hat', cost:10, about:'Fresh from the patch.'},
@@ -832,17 +835,37 @@ function spawnBoss(){ const max = {1:3, 2:4}[S.grade] || 5; boss = {x:HOME.x, y:
 let drops = [], shots = [], parts = [], cool = 0, tick = 0, shake = 0, scale = 1, ses = null, dl = null;
 const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
 const solidP = (x, y) => SOLID.has(tile(x, y));
-const solidT = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.PLAZA || t === T.STEP; };
+const solidT = (x, y) => { const t = tile(x, y); return SOLID.has(t) || t === T.PLAZA || t === T.STEP || t === T.SCORN; };
+const CHEST = {x:46.5 * TS, y:1.5 * TS};
+let shy = null;
+function foundSecret(id, n, msg){
+  if (S.secrets.has(id)) return;
+  S.secrets.add(id); addFeathers(n); sfx.piece(); save();
+  toast(`Secret ${S.secrets.size} of 3 found! ${msg}`);
+}
+function drawChest(){
+  const x = CHEST.x, y = CHEST.y;
+  ell(x, y + 10, 15, 4, 'rgba(0,0,0,.2)');
+  ctx.fillStyle = '#7a4a2b'; rr(x - 13, y - 6, 26, 16, 3); ctx.fill();
+  ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 13, y - 1, 26, 3);
+  if (S.secrets.has('chest')) { ctx.fillStyle = '#2a1a10'; ctx.fillRect(x - 11, y - 8, 22, 4); ctx.fillStyle = '#8d5a36'; rr(x - 13, y - 21, 26, 11, 4); ctx.fill(); }
+  else {
+    ctx.fillStyle = '#8d5a36'; rr(x - 13, y - 14, 26, 10, 4); ctx.fill(); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2.5, y - 6, 5, 6);
+    ctx.font = '700 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = `rgba(255,236,150,${.5 + Math.sin(tick * 5) * .5})`;
+    ctx.fillText('✦', x + 15, y - 18); ctx.fillText('✦', x - 16, y - 7);
+  }
+}
 const activeTurkeys = () => Math.min(turkeys.length, ({1:3, 2:4, 3:5}[S.grade] || 6) + Math.floor(S.solved.size / 2));
 function resetWorld(){
   player.x = 24.5 * TS; player.y = 19.5 * TS; player.inv = 0; player.dir = 'down';
   turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false}));
   drops = []; shots = []; parts = []; for (const p of pickups) p.t = 0;
   S.pies = maxPies(); S.corn = 3; S.armed = true; boss = null; pet.x = player.x; pet.y = player.y + 12;
+  shy = {x:7.5 * TS, y:29.5 * TS, hw:10, hh:8, sp:70, face:1, wx:0, wy:0, wt:0, flee:0, anim:0, peck:false, alert:false, moving:false};
 }
 
 const KEY = 'violet-feast-v1';
-function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, secrets:[...S.secrets], got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
 function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
 
 /* ---------------- Sound ---------------- */
@@ -941,7 +964,9 @@ function update(dt){
     if (Math.hypot(p.x - player.x, p.y - player.y) < 22) { S.corn = Math.min(9, S.corn + 2); p.t = 45; sfx.corn(); toast('You found corn! Press C to drop it for the turkeys.'); updateHud(); }
   }
   for (const f of FEATH) if (!f.got && Math.hypot(f.x - player.x, f.y - player.y) < 22) {
-    f.got = true; addFeathers(f.v); sfx.feather(); save();
+    f.got = true;
+    if (f.sec) { foundSecret(f.sec, f.v, `The heart of the corn maze held ${f.v} golden feathers.`); continue; }
+    addFeathers(f.v); sfx.feather(); save();
     toast(`You found ${f.v === 1 ? 'a golden feather' : f.v + ' golden feathers'}! Spend them at the General Store.`);
   }
   if (S.pet) {
@@ -966,6 +991,11 @@ function update(dt){
       }
     }
     if (boss && s.t > 0 && boss.inv <= 0 && Math.hypot(boss.x - s.x, boss.y - 12 - s.y) < 30) { s.t = 0; sfx.bonk(); openBossQ(); }
+    if (shy && s.t > 0 && Math.hypot(shy.x - s.x, shy.y - s.y) < 19) {
+      s.t = 0; shy.flee = 4; sfx.bonk();
+      for (let k = 0; k < 7; k++) parts.push({x:shy.x, y:shy.y - 10, vx:(Math.random() - .5) * 160, vy:-Math.random() * 120, t:.6, c:FAN[k % 5]});
+      foundSecret('hat', 12, 'The turkey in the pilgrim hat dropped 12 golden feathers.');
+    }
   }
   shots = shots.filter(s => s.t > 0);
   for (const p of parts) { p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; }
@@ -991,6 +1021,15 @@ function update(dt){
     if (vx || vy) { t.moving = move(t, vx * sp * dt, vy * sp * dt, solidT); if (!t.moving) t.wt = 0; if (Math.abs(vx) > .15) t.face = vx < 0 ? -1 : 1; }
     if (!t.busy && player.inv <= 0 && !safe && pd < 20) gobble(t);
   }
+  if (shy) {
+    const t = shy, pd = Math.hypot(player.x - t.x, player.y - t.y) || 1; let vx, vy, sp = t.sp;
+    t.anim += dt * 9; t.flee = Math.max(0, t.flee - dt);
+    if (pd < 4.5 * TS || t.flee > 0) { vx = (t.x - player.x) / pd; vy = (t.y - player.y) / pd; sp *= 1.7; }
+    else { t.wt -= dt; if (t.wt <= 0) { const a = pick([[1,0],[-1,0],[0,1],[0,-1],[0,0]]); t.wx = a[0]; t.wy = a[1]; t.wt = 1 + Math.random() * 2; } vx = t.wx; vy = t.wy; sp *= .6; }
+    t.moving = false;
+    if (vx || vy) { t.moving = move(t, vx * sp * dt, vy * sp * dt, solidT); if (!t.moving) t.wt = 0; if (Math.abs(vx) > .15) t.face = vx < 0 ? -1 : 1; }
+  }
+  if (!S.secrets.has('chest') && Math.hypot(CHEST.x - player.x, CHEST.y - player.y) < 24) foundSecret('chest', 15, 'The treasure chest behind the pond held 15 golden feathers.');
   if (boss && S.state === 'play') {
     const b = boss, dx = player.x - b.x, dy = player.y - b.y, d = Math.hypot(dx, dy) || 1, gs = {1:.7, 2:.8, 3:.9}[S.grade] || 1, rage = 1 + (b.max - b.hp) * .12;
     let vx = 0, vy = 0, sp = 0;
@@ -1038,7 +1077,7 @@ function ground(x, y, t){
     ctx.fillStyle = '#9fd0ea'; const o = Math.sin(tick * 1.5 + x * 1.7 + y) * 4;
     ctx.fillRect(px + 6 + o, py + 9, 9, 2); ctx.fillRect(px + 17 - o, py + 21, 8, 2);
     if (tile(x, y - 1) !== T.WATER) { ctx.fillStyle = '#3c7fa3'; ctx.fillRect(px, py, TS + .6, 4); }
-  } else if (t === T.CORN) {
+  } else if (t === T.CORN || t === T.SCORN) {
     ctx.fillStyle = '#a9824a'; ctx.fillRect(px, py, TS + .6, TS + .6);
   } else {
     ctx.fillStyle = h < .5 ? '#93b657' : '#8baf51'; ctx.fillRect(px, py, TS + .6, TS + .6);
@@ -1056,9 +1095,9 @@ function drawTall(o){
     const c = LEAF[Math.floor(h * 6)];
     ell(cx, py + 4, 17, 16, c); ell(cx - 9, py + 10, 9, 8, c); ell(cx + 9, py + 10, 9, 8, c);
     ell(cx - 5, py - 2, 7, 6, 'rgba(255,255,255,.18)');
-  } else if (o.k === T.CORN) {
+  } else if (o.k === T.CORN || o.k === T.SCORN) {
     for (let i = 0; i < 3; i++) {
-      const sx = px + 5 + i * 10 + h * 3, top = py - 9 + ((i * 7 + h * 10) % 6);
+      const sx = px + 5 + i * 10 + h * 3 + (o.k === T.SCORN ? Math.sin(tick * 2.2 + i) * 1.6 : 0), top = py - 9 + ((i * 7 + h * 10) % 6);
       ctx.fillStyle = '#7b9a35'; ctx.fillRect(sx, top, 3, py + 30 - top); ctx.fillRect(sx - 5, top + 11, 5, 3); ctx.fillRect(sx + 3, top + 19, 5, 3);
       ctx.fillStyle = '#f2c744'; ctx.fillRect(sx - 1, top + 4, 5, 9); ctx.fillStyle = '#c9a44a'; ctx.fillRect(sx, top - 4, 3, 4);
     }
@@ -1150,7 +1189,7 @@ function drawBoss(b){
   if (b.mode === 'tired') { ctx.font = '18px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText('💫', b.x, b.y - 62); }
 }
 const FAN = ['#b63a25', '#e2792a', '#f0bf3a', '#e2792a', '#b63a25'];
-function drawTurkey(t, nf){
+function drawTurkey(t, nf, hat){
   const x = t.x, y = t.y, f = t.face, b = t.moving ? Math.sin(t.anim) * 1.5 : 0;
   ell(x, y + 8, 12, 4, 'rgba(0,0,0,.2)');
   for (let i = 0; i < (nf === undefined ? 5 : nf); i++) { const a = -Math.PI / 2 - f * .55 + (i - 2) * .36; ell(x + Math.cos(a) * 14, y - 8 + Math.sin(a) * 14 + b, 9, 5, FAN[i], a); }
@@ -1160,6 +1199,7 @@ function drawTurkey(t, nf){
   ell(hx, hy, 5, 5, '#8a5633');
   ctx.fillStyle = '#f2b632'; ctx.beginPath(); ctx.moveTo(hx + f * 4, hy - 2); ctx.lineTo(hx + f * 10, hy + 1); ctx.lineTo(hx + f * 4, hy + 3); ctx.closePath(); ctx.fill();
   ell(hx + f * 3, hy + 5, 2, 3.5, '#d12b2b'); ell(hx + f * 1.5, hy - 1.5, 1.3, 1.3, '#111');
+  if (hat) { ctx.fillStyle = '#1c1c22'; ctx.fillRect(hx - 7, hy - 7, 14, 2.5); ctx.fillRect(hx - 4, hy - 14, 8, 8); ctx.fillStyle = '#e3a008'; ctx.fillRect(hx - 1.5, hy - 10, 3, 3.5); }
   if (t.flee > 0) { ctx.font = '700 13px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#f2c744'; ctx.fillText('★ ★', x, y - 34 + Math.sin(tick * 16) * 2); }
   if (t.alert) { ctx.font = '700 16px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#c62020'; ctx.fillText('!', x, y - 36); }
 }
@@ -1175,7 +1215,7 @@ function render(){
   for (let y = Math.max(0, y0 - 1); y <= y1; y++) for (let x = Math.max(0, x0 - 1); x <= x1; x++) {
     const t = tile(x, y);
     if (y >= y0 && x >= x0) ground(x, y, t);
-    if (t === T.TREE || t === T.CORN || t === T.HAY || t === T.PUMP || t === T.WELL) list.push({k:t, x, y, sy:(y + 1) * TS - 4});
+    if (t === T.TREE || t === T.CORN || t === T.SCORN || t === T.HAY || t === T.PUMP || t === T.WELL) list.push({k:t, x, y, sy:(y + 1) * TS - 4});
   }
   for (const c of drops) { ctx.fillStyle = '#f2c744'; for (let i = 0; i < 6; i++) ctx.fillRect(c.x - 8 + (i * 7) % 16, c.y - 4 + (i * 5) % 9, 3, 3); }
   for (const p of pickups) if (p.t <= 0) list.push({k:'pick', p, sy:p.y});
@@ -1185,6 +1225,8 @@ function render(){
   list.push({k:'me', sy:player.y});
   for (const f of FEATH) if (!f.got) list.push({k:'fe', f, sy:f.y});
   if (S.pet) list.push({k:'pet', sy:pet.y});
+  list.push({k:'chest', sy:CHEST.y});
+  if (shy) list.push({k:'shy', sy:shy.y});
   if (boss) list.push({k:'boss', sy:boss.y});
   else if (S.bossDone) list.push({k:'king', sy:5.9 * TS});
   list.sort((a, b) => a.sy - b.sy);
@@ -1195,6 +1237,8 @@ function render(){
     else if (o.k === 'fe') drawFeather(o.f);
     else if (o.k === 'pet') drawPet();
     else if (o.k === 'boss') drawBoss(boss);
+    else if (o.k === 'shy') drawTurkey(shy, 5, !S.secrets.has('hat'));
+    else if (o.k === 'chest') drawChest();
     else if (o.k === 'king') { ctx.save(); ctx.translate(25.8 * TS, 5.9 * TS); ctx.scale(1.4, 1.4); drawTurkey({x:0, y:0, face:-1, moving:false, anim:0, peck:false, alert:false, flee:0}, 0); crownPath(-10, -22, 5, 6); ctx.restore(); }
     else if (o.k === 'shot') { ell(o.s.x, o.s.y - 12, 5, 6, '#a06a32'); ell(o.s.x, o.s.y - 16, 5.5, 3, '#5a3a1c'); }
     else if (o.k === 'pick') { ell(o.p.x, o.p.y + 8, 8, 3, 'rgba(0,0,0,.18)'); ctx.font = '20px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText('🌽', o.p.x, o.p.y - 4 + Math.sin(tick * 3 + o.p.x) * 3); }
@@ -1504,6 +1548,7 @@ function drawCert(){
   [[`${N} of ${N}`, 'key pieces found'], [`${S.first} of ${S.total}`, 'right on the first try'], [`${S.shooed}`, 'turkeys shooed away'], [`${S.earned}`, 'golden feathers earned'], [`${m}:${sec}`, 'time in Violet']].forEach(([v, l], i) => {
     const x = 225 + i * 300; text(v, x, 945, '700 54px ' + B, '#5b3a8c'); text(l, x, 985, '26px ' + B, '#66566e'); });
   text(`${S.name} is thankful for ${S.thx}.`, CX, 1065, 'italic 34px ' + B, '#2a1c33', 1380);
+  text(`Secrets of Violet discovered: ${S.secrets.size} of 3`, CX, 1108, '26px ' + B, '#66566e');
   g.fillStyle = '#2a1c33'; g.fillRect(260, 1150, 380, 3); g.fillRect(1010, 1150, 380, 3);
   text(new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}), 450, 1138, '30px ' + B, '#2a1c33');
   text('Date', 450, 1185, '24px ' + B, '#66566e'); text('Teacher', 1200, 1185, '24px ' + B, '#66566e');
@@ -1536,7 +1581,7 @@ function showHelp(){
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
     <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
     <div><b>Golden feathers</b><span>Earn them with right answers and find them around the farm. Spend them at the General Store by the town square.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
-    <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all 9, then go to the Feast Hall at the north end of town.</p>
+    <p>Answer each villager’s questions to earn a piece of the Feast Key and a quick bonus game. Collect all 9, then go to the Feast Hall at the north end of town. Violet also hides 3 secrets. Can you find them all?</p>
     <button type="button" class="btn" id="go">Back to Violet</button>`;
   $('#go').onclick = closeModal; $('#go').focus();
 }
@@ -1608,11 +1653,11 @@ function begin(saved){
   if (saved) {
     S.name = saved.name || 'Pilgrim'; setGrade(saved.grade >= 1 && saved.grade <= 4 ? saved.grade : 4); S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
     S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
-    S.feathers = saved.feathers | 0; S.earned = saved.earned | 0; S.owned = new Set(saved.owned || []); S.hat = saved.hat || ''; S.pet = saved.pet || ''; S.bossDone = !!saved.bossDone;
+    S.feathers = saved.feathers | 0; S.earned = saved.earned | 0; S.owned = new Set(saved.owned || []); S.hat = saved.hat || ''; S.pet = saved.pet || ''; S.bossDone = !!saved.bossDone; S.secrets = new Set(saved.secrets || []);
     FEATH.forEach((f, i) => { f.got = (saved.got || []).includes(i); });
   } else {
     S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
-    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; FEATH.forEach(f => { f.got = false; });
+    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; S.secrets = new Set(); FEATH.forEach(f => { f.got = false; });
   }
   S.pies = maxPies(); pet.x = player.x; pet.y = player.y + 12;
   if (S.solved.size >= N && !S.bossDone) spawnBoss();
@@ -1629,7 +1674,7 @@ if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else ad
 let last = performance.now();
 function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); else if (S.state === 'mini') updateMini(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, startMini, getMini:() => mini, getShy:() => shy, CHEST, W, H};
 })();
 </script>
 </body>
