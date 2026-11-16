@@ -129,6 +129,13 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
 @media (prefers-reduced-motion:reduce){ .leaves{display:none} .kp.new{animation:none} }
 @media (max-width:640px){ #hud .brand{display:none} }
 #wincard{max-width:780px;position:relative}
+.shop{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:.5rem}
+.item{display:flex;align-items:center;gap:.6rem;border:2px solid var(--line);border-radius:12px;padding:.45rem .6rem}
+.item.on{border-color:var(--gold)}
+.item .ic{font-size:1.6rem}
+.item .grow{flex:1}
+.item .grow span{display:block;color:var(--muted);font-size:.88rem}
+.item .btn{padding:.35rem .7rem;font-size:.9rem;white-space:nowrap}
 .certimg{display:block;width:100%;height:auto;border-radius:8px;margin:.8rem 0;box-shadow:0 2px 10px rgba(0,0,0,.25)}
 @media print{
   @page{size:landscape;margin:.4in}
@@ -149,6 +156,7 @@ kbd{font-family:inherit;font-weight:700;min-width:58px;text-align:center;padding
   <div class="stat" id="pieces">0 of 9</div>
   <div class="stat" id="pies" aria-label="Pies left"></div>
   <div class="stat" id="corn">🌽 3</div>
+  <div class="stat" id="feath" aria-label="Golden feathers">🪶 0</div>
   <div class="spacer"></div>
   <button id="bHelp" type="button">How to play</button>
   <button id="bRead" type="button">Read aloud off</button>
@@ -753,7 +761,8 @@ const STATIONS = [
   intro:'I keep Violet safe, on the road and online. Show me you know how to be safe, kind, and smart on the internet.', thanks:'You are a fine digital citizen! This piece was stuck in my lantern.', pool:() => fromList(DIGCIT)}
 ];
 const HALL = {id:'hall', name:'Feast Hall', icon:'🍽️', x:21, y:1, w:7, h:4, wall:'#8a5c38', roof:'#4b2a66'};
-const ALL = [...STATIONS, HALL];
+const SHOP = {id:'shop', name:'General Store', icon:'🪶', x:17, y:11, w:5, h:3, wall:'#d7c7a3', roof:'#2f6b4f'};
+const ALL = [...STATIONS, HALL, SHOP];
 for (const s of ALL) { s.door = {x:s.x + (s.w >> 1), y:s.y + s.h - 1}; s.step = {x:s.door.x, y:s.door.y + 1}; }
 const N = STATIONS.length;
 
@@ -769,14 +778,14 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
   }
   rect(3, 17, 42, 1, T.P); rect(6, 9, 37, 1, T.P); rect(6, 26, 37, 1, T.P);
   rect(6, 9, 1, 18, T.P); rect(42, 9, 1, 18, T.P); rect(15, 9, 1, 18, T.P); rect(33, 9, 1, 18, T.P);
-  rect(24, 5, 1, 22, T.P); rect(29, 14, 1, 3, T.P);
+  rect(24, 5, 1, 22, T.P); rect(29, 14, 1, 3, T.P); rect(19, 14, 1, 3, T.P);
   rect(21, 14, 7, 7, T.PLAZA); set(24, 17, T.WELL);
   rect(8, 11, 6, 5, T.CORN); rect(8, 13, 6, 1, T.P);
   rect(35, 11, 6, 5, T.CORN); rect(35, 13, 6, 1, T.P);
   rect(44, 2, 3, 5, T.WATER); set(44, 2, T.G); set(44, 6, T.G);
   rect(2, 28, 4, 3, T.WATER); set(2, 28, T.G); set(5, 30, T.G);
   for (const [x, y] of [[8,19],[10,19],[12,19],[9,21],[11,21],[13,20]]) set(x, y, T.PUMP);
-  for (const [x, y] of [[13,7],[7,7],[30,19],[31,19],[18,12],[36,7]]) set(x, y, T.HAY);
+  for (const [x, y] of [[13,7],[7,7],[30,19],[31,19],[36,7]]) set(x, y, T.HAY);
   for (const s of ALL) { rect(s.x, s.y, s.w, s.h, T.BLD); set(s.step.x, s.step.y, T.STEP); }
   const open = t => t === T.P || t === T.PLAZA || t === T.STEP || t === T.BLD || t === T.WELL;
   for (let y = 2; y < 27; y++) for (let x = 2; x < W - 2; x++) {
@@ -791,13 +800,35 @@ const tile = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? T.TREE : map[y * W
 
 /* ---------------- State ---------------- */
 const SKINS = ['#f6d2b0', '#e0ac7e', '#b97c50', '#7a4a2c'];
-const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:''};
+const S = {state:'title', name:'Pilgrim', grade:0, skin:0, solved:new Set(), pies:3, corn:3, gobbles:0, shooed:0, elapsed:0, first:0, total:0, armed:true, thx:'', feathers:0, earned:0, owned:new Set(), hat:'', pet:'', bossDone:false};
 const player = {x:24.5 * TS, y:19.5 * TS, hw:9, hh:7, dir:'down', walk:0, inv:0, moving:false};
 const keys = {up:false, down:false, left:false, right:false};
 const TNAMES = ['Sir Gobbles','Drumstick','Wattles','Giblet','Waddles','Nugget','Pecky','Cranberry','Feathers','Biscuit'];
 const TSPAWN = [[10,9],[38,9],[6,20],[42,20],[12,26],[36,26],[33,12],[15,22],[28,9],[20,26]];
 let turkeys = [];
 const pickups = [[11,13],[38,13],[3,17],[44,17],[24,11],[6,22],[42,22],[19,29],[31,29],[24,23]].map(([x, y]) => ({x:(x + .5) * TS, y:(y + .5) * TS, t:0}));
+const FEATH = [[8,9,1],[20,9,1],[27,9,1],[40,9,1],[6,12,1],[6,24,1],[42,12,1],[42,24,1],[15,13,1],[15,20,1],[33,15,1],[33,22,1],[9,13,2],[36,13,2],[22,26,1],[30,26,1],[12,17,1],[37,17,1],[24,25,1],[27,27,1],[14,29,3],[26,29,3],[37,31,3]]
+  .filter(([x, y]) => !SOLID.has(tile(x, y))).map(([x, y, v]) => ({x:(x + .5) * TS, y:(y + .5) * TS, v, got:false}));
+const SHOPITEMS = [
+  {id:'straw', kind:'hat', icon:'👒', name:'Straw hat', cost:6, about:'A farmer’s favorite.'},
+  {id:'pumpkin', kind:'hat', icon:'🎃', name:'Pumpkin hat', cost:10, about:'Fresh from the patch.'},
+  {id:'chef', kind:'hat', icon:'🧑‍🍳', name:'Baker’s hat', cost:14, about:'Tall, white, and puffy.'},
+  {id:'crown', kind:'hat', icon:'👑', name:'Golden crown', cost:20, about:'Fit for the ruler of Violet.'},
+  {id:'puppy', kind:'pet', icon:'🐶', name:'Puppy', cost:12, about:'Follows you everywhere.'},
+  {id:'kitten', kind:'pet', icon:'🐱', name:'Kitten', cost:12, about:'Follows you everywhere.'},
+  {id:'chick', kind:'pet', icon:'🐥', name:'Baby chick', cost:16, about:'Small, yellow, and loyal.'},
+  {id:'boots', kind:'gear', icon:'🥾', name:'Speedy boots', cost:15, about:'Run faster than any turkey.'},
+  {id:'sling', kind:'gear', icon:'🌰', name:'Super acorns', cost:12, about:'Acorns fly farther and scare turkeys longer.'},
+  {id:'pie', kind:'gear', icon:'🥧', name:'Extra pie', cost:10, about:'Carry 4 pies instead of 3.'},
+  {id:'corn', kind:'use', icon:'🌽', name:'Bag of corn', cost:2, about:'3 more corn to drop.'}
+];
+const KING = {id:'king', icon:'👑', name:'King Gobble', who:'King Gobble', skill:'', sub:'Answer his riddle to pluck a tail feather', intro:'GOBBLE! Nobody gets past me without answering my royal riddle!'};
+const pet = {x:0, y:0, face:1, anim:0, moving:false};
+const HOME = {x:24.5 * TS, y:7.2 * TS};
+let boss = null;
+const maxPies = () => 3 + (S.owned.has('pie') ? 1 : 0);
+function addFeathers(n){ S.feathers += n; S.earned += n; updateHud(); }
+function spawnBoss(){ const max = {1:3, 2:4}[S.grade] || 5; boss = {x:HOME.x, y:HOME.y, hw:15, hh:10, hp:max, max, name:'King Gobble', face:1, anim:0, mode:'strut', mt:2.5, vx:0, vy:0, inv:0, flee:0, moving:false}; }
 let drops = [], shots = [], parts = [], cool = 0, tick = 0, shake = 0, scale = 1, ses = null, dl = null;
 const DIRS = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
 const solidP = (x, y) => SOLID.has(tile(x, y));
@@ -807,11 +838,11 @@ function resetWorld(){
   player.x = 24.5 * TS; player.y = 19.5 * TS; player.inv = 0; player.dir = 'down';
   turkeys = TSPAWN.map(([x, y], i) => ({x:(x + .5) * TS, y:(y + .5) * TS, hw:10, hh:8, sp:58 + (i % 4) * 6, name:TNAMES[i], face:1, wx:0, wy:0, wt:0, flee:0, anim:i, peck:false, busy:false, alert:false, moving:false}));
   drops = []; shots = []; parts = []; for (const p of pickups) p.t = 0;
-  S.pies = 3; S.corn = 3; S.armed = true;
+  S.pies = maxPies(); S.corn = 3; S.armed = true; boss = null; pet.x = player.x; pet.y = player.y + 12;
 }
 
 const KEY = 'violet-feast-v1';
-function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total})); } catch (e) {} }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({name:S.name, grade:S.grade, skin:S.skin, solved:[...S.solved], gobbles:S.gobbles, shooed:S.shooed, elapsed:Math.round(S.elapsed), first:S.first, total:S.total, feathers:S.feathers, earned:S.earned, owned:[...S.owned], hat:S.hat, pet:S.pet, bossDone:S.bossDone, got:FEATH.map((f, i) => f.got ? i : -1).filter(i => i >= 0)})); } catch (e) {} }
 function load(){ try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && Array.isArray(d.solved) ? d : null; } catch (e) { return null; } }
 
 /* ---------------- Sound ---------------- */
@@ -833,6 +864,7 @@ const sfx = {
   gobble(){ for (let i = 0; i < 6; i++) beep(280 + (i % 2) * 130, .07, 'sawtooth', .04, i * .07); },
   corn(){ beep(990, .08, 'triangle', .05); },
   toss(){ beep(540, .06, 'triangle', .04); },
+  feather(){ beep(1175, .08, 'triangle', .05); beep(1568, .12, 'triangle', .05, .07); },
   bonk(){ beep(230, .09, 'square', .05); beep(140, .12, 'square', .05, .08); },
   win(){ [523, 659, 784, 659, 784, 1047, 1319].forEach((f, i) => beep(f, .25, 'triangle', .07, i * .15)); }
 };
@@ -851,8 +883,9 @@ function keySVG(newIdx, pre){
 function updateHud(){
   $('#keywrap').innerHTML = keySVG(-1, 'hk');
   $('#pieces').textContent = `${S.solved.size} of ${N}`;
-  $('#pies').innerHTML = [0, 1, 2].map(i => `<span class="${i < S.pies ? '' : 'lost'}">🥧</span>`).join('');
+  $('#pies').innerHTML = Array.from({length:maxPies()}, (_, i) => i).map(i => `<span class="${i < S.pies ? '' : 'lost'}">🥧</span>`).join('');
   $('#corn').textContent = `🌽 ${S.corn}`;
+  $('#feath').textContent = `🪶 ${S.feathers}`;
 }
 let toastT = 0;
 function toast(msg){ const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 3600); }
@@ -881,11 +914,12 @@ function dropCorn(){
 function throwAcorn(){
   if (S.state !== 'play' || cool > 0) return;
   const d = DIRS[player.dir];
-  shots.push({x:player.x + d[0] * 10, y:player.y + d[1] * 10, vx:d[0] * 430, vy:d[1] * 430, t:.6}); cool = .4; sfx.toss();
+  const sl = S.owned.has('sling'), v = sl ? 540 : 430;
+  shots.push({x:player.x + d[0] * 10, y:player.y + d[1] * 10, vx:d[0] * v, vy:d[1] * v, t:sl ? .8 : .6}); cool = .4; sfx.toss();
 }
 function gobble(t){
   S.pies--; S.gobbles++; player.inv = 2.5; t.flee = 2; shake = .3; sfx.gobble();
-  if (S.pies <= 0) { S.pies = 3; player.x = 24.5 * TS; player.y = 19.5 * TS; toast(`Gobble gobble! ${t.name} chased you back to the well. Your pies are refilled.`); }
+  if (S.pies <= 0) { S.pies = maxPies(); player.x = 24.5 * TS; player.y = 19.5 * TS; toast(`Gobble gobble! ${t.name} chased you back to the well. Your pies are refilled.`); }
   else toast(`${t.name} bumped you and you dropped a pie! Throw acorns with the Space bar to shoo turkeys away.`);
   updateHud(); save();
 }
@@ -895,7 +929,7 @@ function update(dt){
   if (keys.left) dx--; if (keys.right) dx++; if (keys.up) dy--; if (keys.down) dy++;
   player.moving = false;
   if (dx || dy) {
-    const l = Math.hypot(dx, dy), sp = 150 * dt;
+    const l = Math.hypot(dx, dy), sp = (S.owned.has('boots') ? 195 : 150) * dt;
     player.moving = move(player, dx / l * sp, dy / l * sp, solidP);
     player.walk += dt * 11;
     player.dir = dx ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
@@ -905,6 +939,15 @@ function update(dt){
   for (const p of pickups) {
     if (p.t > 0) { p.t -= dt; continue; }
     if (Math.hypot(p.x - player.x, p.y - player.y) < 22) { S.corn = Math.min(9, S.corn + 2); p.t = 45; sfx.corn(); toast('You found corn! Press C to drop it for the turkeys.'); updateHud(); }
+  }
+  for (const f of FEATH) if (!f.got && Math.hypot(f.x - player.x, f.y - player.y) < 22) {
+    f.got = true; addFeathers(f.v); sfx.feather(); save();
+    toast(`You found ${f.v === 1 ? 'a golden feather' : f.v + ' golden feathers'}! Spend them at the General Store.`);
+  }
+  if (S.pet) {
+    const d = Math.hypot(player.x - pet.x, player.y - pet.y); pet.anim += dt * 10; pet.moving = false;
+    if (d > 220) { pet.x = player.x; pet.y = player.y + 12; }
+    else if (d > 30) { const st = Math.min(d - 30, 200 * dt); pet.x += (player.x - pet.x) / d * st; pet.y += (player.y - pet.y) / d * st; pet.moving = true; pet.face = player.x < pet.x ? -1 : 1; }
   }
   for (const c of drops) c.t -= dt;
   drops = drops.filter(c => c.t > 0);
@@ -918,10 +961,11 @@ function update(dt){
     for (let i = 0; i < n && s.t > 0; i++) {
       const t = turkeys[i];
       if (Math.hypot(t.x - s.x, t.y - s.y) < 19) {
-        s.t = 0; t.flee = 4; S.shooed++; sfx.bonk();
+        s.t = 0; t.flee = S.owned.has('sling') ? 7 : 4; S.shooed++; sfx.bonk();
         for (let k = 0; k < 7; k++) parts.push({x:t.x, y:t.y - 10, vx:(Math.random() - .5) * 160, vy:-Math.random() * 120, t:.6, c:FAN[k % 5]});
       }
     }
+    if (boss && s.t > 0 && boss.inv <= 0 && Math.hypot(boss.x - s.x, boss.y - 12 - s.y) < 30) { s.t = 0; sfx.bonk(); openBossQ(); }
   }
   shots = shots.filter(s => s.t > 0);
   for (const p of parts) { p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; }
@@ -947,6 +991,20 @@ function update(dt){
     if (vx || vy) { t.moving = move(t, vx * sp * dt, vy * sp * dt, solidT); if (!t.moving) t.wt = 0; if (Math.abs(vx) > .15) t.face = vx < 0 ? -1 : 1; }
     if (!t.busy && player.inv <= 0 && !safe && pd < 20) gobble(t);
   }
+  if (boss && S.state === 'play') {
+    const b = boss, dx = player.x - b.x, dy = player.y - b.y, d = Math.hypot(dx, dy) || 1, gs = {1:.7, 2:.8, 3:.9}[S.grade] || 1, rage = 1 + (b.max - b.hp) * .12;
+    let vx = 0, vy = 0, sp = 0;
+    b.anim += dt * 9; b.inv = Math.max(0, b.inv - dt); b.mt -= dt;
+    if (b.mode === 'strut') {
+      if (d < 9 * TS && !safe) { vx = dx / d; vy = dy / d; sp = 62 * rage * gs; if (b.mt <= 0 && d < 6 * TS) { b.mode = 'wind'; b.mt = .8; } }
+      else { const hd = Math.hypot(HOME.x - b.x, HOME.y - b.y); if (hd > 6) { vx = (HOME.x - b.x) / hd; vy = (HOME.y - b.y) / hd; sp = 80; } }
+    } else if (b.mode === 'wind') { if (b.mt <= 0) { b.mode = 'dash'; b.mt = .55; b.vx = dx / d; b.vy = dy / d; } }
+    else if (b.mode === 'dash') { vx = b.vx; vy = b.vy; sp = 250 * gs; if (b.mt <= 0) { b.mode = 'tired'; b.mt = 1.8; } }
+    else if (b.mt <= 0) { b.mode = 'strut'; b.mt = 2 + Math.random() * 1.5; }
+    b.moving = false;
+    if (sp) { b.moving = move(b, vx * sp * dt, vy * sp * dt, solidT); if (Math.abs(vx) > .15) b.face = vx < 0 ? -1 : 1; if (!b.moving && b.mode === 'dash') { b.mode = 'tired'; b.mt = 1.8; } }
+    if (b.inv <= 0 && b.mode !== 'tired' && player.inv <= 0 && !safe && d < 30) { gobble(b); b.mode = 'tired'; b.mt = 1.5; }
+  }
   const tx = Math.floor(player.x / TS), ty = Math.floor(player.y / TS);
   let on = null;
   for (const s of ALL) if (s.step.x === tx && s.step.y === ty) on = s;
@@ -954,6 +1012,7 @@ function update(dt){
   else if (S.armed) {
     S.armed = false;
     if (on === HALL) openHall();
+    else if (on === SHOP) openShop();
     else if (S.solved.has(on.id)) toast(`${on.who}: “You already earned my piece. Keep going!”`);
     else openStation(on);
   }
@@ -1040,7 +1099,7 @@ function drawPlayer(){
   if (player.inv > 0 && Math.floor(tick * 12) % 2) return;
   const x = player.x, y = player.y, b = player.moving ? Math.sin(player.walk) * 1.5 : 0, sw = player.moving ? Math.sin(player.walk) : 0;
   ell(x, y + 7, 10, 4, 'rgba(0,0,0,.22)');
-  ctx.fillStyle = '#3a2a1e'; ctx.fillRect(x - 6, y - 2 - (sw > .3 ? 2 : 0), 5, 9); ctx.fillRect(x + 1, y - 2 - (sw < -.3 ? 2 : 0), 5, 9);
+  ctx.fillStyle = S.owned.has('boots') ? '#c62020' : '#3a2a1e'; ctx.fillRect(x - 6, y - 2 - (sw > .3 ? 2 : 0), 5, 9); ctx.fillRect(x + 1, y - 2 - (sw < -.3 ? 2 : 0), 5, 9);
   ctx.fillStyle = '#2b3350'; rr(x - 9, y - 17 + b, 18, 17, 4); ctx.fill();
   ctx.fillStyle = '#fff'; ctx.fillRect(x - 6, y - 17 + b, 12, 4);
   ctx.fillStyle = '#15151b'; ctx.fillRect(x - 9, y - 8 + b, 18, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 9 + b, 4, 5);
@@ -1049,14 +1108,52 @@ function drawPlayer(){
   if (player.dir === 'down') { ctx.fillRect(x - 4, y - 24 + b, 2, 3); ctx.fillRect(x + 2, y - 24 + b, 2, 3); }
   else if (player.dir === 'left') ctx.fillRect(x - 6, y - 24 + b, 2, 3);
   else if (player.dir === 'right') ctx.fillRect(x + 4, y - 24 + b, 2, 3);
-  rr(x - 12, y - 32 + b, 24, 4, 2); ctx.fill(); ctx.fillRect(x - 7, y - 42 + b, 14, 11);
-  ctx.fillStyle = '#7d55b8'; ctx.fillRect(x - 7, y - 35 + b, 14, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 36 + b, 4, 5);
+  drawHat(x, y + b);
+}
+function crownPath(x, y, w, h){ ctx.fillStyle = '#e3a008'; ctx.beginPath(); ctx.moveTo(x - w, y); ctx.lineTo(x - w, y - h); ctx.lineTo(x - w / 2, y - h / 2); ctx.lineTo(x, y - h - 2); ctx.lineTo(x + w / 2, y - h / 2); ctx.lineTo(x + w, y - h); ctx.lineTo(x + w, y); ctx.closePath(); ctx.fill(); }
+function drawHat(x, y){
+  const h = S.hat;
+  if (h === 'straw') { ell(x, y - 30, 14, 4, '#e3c26a'); ctx.fillStyle = '#ecd58e'; rr(x - 7, y - 39, 14, 9, 4); ctx.fill(); ctx.fillStyle = '#b63a25'; ctx.fillRect(x - 7, y - 33, 14, 2.5); }
+  else if (h === 'pumpkin') { ell(x, y - 35, 11, 8, '#e8791c'); ell(x, y - 35, 5, 8, '#d5681a'); ctx.fillStyle = '#5c7a2a'; ctx.fillRect(x - 1.5, y - 46, 3, 5); }
+  else if (h === 'chef') { ctx.fillStyle = '#fff'; ctx.fillRect(x - 7, y - 37, 14, 8); ell(x - 5, y - 40, 5, 5, '#fff'); ell(x + 5, y - 40, 5, 5, '#fff'); ell(x, y - 43, 6, 6, '#fff'); ctx.fillStyle = '#cfc8ba'; ctx.fillRect(x - 7, y - 31, 14, 1.5); }
+  else if (h === 'crown') { crownPath(x, y - 29, 9, 11); ell(x, y - 32, 1.8, 1.8, '#c62020'); ell(x - 5.5, y - 32, 1.5, 1.5, '#5b3a8c'); ell(x + 5.5, y - 32, 1.5, 1.5, '#5b3a8c'); }
+  else { ctx.fillStyle = '#1c1c22'; rr(x - 12, y - 32, 24, 4, 2); ctx.fill(); ctx.fillRect(x - 7, y - 42, 14, 11); ctx.fillStyle = '#7d55b8'; ctx.fillRect(x - 7, y - 35, 14, 3); ctx.fillStyle = '#e3a008'; ctx.fillRect(x - 2, y - 36, 4, 5); }
+}
+function drawPet(){
+  const x = pet.x, f = pet.face, y = pet.y + (pet.moving ? Math.sin(pet.anim) * 1.5 : 0), k = S.pet;
+  ell(x, pet.y + 5, 9, 3, 'rgba(0,0,0,.2)');
+  if (k === 'chick') {
+    ctx.fillStyle = '#e08a1e'; ctx.fillRect(x - 3, y + 1, 2, 4); ctx.fillRect(x + 1, y + 1, 2, 4);
+    ell(x, y - 3, 7, 6, '#f6d34a'); ell(x + f * 5, y - 9, 4.5, 4.5, '#f6d34a'); ell(x + f * 6.5, y - 10, 1, 1, '#111');
+    ctx.fillStyle = '#e08a1e'; ctx.beginPath(); ctx.moveTo(x + f * 9, y - 10); ctx.lineTo(x + f * 13, y - 8.5); ctx.lineTo(x + f * 9, y - 7); ctx.closePath(); ctx.fill();
+  } else {
+    const c = k === 'puppy' ? '#b97a45' : '#8d8f98', c2 = k === 'puppy' ? '#7a4a2b' : '#6c6e77';
+    ctx.fillStyle = c2; ctx.fillRect(x - 6, y, 3, 5); ctx.fillRect(x + 3, y, 3, 5);
+    ell(x - f * 10, y - 8 + (k === 'puppy' ? Math.sin(tick * 14) * 2 : -3), 2, 5, c, k === 'puppy' ? f * .6 : 0);
+    ell(x, y - 4, 9, 6, c); ell(x + f * 8, y - 10, 6, 5.5, c);
+    if (k === 'puppy') { ell(x + f * 5, y - 12, 2.5, 4.5, c2); ell(x + f * 13, y - 9, 1.6, 1.6, '#222'); }
+    else { ctx.fillStyle = c2; for (const o of [4.5, 10.5]) { ctx.beginPath(); ctx.moveTo(x + f * (o - 2.5), y - 14); ctx.lineTo(x + f * o, y - 19); ctx.lineTo(x + f * (o + 2.5), y - 14); ctx.closePath(); ctx.fill(); } ell(x + f * 13, y - 9, 1.1, 1.1, '#e79aa5'); }
+    ell(x + f * 9.5, y - 11, 1.1, 1.1, '#111');
+  }
+}
+function drawFeather(f){
+  const y = f.y - 8 + Math.sin(tick * 3 + f.x) * 3, big = f.v > 1;
+  ell(f.x, f.y + 8, 7, 3, 'rgba(0,0,0,.18)'); ell(f.x, y, big ? 6 : 4.5, big ? 14 : 10, '#f2b632', .5); ell(f.x + 1, y - 1, 1.4, big ? 11 : 8, '#fff3c4', .5);
+}
+function drawBoss(b){
+  if (b.inv > 0 && Math.floor(tick * 12) % 2) return;
+  ctx.save(); ctx.translate(b.x + (b.mode === 'wind' ? Math.sin(tick * 60) * 2 : 0), b.y); ctx.scale(2, 2);
+  drawTurkey({x:0, y:0, face:b.face, moving:b.moving, anim:b.anim, peck:b.mode === 'tired', alert:b.mode === 'wind', flee:0}, Math.ceil(b.hp / b.max * 5));
+  if (b.mode !== 'tired') crownPath(b.face * 10, -22, 5, 6);
+  ctx.restore();
+  for (let i = 0; i < b.max; i++) ell(b.x - (b.max - 1) * 7 + i * 14, b.y - 84, 5, 5, i < b.hp ? '#e3a008' : 'rgba(0,0,0,.3)');
+  if (b.mode === 'tired') { ctx.font = '18px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText('💫', b.x, b.y - 62); }
 }
 const FAN = ['#b63a25', '#e2792a', '#f0bf3a', '#e2792a', '#b63a25'];
-function drawTurkey(t){
+function drawTurkey(t, nf){
   const x = t.x, y = t.y, f = t.face, b = t.moving ? Math.sin(t.anim) * 1.5 : 0;
   ell(x, y + 8, 12, 4, 'rgba(0,0,0,.2)');
-  for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 - f * .55 + (i - 2) * .36; ell(x + Math.cos(a) * 14, y - 8 + Math.sin(a) * 14 + b, 9, 5, FAN[i], a); }
+  for (let i = 0; i < (nf === undefined ? 5 : nf); i++) { const a = -Math.PI / 2 - f * .55 + (i - 2) * .36; ell(x + Math.cos(a) * 14, y - 8 + Math.sin(a) * 14 + b, 9, 5, FAN[i], a); }
   ctx.fillStyle = '#e08a1e'; ctx.fillRect(x - 5, y + 2, 2, 6); ctx.fillRect(x + 3, y + 2, 2, 6);
   ell(x, y - 6 + b, 11, 10, '#7a4a2b'); ell(x - f * 2, y - 5 + b, 6, 5, '#5f3820');
   const hx = x + f * 10, hy = y - 17 + b + (t.peck ? 13 + Math.sin(tick * 14) * 3 : 0);
@@ -1085,11 +1182,19 @@ function render(){
   for (const b of ALL) list.push({k:'bld', b, sy:(b.y + b.h) * TS - 2});
   const n = activeTurkeys(); for (let i = 0; i < n; i++) list.push({k:'tk', t:turkeys[i], sy:turkeys[i].y});
   list.push({k:'me', sy:player.y});
+  for (const f of FEATH) if (!f.got) list.push({k:'fe', f, sy:f.y});
+  if (S.pet) list.push({k:'pet', sy:pet.y});
+  if (boss) list.push({k:'boss', sy:boss.y});
+  else if (S.bossDone) list.push({k:'king', sy:5.9 * TS});
   list.sort((a, b) => a.sy - b.sy);
   for (const o of list) {
     if (o.k === 'bld') drawBuilding(o.b);
     else if (o.k === 'tk') drawTurkey(o.t);
     else if (o.k === 'me') drawPlayer();
+    else if (o.k === 'fe') drawFeather(o.f);
+    else if (o.k === 'pet') drawPet();
+    else if (o.k === 'boss') drawBoss(boss);
+    else if (o.k === 'king') { ctx.save(); ctx.translate(25.8 * TS, 5.9 * TS); ctx.scale(1.4, 1.4); drawTurkey({x:0, y:0, face:-1, moving:false, anim:0, peck:false, alert:false, flee:0}, 0); crownPath(-10, -22, 5, 6); ctx.restore(); }
     else if (o.k === 'shot') { ell(o.s.x, o.s.y - 12, 5, 6, '#a06a32'); ell(o.s.x, o.s.y - 16, 5.5, 3, '#5a3a1c'); }
     else if (o.k === 'pick') { ell(o.p.x, o.p.y + 8, 8, 3, 'rgba(0,0,0,.18)'); ctx.font = '20px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#000'; ctx.fillText('🌽', o.p.x, o.p.y - 4 + Math.sin(tick * 3 + o.p.x) * 3); }
     else drawTall(o);
@@ -1172,7 +1277,7 @@ function renderQ(){
   else if (q.type === 'key') body = `<div class="keys">${q.ctrl ? '<kbd>Ctrl</kbd><span>+</span>' : q.shift ? '<kbd>Shift</kbd><span>+</span>' : ''}<kbd id="kc">?</kbd></div><p class="tip">${q.ctrl ? 'Hold Ctrl, then tap the letter.' : q.shift ? 'Hold Shift, then tap the key.' : 'Find the key on your keyboard and press it.'} <button type="button" class="leave" id="nokeys">No keyboard? Show choices instead</button></p>`;
   else { ses.pick = []; do { ses.shuf = shuffle(q.steps.map((_, k) => k)); } while (ses.shuf.every((v, k) => v === k));
     body = `<p class="tip">Tap the steps in order. Tap a numbered step to take it back.</p><div class="order" id="ord"></div><button type="button" class="btn" id="chk" disabled>Check my order</button>`; }
-  card.innerHTML = `<div class="who"><span class="badge">${s.icon}</span><div class="grow"><h2>${s.name}</h2><p class="sub">${s.who} needs help with: ${skillOf(s).toLowerCase()}</p></div><button type="button" class="leave" id="leave">Leave</button></div>
+  card.innerHTML = `<div class="who"><span class="badge">${s.icon}</span><div class="grow"><h2>${s.name}</h2><p class="sub">${s.sub || `${s.who} needs help with: ${skillOf(s).toLowerCase()}`}</p></div><button type="button" class="leave" id="leave">Leave</button></div>
     ${i === 0 ? `<p class="say">“${s.intro}”</p>` : ''}
     <div class="dots" aria-label="Question ${i + 1} of ${qs.length}">${qs.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'now' : ''}"></i>`).join('')}</div>
     ${canSpeak && autoRead ? '<button type="button" class="btn ghost readbtn" id="read">🔊 Read it again</button>' : ''}
@@ -1180,7 +1285,7 @@ function renderQ(){
     <button type="button" class="btn" id="next" hidden></button>`;
   $('#leave').onclick = closeModal;
   hush(); if (canSpeak && autoRead) { $('#read').onclick = readQ; readQ(); }
-  $('#next').onclick = () => { ses.i++; if (ses.i >= ses.qs.length) award(); else renderQ(); };
+  $('#next').onclick = () => { ses.i++; if (ses.i < ses.qs.length) renderQ(); else if (ses.boss) bossHit(); else award(); };
   if (q.type === 'mc') card.querySelectorAll('.choice').forEach(b => b.onclick = () => {
     if (ses.done) return;
     if (+b.dataset.k === q.a) { b.classList.add('good'); card.querySelectorAll('.choice').forEach(c => c.disabled = true); right(); }
@@ -1213,20 +1318,70 @@ function checkNum(){
 }
 function right(){
   ses.done = true; S.total++; if (!ses.missed) S.first++; sfx.ok();
-  const fb = $('#fb'), nx = $('#next'); fb.className = 'fb ok'; fb.textContent = pick(['Correct!', 'Nicely done!', 'You got it!', 'Sharp thinking!']);
-  nx.hidden = false; nx.textContent = ses.i < ses.qs.length - 1 ? 'Next question' : 'Claim the key piece'; nx.focus();
+  const gain = ses.missed ? 1 : 2; addFeathers(gain);
+  const fb = $('#fb'), nx = $('#next'); fb.className = 'fb ok'; fb.textContent = `${pick(['Correct!', 'Nicely done!', 'You got it!', 'Sharp thinking!'])} +${gain} 🪶`;
+  nx.hidden = false; nx.textContent = ses.i < ses.qs.length - 1 ? 'Next question' : ses.boss ? 'Pluck a tail feather' : 'Claim the key piece'; nx.focus();
 }
 function wrong(msg){ ses.missed = true; sfx.bad(); const fb = $('#fb'); fb.className = 'fb no'; fb.textContent = 'Not quite. ' + msg; }
 function award(){
-  hush(); const s = ses.s; S.solved.add(s.id); ses = null; save(); updateHud(); sfx.piece();
+  hush(); const s = ses.s; S.solved.add(s.id); ses = null; addFeathers(3); sfx.piece();
   const n = S.solved.size;
+  if (n >= N && !S.bossDone) spawnBoss();
+  save();
   card.innerHTML = `<div class="center"><h2>You earned piece ${n} of ${N}!</h2>${keySVG(STATIONS.indexOf(s), 'big')}
     <p class="say">“${s.thanks}”</p>
-    <p>${n < N ? `${N - n} more to find. Careful: the turkeys are getting bolder!` : 'The key is whole again! Hurry to the Feast Hall at the north end of town.'}</p>
+    <p>You also earned 3 golden feathers. ${n < N ? `${N - n} more ${N - n === 1 ? 'piece' : 'pieces'} to find. Careful: the turkeys are getting bolder!` : 'The key is whole again! But King Gobble, the biggest turkey in Violet, is guarding the Feast Hall. Bonk him with acorns and answer his riddles to pluck his tail feathers!'}</p>
     <button type="button" class="btn" id="go">Back to Violet</button></div>`;
   $('#go').onclick = closeModal; $('#go').focus();
 }
+function openBossQ(){
+  setState('modal'); boss.inv = 2; modal.hidden = false;
+  ses = {s:KING, boss:true, qs:shuffle(poolFor(pick(STATIONS))).slice(0, 1), i:0}; renderQ();
+}
+function bossHit(){
+  hush(); ses = null; boss.hp--; sfx.piece();
+  for (let k = 0; k < 12; k++) parts.push({x:boss.x, y:boss.y - 24, vx:(Math.random() - .5) * 260, vy:-Math.random() * 200, t:.8, c:FAN[k % 5]});
+  if (boss.hp > 0) {
+    const left = boss.hp; boss.x = HOME.x; boss.y = HOME.y; boss.mode = 'tired'; boss.mt = 1.5; boss.inv = 2.5; closeModal();
+    toast(`A tail feather pops off! ${left} to go.`);
+  } else {
+    boss = null; S.bossDone = true; addFeathers(10); save();
+    card.innerHTML = `<div class="center"><h2>King Gobble is out of tail feathers!</h2>
+      <p class="say">“Fine, FINE. I only wanted a seat at the table,” he sniffs.</p>
+      <p>You earned 10 golden feathers, and the Feast Hall door is clear. Walk up to it and use your key!</p>
+      <button type="button" class="btn" id="go">Back to Violet</button></div>`;
+    $('#go').onclick = closeModal; $('#go').focus();
+  }
+}
+function openShop(){ setState('modal'); ses = null; modal.hidden = false; renderShop(); }
+function renderShop(msg){
+  const row = it => {
+    const own = S.owned.has(it.id); let lab = `Buy for ${it.cost} 🪶`, dis = S.feathers < it.cost, on = false;
+    if (own && it.kind === 'gear') { lab = 'Yours'; dis = true; }
+    else if (own) { on = (it.kind === 'hat' ? S.hat : S.pet) === it.id; dis = false; lab = it.kind === 'hat' ? (on ? 'Take off' : 'Wear') : (on ? 'Send home' : 'Bring along'); }
+    return `<div class="item${on ? ' on' : ''}"><span class="ic">${it.icon}</span><div class="grow"><b>${it.name}</b><span>${it.about}</span></div><button type="button" class="btn${own ? ' ghost' : ''}" data-id="${it.id}"${dis ? ' disabled' : ''}>${lab}</button></div>`;
+  };
+  card.innerHTML = `<div class="who"><span class="badge">🪶</span><div class="grow"><h2>General Store</h2><p class="sub">You have ${S.feathers} golden ${S.feathers === 1 ? 'feather' : 'feathers'} to spend.</p></div><button type="button" class="leave" id="leave">Leave</button></div>
+    <p class="say">“${msg || 'Welcome, traveler! I trade fine goods for golden feathers. Earn them by helping the villagers.'}”</p>
+    <div class="shop" id="shop">${SHOPITEMS.map(row).join('')}</div>`;
+  $('#leave').onclick = closeModal;
+  $('#shop').onclick = e => {
+    const b = e.target.closest('button[data-id]'); if (!b || b.disabled) return;
+    const it = SHOPITEMS.find(x => x.id === b.dataset.id); let m = '';
+    if (it.kind === 'use') { S.feathers -= it.cost; S.corn = Math.min(9, S.corn + 3); sfx.corn(); m = 'Fresh corn! The turkeys will love it.'; }
+    else if (!S.owned.has(it.id)) {
+      S.feathers -= it.cost; S.owned.add(it.id); sfx.piece(); m = `A fine choice! Enjoy your ${it.name.toLowerCase()}.`;
+      if (it.kind === 'hat') S.hat = it.id;
+      if (it.kind === 'pet') { S.pet = it.id; pet.x = player.x; pet.y = player.y + 12; }
+      if (it.id === 'pie') S.pies++;
+    }
+    else if (it.kind === 'hat') S.hat = S.hat === it.id ? '' : it.id;
+    else if (it.kind === 'pet') { S.pet = S.pet === it.id ? '' : it.id; pet.x = player.x; pet.y = player.y + 12; }
+    save(); updateHud(); renderShop(m);
+  };
+}
 function openHall(){
+  if (S.solved.size >= N && !S.bossDone) { toast('King Gobble is guarding the door! Bonk him with acorns.'); return; }
   setState('modal'); ses = null; modal.hidden = false;
   if (S.solved.size < N) {
     const left = STATIONS.filter(s => !S.solved.has(s.id));
@@ -1266,8 +1421,8 @@ function drawCert(){
   g.beginPath(); g.arc(28, 28, 22, 0, 6.2832); g.arc(28, 28, 9, 0, 6.2832, true); g.fill();
   g.fillRect(47, 23, 105, 10); g.fillRect(112, 31, 10, 15); g.fillRect(130, 31, 12, 20); g.restore();
   const m = Math.floor(S.elapsed / 60), sec = String(Math.floor(S.elapsed % 60)).padStart(2, '0');
-  [[`${N} of ${N}`, 'key pieces found'], [`${S.first} of ${S.total}`, 'right on the first try'], [`${S.shooed}`, 'turkeys shooed away'], [`${m}:${sec}`, 'time in Violet']].forEach(([v, l], i) => {
-    const x = 285 + i * 360; text(v, x, 945, '700 54px ' + B, '#5b3a8c'); text(l, x, 985, '26px ' + B, '#66566e'); });
+  [[`${N} of ${N}`, 'key pieces found'], [`${S.first} of ${S.total}`, 'right on the first try'], [`${S.shooed}`, 'turkeys shooed away'], [`${S.earned}`, 'golden feathers earned'], [`${m}:${sec}`, 'time in Violet']].forEach(([v, l], i) => {
+    const x = 225 + i * 300; text(v, x, 945, '700 54px ' + B, '#5b3a8c'); text(l, x, 985, '26px ' + B, '#66566e'); });
   text(`${S.name} is thankful for ${S.thx}.`, CX, 1065, 'italic 34px ' + B, '#2a1c33', 1380);
   g.fillStyle = '#2a1c33'; g.fillRect(260, 1150, 380, 3); g.fillRect(1010, 1150, 380, 3);
   text(new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'}), 450, 1138, '30px ' + B, '#2a1c33');
@@ -1300,7 +1455,7 @@ function showHelp(){
   card.innerHTML = `<h2>How to play</h2>
     <div class="how"><div><b>Move</b><span>Arrow keys or W A S D</span></div><div><b>Visit a villager</b><span>Walk up to a building’s door</span></div>
     <div><b>Throw acorns</b><span>Space bar. A bonked turkey runs away and leaves you alone for a few seconds.</span></div><div><b>Drop corn</b><span>C key. Turkeys run to it and can’t hurt you while they eat.</span></div><div><b>Find more corn</b><span>Look for 🌽 around the farm</span></div>
-    <div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
+    <div><b>Golden feathers</b><span>Earn them with right answers and find them around the farm. Spend them at the General Store by the town square.</span></div><div><b>Follow the gold arrow</b><span>It points to the nearest villager who still needs help</span></div><div><b>Catch your breath</b><span>Turkeys never enter the town square</span></div></div>
     <p>Answer each villager’s questions to earn a piece of the Feast Key. Collect all 9, then go to the Feast Hall at the north end of town.</p>
     <button type="button" class="btn" id="go">Back to Violet</button>`;
   $('#go').onclick = closeModal; $('#go').focus();
@@ -1370,9 +1525,14 @@ function begin(saved){
   if (saved) {
     S.name = saved.name || 'Pilgrim'; setGrade(saved.grade >= 1 && saved.grade <= 4 ? saved.grade : 4); S.skin = saved.skin | 0; S.solved = new Set(saved.solved.filter(id => STATIONS.some(s => s.id === id)));
     S.gobbles = saved.gobbles | 0; S.shooed = saved.shooed | 0; S.elapsed = +saved.elapsed || 0; S.first = saved.first | 0; S.total = saved.total | 0;
+    S.feathers = saved.feathers | 0; S.earned = saved.earned | 0; S.owned = new Set(saved.owned || []); S.hat = saved.hat || ''; S.pet = saved.pet || ''; S.bossDone = !!saved.bossDone;
+    FEATH.forEach((f, i) => { f.got = (saved.got || []).includes(i); });
   } else {
     S.name = $('#name').value.trim() || 'Pilgrim'; S.solved = new Set(); S.gobbles = 0; S.shooed = 0; S.elapsed = 0; S.first = 0; S.total = 0;
+    S.feathers = 0; S.earned = 0; S.owned = new Set(); S.hat = ''; S.pet = ''; S.bossDone = false; FEATH.forEach(f => { f.got = false; });
   }
+  S.pies = maxPies(); pet.x = player.x; pet.y = player.y + 12;
+  if (S.solved.size >= N && !S.bossDone) spawnBoss();
   $('#title').hidden = true; setState('play'); updateHud(); save();
   toast(S.solved.size ? `Welcome back, ${S.name}! Follow the gold arrow.` : `Welcome to Violet, ${S.name}! Follow the gold arrow to a villager.`);
 }
@@ -1386,7 +1546,7 @@ if (window.ResizeObserver) new ResizeObserver(fit).observe($('#stage')); else ad
 let last = performance.now();
 function frame(now){ const dt = Math.min(.05, (now - last) / 1000); last = now; tick += dt; if (S.state === 'play') update(dt); render(); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], W, H};
+window.__violet = {S, STATIONS, ALL, tile, SOLID, T, pickups, TSPAWN, player, openStation, poolFor, cur:() => ses.qs[ses.i], FEATH, SHOPITEMS, openShop, getBoss:() => boss, spawnBoss, W, H};
 })();
 </script>
 </body>
